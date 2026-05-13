@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pieceful - MBTI Communication Quest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+Rounded+1c:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #182235;
+      --muted: #64748b;
+      --paper: #fffdf7;
+      --paper-2: #fff7d8;
+      --line: #172033;
+      --pink: #ec4899;
+      --pink-2: #f9a8d4;
+      --blue: #38bdf8;
+      --green: #22c55e;
+      --yellow: #facc15;
+      --orange: #fb923c;
+      --purple: #a855f7;
+      --danger: #ef4444;
+      --ok: #10b981;
+      --shadow: 7px 7px 0 var(--line);
+      --shadow-sm: 4px 4px 0 var(--line);
+      --radius: 22px;
+      --font: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+      --safe-x: clamp(14px, 4vw, 32px);
+      --max: 1040px;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at 16% 12%, rgba(255,255,255,.9) 0 5%, transparent 5.2%),
+        radial-gradient(circle at 84% 18%, rgba(255,255,255,.72) 0 7%, transparent 7.2%),
+        radial-gradient(circle at 72% 78%, rgba(255,255,255,.45) 0 9%, transparent 9.2%),
+        linear-gradient(135deg, #c084fc 0%, #60a5fa 47%, #facc15 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .18;
+      background-image:
+        linear-gradient(rgba(255,255,255,.45) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.45) 1px, transparent 1px);
+      background-size: 24px 24px;
+      mask-image: linear-gradient(to bottom, #000, transparent 90%);
+    }
+
+    button, [role="button"] { font-family: inherit; }
+    button { color: inherit; }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(100%, var(--max));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: clamp(14px, 3vw, 28px) var(--safe-x) clamp(24px, 5vw, 56px);
+      display: grid;
+      place-items: center;
+    }
+
+    .bg-chip {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      filter: drop-shadow(4px 4px 0 rgba(24,34,53,.18));
+      animation: floaty 5s ease-in-out infinite;
+      opacity: .88;
+    }
+    .chip-1 { left: 5vw; top: 9vh; font-size: clamp(34px, 7vw, 78px); }
+    .chip-2 { right: 7vw; top: 11vh; font-size: clamp(40px, 8vw, 90px); animation-delay: .4s; }
+    .chip-3 { left: 8vw; bottom: 12vh; font-size: clamp(28px, 5vw, 54px); animation-delay: .9s; }
+    .chip-4 { right: 12vw; bottom: 10vh; font-size: clamp(30px, 6vw, 68px); animation-delay: 1.2s; }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0) rotate(-3deg); }
+      50% { transform: translateY(-14px) rotate(4deg); }
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      animation: screenIn .28s cubic-bezier(.2,.9,.2,1);
+    }
+    .screen.active { display: block; }
+
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(16px) scale(.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .window {
+      width: 100%;
+      background: var(--paper);
+      border: 4px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .window-bar {
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: #f8fafc;
+      border-bottom: 4px solid var(--line);
+    }
+    .dot {
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--line);
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 10px;
+    }
+    .dot.red { background: #fecaca; }
+    .dot.yellow { background: #fef08a; }
+    .dot.green { background: #bbf7d0; }
+    .bar-title {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+
+    .window-body { padding: clamp(18px, 4vw, 42px); }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: clamp(20px, 5vw, 52px);
+      align-items: center;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border: 3px solid var(--line);
+      border-radius: 999px;
+      background: #eff6ff;
+      box-shadow: var(--shadow-sm);
+      font-size: clamp(12px, 2vw, 14px);
+      font-weight: 900;
+      letter-spacing: .08em;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    .title {
+      font-size: clamp(42px, 10vw, 92px);
+      line-height: .9;
+      font-weight: 900;
+      letter-spacing: -.05em;
+      text-shadow: 5px 5px 0 rgba(255,255,255,.6);
+    }
+    .title small {
+      display: block;
+      margin-top: 10px;
+      font-size: clamp(16px, 4vw, 28px);
+      letter-spacing: .08em;
+    }
+    .lead {
+      margin-top: 18px;
+      font-size: clamp(15px, 2.8vw, 20px);
+      line-height: 1.85;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .hero-card {
+      position: relative;
+      min-height: 330px;
+      border: 4px solid var(--line);
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at 30% 22%, #fff 0 12%, transparent 12.5%),
+        linear-gradient(160deg, #fff7ed, #dbeafe 58%, #fce7f3);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      overflow: hidden;
+    }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -24px -34px -24px;
+      height: 112px;
+      background: linear-gradient(to bottom, #22c55e 0 42%, #92400e 42% 100%);
+      border-top: 4px solid var(--line);
+    }
+    .main-mascot {
+      position: absolute;
+      left: 50%;
+      bottom: 44px;
+      transform: translateX(-50%);
+      width: min(58%, 260px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      animation: hop 2.6s ease-in-out infinite;
+      z-index: 1;
+    }
+    .main-mascot img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(7px 9px 0 rgba(24,34,53,.22));
+    }
+    .speech {
+      position: absolute;
+      top: 22px;
+      right: 18px;
+      max-width: 220px;
+      padding: 12px 14px;
+      border: 3px solid var(--line);
+      border-radius: 20px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      font-weight: 900;
+      line-height: 1.5;
+      z-index: 2;
+    }
+    .speech::after {
+      content: "";
+      position: absolute;
+      bottom: -13px;
+      left: 42px;
+      border-width: 12px 9px 0;
+      border-style: solid;
+      border-color: var(--line) transparent transparent;
+    }
+    .speech::before {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 45px;
+      z-index: 1;
+      border-width: 9px 7px 0;
+      border-style: solid;
+      border-color: white transparent transparent;
+    }
+    .mini-stat {
+      position: absolute;
+      left: 18px;
+      top: 22px;
+      display: grid;
+      gap: 8px;
+      z-index: 2;
+    }
+    .mini-pill {
+      width: fit-content;
+      padding: 7px 10px;
+      border: 3px solid var(--line);
+      border-radius: 999px;
+      background: #fef08a;
+      box-shadow: 3px 3px 0 var(--line);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    @keyframes hop {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(-2deg); }
+      50% { transform: translateX(-50%) translateY(-12px) rotate(2deg); }
+    }
+
+    .actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 28px;
+    }
+    .btn {
+      border: 4px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 22px;
+      min-height: 56px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      font-size: clamp(15px, 2.5vw, 20px);
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+    .btn:hover { transform: translate(-3px,-3px); box-shadow: 7px 7px 0 var(--line); }
+    .btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--line); }
+    .btn.primary { background: var(--yellow); }
+    .btn.pink { background: #fbcfe8; }
+    .btn.blue { background: #bfdbfe; }
+    .btn.full { width: 100%; justify-content: center; }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .back-btn {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--line);
+      border-radius: 16px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .screen-title {
+      text-align: center;
+      font-size: clamp(22px, 4vw, 38px);
+      font-weight: 900;
+      line-height: 1.25;
+    }
+    .subnote {
+      text-align: center;
+      margin: 6px auto 0;
+      max-width: 680px;
+      color: #475569;
+      font-size: clamp(13px, 2.3vw, 16px);
+      line-height: 1.7;
+      font-weight: 700;
+    }
+
+    .character-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(10px, 2.2vw, 18px);
+      margin-top: 24px;
+    }
+    .character-card {
+      position: relative;
+      border: 4px solid var(--line);
+      border-radius: 24px;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      min-height: 154px;
+      padding: 8px;
+      overflow: hidden;
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+    .character-card:hover { transform: translate(-4px,-4px) rotate(-1deg); box-shadow: 8px 8px 0 var(--line); }
+    .character-card::before {
+      content: attr(data-group);
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      z-index: 2;
+      padding: 4px 8px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.86);
+      font-size: 10px;
+      font-weight: 900;
+    }
+    .character-card img {
+      width: 100%;
+      height: 106px;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(3px 5px 0 rgba(24,34,53,.18));
+    }
+    .character-card .type {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      padding: 7px 9px;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: #f8fafc;
+      font-weight: 900;
+      font-size: 13px;
+    }
+    .group-analyst { background: linear-gradient(145deg, #f3e8ff, #fff); }
+    .group-diplomat { background: linear-gradient(145deg, #dcfce7, #fff); }
+    .group-sentinel { background: linear-gradient(145deg, #dbeafe, #fff); }
+    .group-explorer { background: linear-gradient(145deg, #ffedd5, #fff); }
+
+    .stage-map {
+      position: relative;
+      min-height: 620px;
+      margin-top: 18px;
+      border: 4px solid var(--line);
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,.92) 0 21%, transparent 21.5%),
+        radial-gradient(circle at 18% 70%, rgba(254,240,138,.72) 0 14%, transparent 14.3%),
+        radial-gradient(circle at 82% 68%, rgba(191,219,254,.72) 0 15%, transparent 15.3%),
+        linear-gradient(160deg, #ecfeff, #fef3c7 62%, #dcfce7);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      padding: 28px;
+    }
+    .stage-map::after {
+      content: "";
+      position: absolute;
+      left: -24px;
+      right: -24px;
+      bottom: -12px;
+      height: 102px;
+      background: linear-gradient(to bottom, #22c55e 0 38%, #92400e 38% 100%);
+      border-top: 4px solid var(--line);
+    }
+    .chosen-hero {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      z-index: 4;
+      animation: floaty 3.8s ease-in-out infinite;
+    }
+    .chosen-hero img {
+      width: clamp(116px, 20vw, 190px);
+      height: clamp(116px, 20vw, 190px);
+      object-fit: contain;
+      filter: drop-shadow(6px 8px 0 rgba(24,34,53,.2));
+    }
+    .chosen-label {
+      margin-top: -8px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 14px;
+      border: 4px solid var(--line);
+      border-radius: 999px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      font-weight: 900;
+    }
+    .stage-node {
+      position: absolute;
+      z-index: 5;
+      width: min(210px, 28vw);
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      transition: transform .16s ease;
+    }
+    .stage-node:hover { transform: translateY(-6px) rotate(-1deg); }
+    .stage-node img {
+      width: clamp(84px, 14vw, 150px);
+      height: clamp(84px, 14vw, 150px);
+      object-fit: contain;
+      filter: drop-shadow(4px 6px 0 rgba(24,34,53,.2));
+    }
+    .node-label {
+      position: relative;
+      padding: 10px 13px;
+      border: 4px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      font-size: clamp(13px, 2vw, 17px);
+      line-height: 1.25;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .node-label small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .06em;
+      margin-top: 3px;
+    }
+    .stage-1 { left: 4%; bottom: 116px; }
+    .stage-2 { left: 4%; top: 26%; }
+    .stage-3 { left: 50%; bottom: 58px; transform: translateX(-50%); }
+    .stage-3:hover { transform: translateX(-50%) translateY(-6px) rotate(-1deg); }
+    .stage-4 { right: 4%; top: 25%; }
+    .stage-5 { right: 4%; bottom: 116px; }
+
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .hud-card {
+      border: 4px solid var(--line);
+      border-radius: 20px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      padding: 10px 14px;
+      font-weight: 900;
+    }
+    .trust {
+      display: grid;
+      gap: 6px;
+    }
+    .trust-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+    .meter {
+      height: 22px;
+      border: 3px solid var(--line);
+      border-radius: 999px;
+      background: #cbd5e1;
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      width: 35%;
+      background: linear-gradient(90deg, var(--yellow), var(--orange));
+      transition: width .5s cubic-bezier(.2,.9,.2,1);
+    }
+
+    .mission-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: clamp(16px, 3vw, 30px);
+      align-items: start;
+    }
+    .mission-card {
+      border: 4px solid var(--line);
+      border-radius: 26px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 3vw, 30px);
+    }
+    .mission-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 7px 12px;
+      border: 3px solid var(--line);
+      border-radius: 999px;
+      background: #fce7f3;
+      box-shadow: 3px 3px 0 var(--line);
+      font-weight: 900;
+      font-size: 13px;
+    }
+    .scenario {
+      font-size: clamp(15px, 2.4vw, 19px);
+      line-height: 1.95;
+      font-weight: 700;
+      color: #243244;
+    }
+    .npc-panel {
+      position: sticky;
+      top: 16px;
+      border: 4px solid var(--line);
+      border-radius: 26px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      text-align: center;
+    }
+    .npc-panel img {
+      width: 100%;
+      max-width: 190px;
+      height: 190px;
+      object-fit: contain;
+      filter: drop-shadow(5px 7px 0 rgba(24,34,53,.18));
+    }
+    .npc-name {
+      margin-top: 8px;
+      border: 3px solid var(--line);
+      border-radius: 999px;
+      background: #f8fafc;
+      padding: 8px 10px;
+      font-weight: 900;
+    }
+    .npc-tag {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 5px 9px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #e0f2fe;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .choice-title {
+      margin: 20px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(20px, 3vw, 30px);
+      font-weight: 900;
+      color: #be185d;
+    }
+    .choices {
+      display: grid;
+      gap: 13px;
+    }
+    .choice {
+      width: 100%;
+      text-align: left;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 4px solid var(--line);
+      border-radius: 20px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+    .choice:hover { transform: translate(-3px,-3px); box-shadow: 7px 7px 0 var(--line); background: #f8fafc; }
+    .choice:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--line); }
+    .letter {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--line);
+      border-radius: 14px;
+      background: var(--yellow);
+      font-size: 22px;
+      font-weight: 900;
+    }
+    .choice span.text {
+      font-size: clamp(14px, 2.2vw, 17px);
+      line-height: 1.65;
+      font-weight: 800;
+    }
+    .risk {
+      justify-self: end;
+      padding: 5px 8px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #f1f5f9;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .feedback-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: clamp(16px, 3vw, 30px);
+      align-items: start;
+    }
+    .result-card {
+      border: 4px solid var(--line);
+      border-radius: 28px;
+      background: white;
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 36px);
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card.good { background: linear-gradient(145deg, #ecfdf5, #fff); }
+    .result-card.bad { background: linear-gradient(145deg, #fff1f2, #fff); }
+    .result-card.okay { background: linear-gradient(145deg, #fffbeb, #fff); }
+    .grade {
+      display: inline-grid;
+      place-items: center;
+      width: 78px;
+      height: 78px;
+      border: 4px solid var(--line);
+      border-radius: 24px;
+      background: var(--yellow);
+      box-shadow: var(--shadow-sm);
+      font-size: 34px;
+      font-weight: 900;
+      transform: rotate(-4deg);
+      margin-bottom: 18px;
+    }
+    .result-title {
+      font-size: clamp(24px, 4vw, 42px);
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .result-message {
+      font-size: clamp(15px, 2.5vw, 19px);
+      line-height: 1.85;
+      font-weight: 700;
+      color: #334155;
+    }
+    .quote-card {
+      margin-top: 18px;
+      border: 3px solid var(--line);
+      border-radius: 20px;
+      padding: 14px 16px;
+      background: #f0f9ff;
+      font-weight: 900;
+      line-height: 1.65;
+    }
+    .coach-panel {
+      border: 4px solid var(--line);
+      border-radius: 26px;
+      background: #fff7ed;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      text-align: center;
+    }
+    .coach-panel img {
+      width: 100%;
+      max-width: 190px;
+      height: 170px;
+      object-fit: contain;
+      filter: drop-shadow(5px 7px 0 rgba(24,34,53,.18));
+    }
+    .coach-bubble {
+      margin-top: 10px;
+      padding: 12px;
+      border: 3px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      box-shadow: 3px 3px 0 var(--line);
+      font-weight: 900;
+      line-height: 1.55;
+      text-align: left;
+    }
+
+    .lesson-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: clamp(12px, 2.4vw, 20px);
+      margin-top: 20px;
+    }
+    .lesson-card {
+      border: 4px solid var(--line);
+      border-radius: 24px;
+      background: #fef9c3;
+      box-shadow: var(--shadow-sm);
+      padding: 18px;
+      cursor: pointer;
+      transition: transform .14s ease, box-shadow .14s ease;
+    }
+    .lesson-card:hover { transform: translate(-3px,-3px); box-shadow: 7px 7px 0 var(--line); }
+    .lesson-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .lesson-head h3 {
+      font-size: clamp(15px, 2.4vw, 20px);
+      line-height: 1.35;
+      font-weight: 900;
+    }
+    .toggle {
+      flex: 0 0 auto;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 3px solid var(--line);
+      border-radius: 999px;
+      background: var(--orange);
+      color: white;
+      box-shadow: 3px 3px 0 var(--line);
+      font-weight: 900;
+      transition: transform .18s ease;
+    }
+    .lesson-body {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .2s ease;
+    }
+    .lesson-body > div { overflow: hidden; }
+    .lesson-card.open .lesson-body { grid-template-rows: 1fr; }
+    .lesson-card.open .toggle { transform: rotate(180deg); }
+    .lesson-card p {
+      margin-top: 12px;
+      font-size: 14px;
+      line-height: 1.75;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(15,23,42,.45);
+      padding: 20px;
+      place-items: center;
+    }
+    .modal-backdrop.active { display: grid; }
+    .modal {
+      width: min(100%, 720px);
+      max-height: min(86vh, 760px);
+      overflow: auto;
+      background: var(--paper);
+      border: 4px solid var(--line);
+      border-radius: 28px;
+      box-shadow: 12px 12px 0 rgba(15,23,42,.45);
+      padding: clamp(18px, 4vw, 30px);
+      animation: pop .18s ease-out;
+    }
+    @keyframes pop { from { transform: scale(.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal h2 { font-size: clamp(22px, 4vw, 34px); font-weight: 900; margin-bottom: 12px; }
+    .modal p, .modal li { font-size: 15px; line-height: 1.8; font-weight: 700; color: #334155; }
+    .modal ul { margin: 12px 0 0; padding-left: 1.2em; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      z-index: 30;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      transition: opacity .16s ease, transform .16s ease;
+      width: min(calc(100% - 28px), 560px);
+      padding: 12px 16px;
+      border: 4px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      box-shadow: var(--shadow);
+      font-weight: 900;
+      text-align: center;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .confetti {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 25;
+    }
+    .confetti i {
+      position: absolute;
+      top: -20px;
+      width: 12px;
+      height: 18px;
+      border: 2px solid rgba(24,34,53,.3);
+      border-radius: 4px;
+      animation: fall 900ms linear forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(420deg); opacity: .2; }
+    }
+
+    :focus-visible {
+      outline: 4px dashed #0f172a;
+      outline-offset: 4px;
+    }
+
+    @media (max-width: 860px) {
+      .hero-grid,
+      .mission-layout,
+      .feedback-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-card { min-height: 280px; }
+      .npc-panel,
+      .coach-panel { position: relative; top: auto; }
+      .npc-panel img,
+      .coach-panel img { height: 150px; }
+      .hud { grid-template-columns: 1fr 1fr; }
+      .hud .trust { grid-column: 1 / -1; order: 3; }
+      .character-grid { grid-template-columns: repeat(2, 1fr); }
+      .stage-map {
+        min-height: auto;
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+      }
+      .stage-map::after { display: none; }
+      .chosen-hero,
+      .stage-node {
+        position: relative;
+        inset: auto;
+        transform: none !important;
+        width: 100%;
+      }
+      .chosen-hero {
+        order: -1;
+        margin-bottom: 6px;
+      }
+      .stage-node {
+        grid-template-columns: 96px 1fr;
+        justify-items: start;
+        align-items: center;
+        border: 4px solid var(--line);
+        border-radius: 24px;
+        background: rgba(255,255,255,.76);
+        box-shadow: var(--shadow-sm);
+        padding: 10px;
+      }
+      .stage-node img { width: 88px; height: 88px; }
+      .node-label { white-space: normal; width: 100%; text-align: left; }
+    }
+
+    @media (max-width: 560px) {
+      .window-bar { min-height: 40px; padding: 8px 10px; }
+      .dot { width: 16px; height: 16px; border-width: 2px; }
+      .bar-title { display: none; }
+      .actions .btn { width: 100%; }
+      .topbar { grid-template-columns: auto 1fr; }
+      .topbar .hud-card { display: none; }
+      .character-card { min-height: 128px; border-radius: 20px; }
+      .character-card img { height: 86px; }
+      .character-card .type { font-size: 12px; padding: 5px 7px; }
+      .choice { grid-template-columns: auto 1fr; }
+      .choice .risk { grid-column: 2; justify-self: start; }
+      .lesson-grid { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: 1fr; }
+      .hud-card { padding: 9px 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+    }
+
+
+    /* =====================================================
+       8-BIT / FAMICOM SKIN v2
+       方針：雰囲気は8-bit、本文は読みやすく、ステージは重ならない
+       ===================================================== */
+    :root {
+      --ink: #10172f;
+      --muted: #536177;
+      --paper: #fff6d8;
+      --paper-2: #f3dda2;
+      --line: #071024;
+      --navy: #071b3a;
+      --navy-2: #0a294b;
+      --teal: #0f7f74;
+      --pink: #e74d80;
+      --blue: #2395cc;
+      --green: #4caf50;
+      --yellow: #f5c542;
+      --orange: #d86d32;
+      --danger: #b82e2e;
+      --shadow: 8px 8px 0 #071024;
+      --shadow-sm: 4px 4px 0 #071024;
+      --radius: 0px;
+      --font: 'M PLUS Rounded 1c', 'Hiragino Kaku Gothic ProN', sans-serif;
+      --font-pixel: 'DotGothic16', 'M PLUS Rounded 1c', monospace;
+    }
+
+    html {
+      image-rendering: auto;
+    }
+
+    body {
+      font-family: var(--font);
+      letter-spacing: .01em;
+      background:
+        linear-gradient(rgba(255,255,255,.035) 50%, rgba(0,0,0,.035) 50%) 0 0 / 100% 4px,
+        linear-gradient(180deg, #071b3a 0%, #0b3556 52%, #118063 52%, #118063 64%, #78451f 64%, #4e2c19 100%);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      opacity: .22;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px);
+      background-size: 8px 8px;
+      mask-image: none;
+      mix-blend-mode: screen;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      opacity: .08;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.18) 0,
+        rgba(255,255,255,.18) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+    }
+
+    .app::before,
+    .app::after {
+      content: "";
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      width: 120px;
+      height: 48px;
+      opacity: .85;
+      background:
+        linear-gradient(#fff6d8 0 0) 0 18px / 24px 12px no-repeat,
+        linear-gradient(#fff6d8 0 0) 20px 10px / 64px 24px no-repeat,
+        linear-gradient(#fff6d8 0 0) 82px 20px / 34px 12px no-repeat,
+        linear-gradient(#d8d0ae 0 0) 8px 30px / 76px 6px no-repeat;
+      filter: drop-shadow(4px 4px 0 rgba(0,0,0,.24));
+      animation: pixelCloud 8s steps(5, end) infinite;
+    }
+    .app::before { left: 4vw; top: 9vh; }
+    .app::after { right: 5vw; top: 13vh; transform: scale(.9); animation-delay: 1s; }
+
+    @keyframes pixelCloud {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 18px 0; }
+    }
+
+    .bg-chip {
+      font-family: var(--font-pixel);
+      color: transparent;
+      opacity: .78;
+      filter: none;
+      text-shadow: none;
+      animation: bitBlink 1.4s steps(2, end) infinite;
+    }
+    .chip-1::before { content: "●"; color: #fff6d8; text-shadow: 3px 3px 0 #071024; }
+    .chip-2::before { content: "★"; color: #fff6d8; text-shadow: 3px 3px 0 #071024; }
+    .chip-3::before { content: "✦"; color: #fff6d8; text-shadow: 3px 3px 0 #071024; }
+    .chip-4::before { content: "■"; color: #c6bda0; text-shadow: 3px 3px 0 #071024; }
+    .bg-chip { font-size: clamp(22px, 3.5vw, 42px) !important; }
+
+    @keyframes bitBlink {
+      0%, 50% { opacity: .9; }
+      51%, 100% { opacity: .42; }
+    }
+
+    .screen { animation: bitScreenIn .18s steps(4, end); }
+    @keyframes bitScreenIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .window,
+    .hero-card,
+    .stage-map,
+    .mission-card,
+    .npc-panel,
+    .result-card,
+    .coach-panel,
+    .lesson-card,
+    .modal,
+    .toast,
+    .hud-card,
+    .choice,
+    .btn,
+    .back-btn,
+    .character-card,
+    .node-label,
+    .chosen-label,
+    .speech,
+    .mini-pill,
+    .quote-card,
+    .npc-name,
+    .npc-tag,
+    .mission-kicker,
+    .kicker,
+    .grade,
+    .toggle,
+    .letter,
+    .risk,
+    .meter,
+    .dot {
+      border-radius: 0 !important;
+    }
+
+    .window,
+    .mission-card,
+    .stage-map,
+    .result-card,
+    .coach-panel,
+    .npc-panel,
+    .modal {
+      border-width: 6px;
+      box-shadow: 8px 8px 0 #071024, 12px 12px 0 rgba(255,246,216,.26);
+      background-color: var(--paper);
+    }
+
+    .window,
+    .mission-card,
+    .result-card,
+    .lesson-card,
+    .modal,
+    .toast {
+      background-image:
+        linear-gradient(45deg, rgba(7,16,36,.028) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(7,16,36,.028) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(7,16,36,.028) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(7,16,36,.028) 75%);
+      background-size: 12px 12px;
+      background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+    }
+
+    .window-bar {
+      min-height: 38px;
+      background: #071024;
+      color: #fff6d8;
+      border-bottom: 0;
+      box-shadow: inset 0 -5px 0 #2395cc;
+      font-family: var(--font-pixel);
+    }
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-width: 2px;
+      color: #071024;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+    }
+    .bar-title {
+      color: #fff6d8;
+      font-size: 11px;
+      text-shadow: 2px 2px 0 #000;
+      letter-spacing: .08em;
+    }
+
+    .hero-grid {
+      grid-template-columns: minmax(0, .98fr) minmax(300px, .82fr);
+      gap: clamp(24px, 5vw, 56px);
+    }
+
+    .title {
+      font-family: var(--font-pixel);
+      color: #fff6d8;
+      font-size: clamp(42px, 7.6vw, 78px);
+      line-height: .95;
+      letter-spacing: -.02em;
+      text-shadow:
+        3px 0 0 #071024,
+        -3px 0 0 #071024,
+        0 3px 0 #071024,
+        0 -3px 0 #071024,
+        5px 5px 0 #b82e2e;
+    }
+    .title::first-letter { color: #e74d80; }
+    .title small {
+      margin-top: 8px;
+      color: #f5c542;
+      font-size: clamp(18px, 3vw, 28px);
+      text-shadow: 2px 2px 0 #071024;
+      letter-spacing: .06em;
+    }
+
+    .screen-title,
+    .choice-title,
+    .result-title,
+    .lesson-head h3,
+    .modal h2,
+    .btn,
+    .back-btn,
+    .letter,
+    .risk,
+    .kicker,
+    .mission-kicker,
+    .node-label,
+    .chosen-label,
+    .hud-card,
+    .npc-name,
+    .npc-tag,
+    .grade,
+    .bar-title {
+      font-family: var(--font-pixel);
+    }
+
+    .screen-title {
+      letter-spacing: .04em;
+      color: #fff6d8;
+      text-shadow: 3px 3px 0 #071024;
+    }
+    #screen-character .screen-title,
+    #screen-mission .screen-title,
+    #screen-lesson .screen-title {
+      color: var(--ink);
+      text-shadow: 2px 2px 0 rgba(255,246,216,.7);
+    }
+
+    .kicker,
+    .mission-kicker {
+      background: #b82e2e;
+      color: #fff6d8;
+      text-shadow: 2px 2px 0 #071024;
+      border-color: #071024;
+      box-shadow: 4px 4px 0 #071024;
+      line-height: 1.35;
+    }
+
+    .lead,
+    .scenario,
+    .result-message,
+    .subnote,
+    .modal p,
+    .modal li,
+    .lesson-card p,
+    .choice span.text,
+    .coach-bubble,
+    .quote-card {
+      font-family: var(--font);
+      color: #1e293b;
+      font-weight: 800;
+      letter-spacing: .015em;
+    }
+
+    .lead {
+      font-size: clamp(16px, 2.5vw, 19px);
+      line-height: 2.0;
+      max-width: 560px;
+    }
+
+    .hero-card {
+      background:
+        linear-gradient(#fff6d8 0 0) 18px 54px / 46px 14px no-repeat,
+        linear-gradient(#fff6d8 0 0) 58px 38px / 70px 24px no-repeat,
+        linear-gradient(#fff6d8 0 0) 128px 56px / 40px 14px no-repeat,
+        repeating-linear-gradient(0deg, transparent 0 7px, rgba(255,255,255,.06) 7px 8px),
+        #071b3a;
+      min-height: 330px;
+      overflow: hidden;
+    }
+    .hero-card::after {
+      height: 92px;
+      background:
+        repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 4px, transparent 4px 24px),
+        linear-gradient(to bottom, #4caf50 0 34%, #2d7a35 34% 42%, #78451f 42% 100%);
+      border-top: 6px solid #071024;
+    }
+
+    .main-mascot {
+      bottom: 54px;
+      animation: pixelHop 1s steps(2, end) infinite;
+    }
+    .chosen-hero {
+      animation: none;
+    }
+    @keyframes pixelHop {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-10px); }
+    }
+
+    img {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .main-mascot img,
+    .chosen-hero img,
+    .character-card img,
+    .npc-panel img,
+    .coach-panel img,
+    .stage-node img {
+      filter:
+        drop-shadow(3px 0 0 #071024)
+        drop-shadow(-3px 0 0 #071024)
+        drop-shadow(0 3px 0 #071024)
+        drop-shadow(0 7px 0 rgba(0,0,0,.24));
+    }
+
+    .speech,
+    .quote-card,
+    .coach-bubble {
+      background: #fff6d8;
+      border-width: 4px;
+      box-shadow: 4px 4px 0 #071024;
+      line-height: 1.7;
+    }
+    .speech {
+      max-width: 250px;
+      font-family: var(--font);
+      font-size: 15px;
+    }
+    .speech::before,
+    .speech::after { display: none; }
+    .speech::after {
+      display: block;
+      content: "";
+      position: absolute;
+      left: 32px;
+      bottom: -16px;
+      width: 16px;
+      height: 16px;
+      background: #fff6d8;
+      border-right: 4px solid #071024;
+      border-bottom: 4px solid #071024;
+    }
+
+    .btn,
+    .choice,
+    .back-btn,
+    .character-card,
+    .stage-node,
+    .lesson-card {
+      transition: transform .08s steps(2, end), box-shadow .08s steps(2, end), background .08s steps(2, end);
+    }
+    .btn,
+    .choice,
+    .back-btn,
+    .letter,
+    .toggle,
+    .grade {
+      box-shadow: 4px 4px 0 #071024;
+    }
+    .btn:hover,
+    .choice:hover,
+    .character-card:hover,
+    .lesson-card:hover,
+    .stage-node:hover {
+      transform: translate(-4px, -4px) !important;
+      box-shadow: 8px 8px 0 #071024 !important;
+    }
+    .btn:active,
+    .choice:active,
+    .back-btn:active,
+    .stage-node:active {
+      transform: translate(4px, 4px) !important;
+      box-shadow: 0 0 0 #071024 !important;
+    }
+    .btn.primary,
+    .letter,
+    .grade { background: #f5c542; }
+    .btn.pink { background: #e74d80; color: #fff6d8; text-shadow: 2px 2px 0 #071024; }
+    .btn.blue { background: #2395cc; color: #fff6d8; text-shadow: 2px 2px 0 #071024; }
+
+    .character-card {
+      background: #fff6d8;
+      border-width: 4px;
+      min-height: 148px;
+    }
+    .character-card::before {
+      border-radius: 0;
+      background: #071024;
+      color: #fff6d8;
+      border-color: #fff6d8;
+      box-shadow: 2px 2px 0 #071024;
+      font-family: var(--font-pixel);
+    }
+    .character-card .type {
+      border-radius: 0;
+      background: #071024;
+      color: #fff6d8;
+      border-color: #071024;
+      text-shadow: 2px 2px 0 #000;
+      font-family: var(--font-pixel);
+    }
+    .character-card .type small { color: #f5c542; }
+    .group-analyst { background: #7560b8; }
+    .group-diplomat { background: #52a85d; }
+    .group-sentinel { background: #2395cc; }
+    .group-explorer { background: #d86d32; }
+
+    /* ステージ選択：絶対配置をやめ、重ならないカードマップに変更 */
+    .stage-map {
+      min-height: auto;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-areas:
+        "s2 hero s4"
+        "s1 hero s5"
+        ".  s3  .";
+      gap: clamp(14px, 2.4vw, 24px);
+      padding: clamp(20px, 3vw, 34px);
+      background:
+        linear-gradient(#fff6d8 0 0) 8% 12% / 64px 20px no-repeat,
+        linear-gradient(#fff6d8 0 0) 72% 16% / 92px 24px no-repeat,
+        repeating-linear-gradient(90deg, rgba(255,246,216,.16) 0 3px, transparent 3px 24px),
+        repeating-linear-gradient(0deg, rgba(255,246,216,.16) 0 3px, transparent 3px 24px),
+        #0f7f74;
+      overflow: visible;
+    }
+    .stage-map::before {
+      content: "";
+      position: absolute;
+      inset: 22px;
+      pointer-events: none;
+      opacity: .55;
+      background-image: radial-gradient(circle, #fff6d8 0 3px, transparent 4px);
+      background-size: 28px 28px;
+    }
+    .stage-map::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 82px;
+      z-index: 0;
+      background:
+        repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 4px, transparent 4px 24px),
+        linear-gradient(to bottom, #21c679 0 44%, #7b421e 44% 100%);
+      border-top: 5px solid #071024;
+    }
+    .chosen-hero,
+    .stage-node {
+      position: relative !important;
+      inset: auto !important;
+      transform: none !important;
+      z-index: 2;
+    }
+    .chosen-hero {
+      grid-area: hero;
+      align-self: center;
+      min-height: 310px;
+      padding: 20px;
+      border: 5px solid #fff6d8;
+      background: rgba(7,16,36,.78);
+      box-shadow: 6px 6px 0 #071024;
+    }
+    .chosen-hero img {
+      width: clamp(120px, 16vw, 180px);
+      height: clamp(120px, 16vw, 180px);
+    }
+    .chosen-label {
+      margin-top: 12px;
+      max-width: 100%;
+      white-space: normal;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.35;
+    }
+    .stage-node {
+      width: 100% !important;
+      min-height: 190px;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      justify-items: center;
+      align-items: end;
+      gap: 10px;
+      padding: 14px 12px;
+      background: rgba(255,246,216,.92);
+      border: 5px solid #071024;
+      box-shadow: 5px 5px 0 #071024;
+    }
+    .stage-node img {
+      width: clamp(86px, 12vw, 132px);
+      height: clamp(86px, 12vw, 132px);
+      object-fit: contain;
+      align-self: center;
+    }
+    .stage-1 { grid-area: s1; }
+    .stage-2 { grid-area: s2; }
+    .stage-3 { grid-area: s3; }
+    .stage-4 { grid-area: s4; }
+    .stage-5 { grid-area: s5; }
+    .node-label,
+    .chosen-label {
+      width: 100%;
+      background: #071024;
+      color: #fff6d8;
+      border: 3px solid #fff6d8;
+      text-shadow: 2px 2px 0 #000;
+      box-shadow: 3px 3px 0 #071024;
+    }
+    .node-label {
+      font-size: clamp(14px, 1.8vw, 17px);
+      white-space: normal;
+      text-align: center;
+      line-height: 1.35;
+    }
+    .node-label small,
+    .chosen-label span + span { color: #f5c542; }
+
+    .hud-card {
+      background: #071024;
+      color: #fff6d8;
+      text-shadow: 2px 2px 0 #000;
+      border-color: #fff6d8;
+    }
+    .meter {
+      height: 24px;
+      background: repeating-linear-gradient(90deg, #1f2b3d 0 14px, #071024 14px 18px);
+      border-color: #fff6d8;
+    }
+    .meter-fill {
+      background: repeating-linear-gradient(90deg, #f5c542 0 16px, #d86d32 16px 20px);
+      transition: width .35s steps(8, end);
+    }
+
+    .mission-layout,
+    .feedback-grid { align-items: stretch; }
+    .mission-card,
+    .npc-panel,
+    .result-card,
+    .coach-panel { background-color: #fff6d8; }
+
+    .mission-card {
+      padding: clamp(20px, 3.2vw, 34px);
+    }
+    .scenario {
+      font-size: clamp(16px, 2.2vw, 19px);
+      line-height: 2.05;
+      letter-spacing: .02em;
+      max-width: 820px;
+    }
+    .choice-title {
+      color: #e74d80;
+      font-size: clamp(24px, 3.4vw, 36px);
+      text-shadow: 2px 2px 0 #fff6d8;
+      margin-top: 28px;
+    }
+
+    .npc-name,
+    .npc-tag,
+    .risk {
+      background: #071024;
+      color: #fff6d8;
+      border-color: #fff6d8;
+      text-shadow: 2px 2px 0 #000;
+    }
+    .npc-panel img,
+    .coach-panel img {
+      max-width: 210px;
+      height: 210px;
+    }
+
+    .choice {
+      background: #fffdf1;
+      border-width: 4px;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      padding: 16px 18px;
+      gap: 16px;
+    }
+    .choice span.text {
+      font-size: clamp(15px, 2vw, 17px);
+      line-height: 1.75;
+      font-weight: 800;
+    }
+    .choice:nth-child(1) .letter { background: #b82e2e; color: #fff6d8; text-shadow: 2px 2px 0 #071024; }
+    .choice:nth-child(2) .letter { background: #2395cc; color: #fff6d8; text-shadow: 2px 2px 0 #071024; }
+    .choice:nth-child(3) .letter { background: #4caf50; color: #fff6d8; text-shadow: 2px 2px 0 #071024; }
+
+    .result-card.good { background: #d8efc8; }
+    .result-card.okay { background: #fff6d8; }
+    .result-card.bad { background: #ffd0c8; }
+    .grade {
+      transform: none;
+      width: 72px;
+      height: 72px;
+      border-width: 5px;
+    }
+
+    .lesson-card {
+      background: #fff6d8;
+      border-width: 4px;
+    }
+    .lesson-card:nth-child(1) { background: #f3dda2; }
+    .lesson-card:nth-child(2) { background: #c9e8ff; }
+    .lesson-card:nth-child(3) { background: #d8efc8; }
+    .lesson-card:nth-child(4) { background: #ffd0df; }
+
+    .modal-backdrop { background: rgba(7,16,36,.72); }
+    .toast {
+      background: #071024;
+      color: #fff6d8;
+      border-color: #fff6d8;
+      text-shadow: 2px 2px 0 #000;
+    }
+    .confetti i {
+      border-radius: 0;
+      width: 14px;
+      height: 14px;
+      animation: bitFall 700ms steps(6, end) forwards;
+    }
+    @keyframes bitFall {
+      to { transform: translateY(110vh) rotate(180deg); opacity: .15; }
+    }
+
+    ::selection { background: #f5c542; color: #071024; }
+
+    @media (max-width: 920px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+      .title {
+        font-size: clamp(42px, 12vw, 76px);
+      }
+      .stage-map {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "hero hero"
+          "s1 s2"
+          "s3 s4"
+          "s5 s5";
+      }
+      .chosen-hero {
+        min-height: 260px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .stage-map {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "hero"
+          "s1"
+          "s2"
+          "s3"
+          "s4"
+          "s5";
+      }
+      .stage-node {
+        min-height: 118px;
+        grid-template-columns: 86px 1fr;
+        grid-template-rows: auto;
+        justify-items: start;
+        align-items: center;
+      }
+      .stage-node img {
+        width: 74px;
+        height: 74px;
+      }
+      .node-label { text-align: left; }
+      .chosen-hero { min-height: 220px; }
+      .choice {
+        grid-template-columns: auto 1fr;
+      }
+      .choice .risk {
+        grid-column: 2;
+        justify-self: start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root { --shadow: 5px 5px 0 #071024; --shadow-sm: 3px 3px 0 #071024; }
+      .window,
+      .mission-card,
+      .stage-map,
+      .result-card,
+      .coach-panel,
+      .npc-panel,
+      .modal {
+        border-width: 4px;
+        box-shadow: 5px 5px 0 #071024;
+      }
+      .title {
+        font-size: clamp(38px, 14vw, 62px);
+        text-shadow:
+          2px 0 0 #071024,
+          -2px 0 0 #071024,
+          0 2px 0 #071024,
+          0 -2px 0 #071024,
+          4px 4px 0 #b82e2e;
+      }
+      .lead,
+      .scenario,
+      .choice span.text {
+        font-size: 15px;
+        line-height: 1.85;
+      }
+      .choice-title { font-size: 25px; }
+      .choice,
+      .btn,
+      .back-btn { border-width: 3px; }
+    }
+  </style>
+</head>
+<body>
+  <span class="bg-chip chip-1">🌙</span>
+  <span class="bg-chip chip-2">☀️</span>
+  <span class="bg-chip chip-3">💎</span>
+  <span class="bg-chip chip-4">🧩</span>
+
+  <main class="app">
+    <section id="screen-title" class="screen active" aria-labelledby="title-heading">
+      <div class="window">
+        <div class="window-bar" aria-hidden="true">
+          <span class="dot red">×</span><span class="dot yellow">−</span><span class="dot green">□</span>
+          <span class="bar-title">MBTI COMMUNICATION QUEST</span>
+        </div>
+        <div class="window-body hero-grid">
+          <div>
+            <div class="kicker">🧩 伝え方で、世界がちょっと平和になる</div>
+            <h1 id="title-heading" class="title">Pieceful<small>ピースフル</small></h1>
+            <p class="lead">
+              MBTIタイプ別キャラクターで、職場コミュニケーションを攻略するミニゲーム。<br />
+              報告・相談・提案の「切り出し方」を選び、相手の信頼ゲージを上げよう。
+            </p>
+            <div class="actions">
+              <button class="btn primary" onclick="go('character')">ゲーム開始 ▶</button>
+              <button class="btn pink" onclick="openGuide()">遊び方を見る 📖</button>
+            </div>
+          </div>
+          <div class="hero-card" aria-hidden="true">
+            <div class="mini-stat">
+              <span class="mini-pill">信頼ゲージ +10</span>
+              <span class="mini-pill">コンボ 0</span>
+              <span class="mini-pill">ミッション 5種</span>
+            </div>
+            <div class="speech">今日の相手は誰かな？<br />言い方を選ぼう！</div>
+            <div class="main-mascot"><img src="./img/15.png" alt="" /></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-character" class="screen" aria-labelledby="character-heading">
+      <div class="window">
+        <div class="window-bar" aria-hidden="true">
+          <span class="dot red">×</span><span class="dot yellow">−</span><span class="dot green">□</span>
+          <span class="bar-title">SELECT CHARACTER</span>
+        </div>
+        <div class="window-body">
+          <div class="topbar">
+            <button class="back-btn" onclick="go('title')" aria-label="タイトルへ戻る">←</button>
+            <div>
+              <h2 id="character-heading" class="screen-title">あなたのキャラクターを選ぼう</h2>
+              <p class="subnote">タイプごとに「得意な伝え方」と「やりがちな落とし穴」が変わります。</p>
+            </div>
+            <div class="hud-card">⭐ 0</div>
+          </div>
+          <div id="character-grid" class="character-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-stage" class="screen" aria-labelledby="stage-heading">
+      <div class="topbar">
+        <button class="back-btn" onclick="go('character')" aria-label="キャラクター選択へ戻る">←</button>
+        <div>
+          <h2 id="stage-heading" class="screen-title">ステージを選ぼう</h2>
+          <p class="subnote">相手によって、刺さる言葉・嫌がられる言葉が変わります。</p>
+        </div>
+        <div class="hud-card" id="stage-score">⭐ 0</div>
+      </div>
+      <div class="stage-map">
+        <div class="chosen-hero">
+          <img id="chosen-img" src="./img/15.png" alt="選択中のキャラクター" />
+          <div class="chosen-label"><span id="chosen-type">ESTP</span><span id="chosen-nick">瞬発アクション型</span></div>
+        </div>
+        <button class="stage-node stage-1" onclick="selectStage(1)">
+          <img src="./img/stage/st1.png" alt="" />
+          <span class="node-label">先輩・上司<small>報連相 / リスク報告</small></span>
+        </button>
+        <button class="stage-node stage-2" onclick="selectStage(2)">
+          <img src="./img/stage/st2.png" alt="" />
+          <span class="node-label">同僚<small>協力依頼 / すり合わせ</small></span>
+        </button>
+        <button class="stage-node stage-3" onclick="selectStage(3)">
+          <img src="./img/stage/st3.png" alt="" />
+          <span class="node-label">後輩<small>育成 / フィードバック</small></span>
+        </button>
+        <button class="stage-node stage-4" onclick="selectStage(4)">
+          <img src="./img/stage/st4.png" alt="" />
+          <span class="node-label">クライアント<small>期待調整 / 提案</small></span>
+        </button>
+        <button class="stage-node stage-5" onclick="selectStage(5)">
+          <img src="./img/stage/st5.png" alt="" />
+          <span class="node-label">他部署<small>巻き込み / 合意形成</small></span>
+        </button>
+      </div>
+    </section>
+
+    <section id="screen-mission" class="screen" aria-labelledby="mission-heading">
+      <div class="hud">
+        <div class="hud-card trust">
+          <div class="trust-head"><span>信頼ゲージ</span><span id="trust-label">35%</span></div>
+          <div class="meter"><div id="trust-fill" class="meter-fill"></div></div>
+        </div>
+        <div class="hud-card" id="combo-label">🔥 COMBO 0</div>
+        <div class="hud-card" id="star-label">⭐ 0</div>
+      </div>
+
+      <div class="mission-layout">
+        <article class="mission-card">
+          <div class="topbar" style="margin-bottom: 12px;">
+            <button class="back-btn" onclick="go('stage')" aria-label="ステージ選択へ戻る">←</button>
+            <div>
+              <h2 id="mission-heading" class="screen-title"></h2>
+              <p id="mission-sub" class="subnote"></p>
+            </div>
+          </div>
+          <div class="mission-kicker" id="mission-kicker"></div>
+          <p id="scenario" class="scenario"></p>
+          <h3 class="choice-title">💬 どう切り出す？</h3>
+          <div id="choices" class="choices"></div>
+        </article>
+
+        <aside class="npc-panel">
+          <img id="npc-img" src="./img/1.png" alt="相手キャラクター" />
+          <div id="npc-name" class="npc-name"></div>
+          <span id="npc-tag" class="npc-tag"></span>
+          <button class="btn blue full" style="margin-top: 14px;" onclick="openGuide()">攻略メモ 📖</button>
+        </aside>
+      </div>
+    </section>
+
+    <section id="screen-feedback" class="screen" aria-labelledby="feedback-heading">
+      <div class="hud">
+        <div class="hud-card trust">
+          <div class="trust-head"><span>信頼ゲージ</span><span id="trust-label-2">35%</span></div>
+          <div class="meter"><div id="trust-fill-2" class="meter-fill"></div></div>
+        </div>
+        <div class="hud-card" id="combo-label-2">🔥 COMBO 0</div>
+        <div class="hud-card" id="star-label-2">⭐ 0</div>
+      </div>
+
+      <div class="feedback-grid">
+        <article id="result-card" class="result-card">
+          <div id="grade" class="grade">A</div>
+          <h2 id="feedback-heading" class="result-title"></h2>
+          <p id="feedback-message" class="result-message"></p>
+          <div id="npc-quote" class="quote-card"></div>
+          <h3 class="choice-title">🎮 次の行動を選ぼう</h3>
+          <div id="actions" class="choices"></div>
+        </article>
+        <aside class="coach-panel">
+          <img id="coach-img" src="./img/15.png" alt="あなたのキャラクター" />
+          <div class="coach-bubble" id="coach-bubble">選択の理由を見てみよう。</div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="screen-lesson" class="screen" aria-labelledby="lesson-heading">
+      <div class="window">
+        <div class="window-bar" aria-hidden="true">
+          <span class="dot red">×</span><span class="dot yellow">−</span><span class="dot green">□</span>
+          <span class="bar-title">CLEAR REPORT</span>
+        </div>
+        <div class="window-body">
+          <div class="topbar">
+            <button class="back-btn" onclick="go('stage')" aria-label="ステージ選択へ戻る">←</button>
+            <div>
+              <h2 id="lesson-heading" class="screen-title">ステージクリア！</h2>
+              <p id="lesson-sub" class="subnote"></p>
+            </div>
+            <div class="hud-card" id="lesson-score">⭐ 0</div>
+          </div>
+          <div id="lesson-grid" class="lesson-grid"></div>
+          <div class="actions" style="justify-content: center;">
+            <button class="btn primary" onclick="go('stage')">次のステージへ ▶</button>
+            <button class="btn" onclick="resetGame()">最初から</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="guide-modal" class="modal-backdrop" onclick="closeGuide(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+      <h2 id="guide-title">📖 Pieceful 攻略ガイド</h2>
+      <p>
+        このゲームは「正論を言う」よりも、「相手のタイプに合わせて、受け取りやすい順番で伝える」ことが大切です。
+      </p>
+      <ul>
+        <li><strong>論理派</strong>には、結論・根拠・選択肢を短く。</li>
+        <li><strong>共感派</strong>には、背景・気持ち・協力の姿勢を先に。</li>
+        <li><strong>実行派</strong>には、今やること・期限・担当を明確に。</li>
+        <li><strong>慎重派</strong>には、リスク・代替案・確認ポイントを添える。</li>
+      </ul>
+      <div class="actions">
+        <button class="btn primary" onclick="closeGuide()">閉じる</button>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <div id="confetti" class="confetti" aria-hidden="true"></div>
+
+  <script>
+    const characters = [
+      ['INTJ','戦略設計型','Analyst','group-analyst'], ['INTP','仮説探究型','Analyst','group-analyst'],
+      ['ENTJ','司令塔型','Analyst','group-analyst'], ['ENTP','発明家型','Analyst','group-analyst'],
+      ['ISTJ','堅実管理型','Sentinel','group-sentinel'], ['ISFJ','支援守備型','Sentinel','group-sentinel'],
+      ['ESTJ','実行統率型','Sentinel','group-sentinel'], ['ESFJ','調整支援型','Sentinel','group-sentinel'],
+      ['INFP','価値観共鳴型','Diplomat','group-diplomat'], ['ENFJ','伴走リーダー型','Diplomat','group-diplomat'],
+      ['ENFP','アイデア共創型','Diplomat','group-diplomat'], ['INFJ','洞察設計型','Diplomat','group-diplomat'],
+      ['ISTP','現場解決型','Explorer','group-explorer'], ['ISFP','感性実装型','Explorer','group-explorer'],
+      ['ESTP','瞬発アクション型','Explorer','group-explorer'], ['ESFP','ムードメイク型','Explorer','group-explorer']
+    ];
+
+    const charImages = Object.fromEntries(characters.map((c, i) => [c[0], `./img/${i + 1}.png`]));
+    const charNick = Object.fromEntries(characters.map(c => [c[0], c[1]]));
+
+    const stages = {
+      1: {
+        title: 'ステージ1：先輩・上司', sub: '遅延報告ミッション', kicker: '⚠️ 納期遅延 / 早期相談',
+        npc: '田中部長', npcTag: '論理派・責任者', npcImg: './img/1.png',
+        scenario: 'あなたは社内プロジェクトのリーダー。来週金曜が納期の重要な成果物について、協力会社から納品遅延の連絡が入った。全体スケジュールは3日ほど後ろ倒しになる見込み。田中部長に事実を報告し、今後の対応を相談しなければならない。',
+        choices: [
+          { id: 'A', risk: '安全', score: 25, grade: 'S', title: '最高の切り出し', text: '「納期に影響する遅延が判明しました。現状・影響・対応案を3分で共有して、判断をいただきたいです。」', message: '事実、影響、相談事項が先に見えるので、責任者が判断しやすい伝え方です。', quote: '「いいね。まず全体影響から確認しよう。」' },
+          { id: 'B', risk: '危険', score: -10, grade: 'C', title: '勢いはあるが危険', text: '「ちょっと大変なことになりました！でも多分なんとかなると思います！」', message: '緊急感は伝わりますが、根拠と判断材料が不足しています。上司の不安を増やしやすい切り出しです。', quote: '「多分では判断できない。事実を整理して。」' },
+          { id: 'C', risk: '保留', score: 5, grade: 'B', title: '相談姿勢は良い', text: '「協力会社の納品が遅れそうです。どうすればいいでしょうか……？」', message: '相談はできていますが、丸投げに見えやすいです。最低限の状況整理と案を添えると信頼が上がります。', quote: '「状況は分かった。あなたの案は？」' }
+        ],
+        actions: [
+          { id: 'A', risk: '安全', score: 20, text: '影響範囲・代替案・判断してほしい点を1枚にまとめ、すぐ15分の確認時間を依頼する。', feedback: '行動まで完璧。上司の時間を奪わず、判断の質を上げています。' },
+          { id: 'B', risk: '危険', score: -8, text: '全員に「遅れます」とだけチャットで流し、詳細は聞かれたら答える。', feedback: '関係者の不安が増えます。報告は「影響」と「次アクション」をセットにしましょう。' },
+          { id: 'C', risk: '保留', score: 0, text: '協力会社からの続報を待って、確定してから報告する。', feedback: '遅延リスクは早めに共有した方が信頼を守れます。未確定でも「リスク」として報告しましょう。' }
+        ],
+        lessons: [
+          ['なぜ正解なのか？', '上司が知りたいのは「何が起きたか」「どれくらい危ないか」「何を決めればいいか」です。感情より判断材料を先に出すと信頼されます。'],
+          ['あなたの落とし穴', '自分で抱え込みすぎると、報告が遅れてしまいます。完璧な解決策がなくても、早めのリスク共有が強い武器です。'],
+          ['現場での応用', '報告テンプレは「結論→影響→原因→対応案→相談したい判断」の順番が便利です。'],
+          ['プロの技', '悪いニュースほど早く、小さく、選択肢つきで出す。これが予防的コミュニケーションです。']
+        ]
+      },
+      2: {
+        title: 'ステージ2：同僚', sub: '協力依頼ミッション', kicker: '🤝 巻き込み / 役割分担',
+        npc: '佐藤さん', npcTag: '実行派・同僚', npcImg: './img/7.png',
+        scenario: '急ぎの資料作成で、同僚の佐藤さんにレビューをお願いしたい。ただし佐藤さんも別案件で忙しそう。相手の負担を増やしすぎず、協力してもらう必要がある。',
+        choices: [
+          { id: 'A', risk: '安全', score: 22, grade: 'S', title: '協力しやすい依頼', text: '「10分だけレビューをお願いできますか？見てほしいのは数字の整合性だけです。今日16時までだと助かります。」', message: '所要時間・範囲・期限が明確なので、相手が引き受けやすい依頼です。', quote: '「それなら見られるよ。数字だけ確認するね。」' },
+          { id: 'B', risk: '危険', score: -8, grade: 'C', title: '重く見える依頼', text: '「この資料、全体的に良い感じに見てもらえますか？」', message: '範囲が曖昧で、相手の負担が読めません。忙しい相手ほど断りたくなります。', quote: '「全体的にって、どこまで見ればいい？」' },
+          { id: 'C', risk: '保留', score: 6, grade: 'B', title: '気遣いはある', text: '「忙しいところすみません。もし無理なら大丈夫なんですが、少しだけ見てもらえませんか？」', message: '丁寧ですが、何をどれくらい見ればいいかが不足しています。', quote: '「少しって何分くらい？」' }
+        ],
+        actions: [
+          { id: 'A', risk: '安全', score: 18, text: 'レビュー観点を3つに絞って、該当ページにコメントを入れてから依頼する。', feedback: '相手の作業コストを下げる依頼は、協力を生みます。' },
+          { id: 'B', risk: '危険', score: -5, text: '資料一式を丸ごと送り「気になるところを全部ください」と頼む。', feedback: '相手の脳内タスクが増えます。依頼は小さく切りましょう。' },
+          { id: 'C', risk: '保留', score: 3, text: '口頭で軽く頼み、あとで資料を送る。', feedback: '悪くはありませんが、依頼内容が残る形にすると認識ズレを防げます。' }
+        ],
+        lessons: [
+          ['協力依頼の基本', '依頼は「時間・範囲・期限」を添えると一気に通りやすくなります。'],
+          ['NGパターン', '「いい感じに」「ざっくり」は、忙しい相手には重く聞こえます。'],
+          ['相手への配慮', '遠慮するより、負担を具体的に小さくする方が親切です。'],
+          ['職場で使える型', '「10分だけ」「この2ページだけ」「観点は数字だけ」のように依頼を小さくします。']
+        ]
+      },
+      3: {
+        title: 'ステージ3：後輩', sub: 'フィードバックミッション', kicker: '🌱 育成 / 伝え方',
+        npc: '山本さん', npcTag: '共感派・後輩', npcImg: './img/10.png',
+        scenario: '後輩の山本さんが作った提案書に、良い点はあるものの、目的と結論がずれている。やる気を下げずに、修正してもらう必要がある。',
+        choices: [
+          { id: 'A', risk: '安全', score: 24, grade: 'S', title: '伸ばすフィードバック', text: '「調査量はすごく良いです。さらに伝わる資料にするために、最初に結論を1行足してみよう。」', message: '良い点を認めてから、次の改善点を具体化できています。', quote: '「ありがとうございます。結論から直してみます！」' },
+          { id: 'B', risk: '危険', score: -12, grade: 'C', title: '心が折れやすい', text: '「これだと何が言いたいのか分からない。最初からやり直して。」', message: '問題点は伝わりますが、改善方向が見えず、相手の意欲を下げやすいです。', quote: '「すみません……どこから直せばいいですか？」' },
+          { id: 'C', risk: '保留', score: 4, grade: 'B', title: '優しいが曖昧', text: '「全体的にはいいと思うよ。もう少し分かりやすくしてみて。」', message: '優しさはありますが、何を直せばいいかが曖昧です。', quote: '「分かりやすく……どのあたりでしょう？」' }
+        ],
+        actions: [
+          { id: 'A', risk: '安全', score: 18, text: '良い点を1つ、直す点を1つ、次の確認タイミングを1つ伝える。', feedback: '後輩が迷わず動ける、育成に強い行動です。' },
+          { id: 'B', risk: '危険', score: -7, text: '自分で直した方が早いので、黙って全部修正して返す。', feedback: '短期的には早いですが、後輩の学習機会が消えます。' },
+          { id: 'C', risk: '保留', score: 2, text: '修正点をたくさん箇条書きで送る。', feedback: '情報量が多すぎると優先順位が分からなくなります。まず1〜2点に絞りましょう。' }
+        ],
+        lessons: [
+          ['育成の型', '「認める→焦点を絞る→次の一歩」の順番が有効です。'],
+          ['後輩の不安', '抽象的なダメ出しは、相手に自己否定として届きやすいです。'],
+          ['具体化のコツ', '「結論を1行足す」「1枚目を入れ替える」のように行動レベルで伝えます。'],
+          ['伸びる関係', '相手の努力を見つけて言語化すると、改善提案が受け取られやすくなります。']
+        ]
+      },
+      4: {
+        title: 'ステージ4：クライアント', sub: '期待調整ミッション', kicker: '🧑‍💼 提案 / 合意形成',
+        npc: '鈴木様', npcTag: '慎重派・顧客', npcImg: './img/5.png',
+        scenario: 'クライアントから「来週までに追加機能も入れられますよね？」と相談された。実装は可能だが、品質確認の時間が足りなくなるリスクがある。関係を壊さず期待調整したい。',
+        choices: [
+          { id: 'A', risk: '安全', score: 24, grade: 'S', title: '信頼を守る期待調整', text: '「可能性はあります。ただ、品質確認を十分に取るなら、追加機能は範囲を絞るか、納期を分けるのが安全です。」', message: '否定せず、リスクと選択肢を提示できています。顧客が判断しやすい伝え方です。', quote: '「なるほど。範囲を絞る案で考えたいです。」' },
+          { id: 'B', risk: '危険', score: -10, grade: 'C', title: '安請け合い', text: '「はい、大丈夫だと思います！なんとかします！」', message: '一時的には安心されますが、後から品質・納期トラブルになりやすいです。', quote: '「ではそれでお願いします。」' },
+          { id: 'C', risk: '保留', score: 3, grade: 'B', title: '正しいが冷たい', text: '「それは無理です。今から追加はできません。」', message: '境界線は引けていますが、代替案がなく関係性が硬くなりやすいです。', quote: '「そうですか……他に方法はないですか？」' }
+        ],
+        actions: [
+          { id: 'A', risk: '安全', score: 18, text: '追加機能を「必須・できれば・次回」の3段階に分ける打ち合わせを提案する。', feedback: '期待調整が具体的になり、合意を作りやすい行動です。' },
+          { id: 'B', risk: '危険', score: -8, text: '社内に戻ってから、メンバーに残業で対応するよう頼む。', feedback: '顧客の期待を守る前に、社内の信頼を失う危険があります。' },
+          { id: 'C', risk: '保留', score: 2, text: '見積もりを出すまで回答を保留する。', feedback: '保留は有効ですが、いつ何を回答するかを明確にすると安心されます。' }
+        ],
+        lessons: [
+          ['顧客対応の基本', 'できない理由だけでなく、選べる道を提示すると前向きな会話になります。'],
+          ['安請け合いの罠', '「大丈夫です」は短期的に気持ちいいですが、長期的な信頼を削ることがあります。'],
+          ['期待調整の型', '「可能性→リスク→選択肢→おすすめ」の順で伝えると合意形成しやすいです。'],
+          ['プロの一言', '「安全に進めるなら」を枕詞にすると、品質を守る提案として届きます。']
+        ]
+      },
+      5: {
+        title: 'ステージ5：他部署', sub: '巻き込みミッション', kicker: '🌀 部署間連携 / 合意形成',
+        npc: '高橋さん', npcTag: '慎重派・他部署', npcImg: './img/12.png',
+        scenario: '新しい施策を進めるため、他部署の高橋さんに協力してもらう必要がある。ただ、高橋さんの部署には直接メリットが見えにくく、優先順位も高くなさそう。',
+        choices: [
+          { id: 'A', risk: '安全', score: 23, grade: 'S', title: '相手目線の巻き込み', text: '「この施策で御部署の問い合わせ対応が減る可能性があります。まず負担が少ない形で10分だけ相談できますか？」', message: '相手部署のメリットと負担の小ささを先に伝えられています。', quote: '「問い合わせが減るなら、一度聞きたいです。」' },
+          { id: 'B', risk: '危険', score: -9, grade: 'C', title: '自部署都合に見える', text: '「こちらの施策で必要なので、御部署でも対応をお願いします。」', message: '目的は伝わりますが、相手にとっての意味が見えません。押し付けに感じられます。', quote: '「こちらも予定があるので、急には難しいです。」' },
+          { id: 'C', risk: '保留', score: 5, grade: 'B', title: '丁寧だが弱い', text: '「お忙しいところ恐縮ですが、可能であれば少し協力いただけないでしょうか。」', message: '丁寧ですが、なぜ協力する価値があるのかが不足しています。', quote: '「内容次第ですね。」' }
+        ],
+        actions: [
+          { id: 'A', risk: '安全', score: 18, text: '相手部署のメリット、必要作業、所要時間を1枚にまとめて事前共有する。', feedback: '他部署連携では、相手の説明コストを下げる準備が効きます。' },
+          { id: 'B', risk: '危険', score: -6, text: '上司から高橋さんの部署に依頼してもらう。', feedback: '上から通すだけだと、協力ではなく作業命令になりやすいです。' },
+          { id: 'C', risk: '保留', score: 3, text: 'まず雑談で関係を作ってから、後日あらためて相談する。', feedback: '関係づくりは良いですが、目的とメリットの説明もセットにしましょう。' }
+        ],
+        lessons: [
+          ['巻き込みの基本', '他部署には「自分たちにどんな意味があるか」を先に示す必要があります。'],
+          ['押し付けの回避', '自部署の目的だけを語ると、相手には追加作業として届きます。'],
+          ['資料の作り方', '相手のメリット、必要な協力、作業時間、期限を1枚で見える化します。'],
+          ['合意形成のコツ', '小さく始める提案にすると、相手は参加しやすくなります。']
+        ]
+      }
+    };
+
+    const state = {
+      screen: 'title',
+      character: 'ESTP',
+      stage: 1,
+      trust: 35,
+      score: 0,
+      combo: 0,
+      lastChoice: null,
+      lastAnswer: null
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function go(screen) {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      const target = $(`screen-${screen}`);
+      if (!target) return;
+      target.classList.add('active');
+      state.screen = screen;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      syncHud();
+    }
+
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+    function syncHud() {
+      const trust = clamp(state.trust, 0, 100);
+      ['trust-label','trust-label-2'].forEach(id => { if ($(id)) $(id).textContent = `${trust}%`; });
+      ['trust-fill','trust-fill-2'].forEach(id => { if ($(id)) $(id).style.width = `${trust}%`; });
+      ['combo-label','combo-label-2'].forEach(id => { if ($(id)) $(id).textContent = `🔥 COMBO ${state.combo}`; });
+      ['star-label','star-label-2','stage-score','lesson-score'].forEach(id => { if ($(id)) $(id).textContent = `⭐ ${state.score}`; });
+      if ($('chosen-img')) $('chosen-img').src = charImages[state.character];
+      if ($('chosen-type')) $('chosen-type').textContent = state.character;
+      if ($('chosen-nick')) $('chosen-nick').textContent = charNick[state.character];
+      if ($('coach-img')) $('coach-img').src = charImages[state.character];
+    }
+
+    function initCharacters() {
+      const grid = $('character-grid');
+      grid.innerHTML = characters.map(([type, nick, group, cls]) => `
+        <button class="character-card ${cls}" data-group="${group}" onclick="selectCharacter('${type}')">
+          <img src="${charImages[type]}" alt="${type}キャラクター" />
+          <span class="type"><strong>${type}</strong><small>${nick}</small></span>
+        </button>
+      `).join('');
+    }
+
+    function selectCharacter(type) {
+      state.character = type;
+      toast(`${type}：${charNick[type]} を選択！`);
+      syncHud();
+      setTimeout(() => go('stage'), 180);
+    }
+
+    function selectStage(stageNo) {
+      state.stage = stageNo;
+      state.lastChoice = null;
+      state.lastAnswer = null;
+      renderMission();
+      go('mission');
+    }
+
+    function renderMission() {
+      const s = stages[state.stage];
+      $('mission-heading').textContent = s.title;
+      $('mission-sub').textContent = s.sub;
+      $('mission-kicker').textContent = s.kicker;
+      $('scenario').textContent = s.scenario;
+      $('npc-img').src = s.npcImg;
+      $('npc-name').textContent = s.npc;
+      $('npc-tag').textContent = s.npcTag;
+      $('choices').innerHTML = s.choices.map(c => `
+        <button class="choice" onclick="selectAnswer('${c.id}')">
+          <span class="letter">${c.id}</span>
+          <span class="text">${c.text}</span>
+          <span class="risk">${c.risk}</span>
+        </button>
+      `).join('');
+    }
+
+    function selectAnswer(id) {
+      const s = stages[state.stage];
+      const answer = s.choices.find(c => c.id === id);
+      state.lastAnswer = answer;
+      state.lastChoice = id;
+      applyScore(answer.score);
+      renderFeedback(answer);
+      go('feedback');
+      if (answer.grade === 'S') burst();
+    }
+
+    function applyScore(delta) {
+      state.score = Math.max(0, state.score + Math.max(0, Math.round(delta / 2)));
+      state.trust = clamp(state.trust + delta, 0, 100);
+      state.combo = delta > 10 ? state.combo + 1 : 0;
+    }
+
+    function renderFeedback(answer) {
+      const card = $('result-card');
+      card.className = 'result-card ' + (answer.score >= 20 ? 'good' : answer.score <= 0 ? 'bad' : 'okay');
+      $('grade').textContent = answer.grade;
+      $('feedback-heading').textContent = answer.title;
+      $('feedback-message').textContent = answer.message;
+      $('npc-quote').textContent = `${stages[state.stage].npc}「${answer.quote.replace(/[「」]/g, '')}」`;
+      $('coach-bubble').textContent = answer.score >= 20
+        ? 'いい選択！相手が判断しやすい順番で伝えられています。'
+        : answer.score <= 0
+          ? '惜しい！相手の不安や負担が増えるポイントを減らそう。'
+          : '悪くない！あと一歩、具体性を足すともっと強いです。';
+      $('actions').innerHTML = stages[state.stage].actions.map(a => `
+        <button class="choice" onclick="selectAction('${a.id}')">
+          <span class="letter">${a.id}</span>
+          <span class="text">${a.text}</span>
+          <span class="risk">${a.risk}</span>
+        </button>
+      `).join('');
+      syncHud();
+    }
+
+    function selectAction(id) {
+      const action = stages[state.stage].actions.find(a => a.id === id);
+      applyScore(action.score);
+      toast(action.feedback);
+      if (action.score > 10) burst();
+      setTimeout(() => {
+        renderLesson(action);
+        go('lesson');
+      }, 460);
+    }
+
+    function renderLesson(action) {
+      const s = stages[state.stage];
+      $('lesson-sub').textContent = `${s.title}｜${s.npcTag}を攻略しました。${action.feedback}`;
+      $('lesson-grid').innerHTML = s.lessons.map(([title, body], idx) => `
+        <article class="lesson-card ${idx === 0 ? 'open' : ''}" onclick="this.classList.toggle('open')">
+          <div class="lesson-head">
+            <h3>${idx + 1}. ${title}</h3>
+            <span class="toggle">▼</span>
+          </div>
+          <div class="lesson-body"><div><p>${body}</p></div></div>
+        </article>
+      `).join('');
+      syncHud();
+    }
+
+    function openGuide() {
+      $('guide-modal').classList.add('active');
+    }
+
+    function closeGuide(event) {
+      if (event && event.target !== $('guide-modal')) return;
+      $('guide-modal').classList.remove('active');
+    }
+
+    function toast(message) {
+      const el = $('toast');
+      el.textContent = message;
+      el.classList.add('show');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+    }
+
+    function burst() {
+      const box = $('confetti');
+      box.innerHTML = '';
+      const colors = ['#facc15', '#38bdf8', '#ec4899', '#22c55e', '#fb923c', '#a855f7'];
+      for (let i = 0; i < 34; i++) {
+        const piece = document.createElement('i');
+        piece.style.left = `${Math.random() * 100}%`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDelay = `${Math.random() * 240}ms`;
+        piece.style.animationDuration = `${700 + Math.random() * 650}ms`;
+        box.appendChild(piece);
+      }
+      setTimeout(() => box.innerHTML = '', 1500);
+    }
+
+    function resetGame() {
+      state.stage = 1;
+      state.trust = 35;
+      state.score = 0;
+      state.combo = 0;
+      state.lastChoice = null;
+      state.lastAnswer = null;
+      syncHud();
+      go('title');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeGuide();
+    });
+
+    initCharacters();
+    syncHud();
+  </script>
+</body>
+</html>

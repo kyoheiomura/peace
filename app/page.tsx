@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { mbtiScenarios } from "../lib/mbtiScenarios";
 
 /* ── module-level constants ── */
 
@@ -522,6 +523,8 @@ export default function Page() {
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [charPickerOpen, setCharPickerOpen] = useState(false);
+  const [clearedStages, setClearedStages] = useState<Set<number>>(new Set());
 
   /* refs for DOM containers that get innerHTML */
   const characterGridRef = useRef<HTMLDivElement>(null);
@@ -559,7 +562,7 @@ export default function Page() {
   const lessonSubRef = useRef<HTMLParagraphElement>(null);
 
   /* store lastAnswer / lastChoice as refs (used only by logic, not rendering) */
-  const lastAnswerRef = useRef<(typeof stages[1]["choices"][0]) | null>(null);
+  const lastAnswerRef = useRef<Record<string, unknown> | null>(null);
   const lastChoiceRef = useRef<string | null>(null);
 
   /* local copy of trust for syncHud (avoids stale closure) */
@@ -567,6 +570,7 @@ export default function Page() {
   const scoreRef = useRef(score);
   const comboRef = useRef(combo);
   const characterRef = useRef(character);
+  const clearedRef = useRef(clearedStages);
 
   useEffect(() => {
     trustRef.current = trust;
@@ -580,6 +584,9 @@ export default function Page() {
   useEffect(() => {
     characterRef.current = character;
   }, [character]);
+  useEffect(() => {
+    clearedRef.current = clearedStages;
+  }, [clearedStages]);
 
   /* ── helper: active class ── */
   const isActive = (screen: string) =>
@@ -699,25 +706,42 @@ export default function Page() {
   /* ── renderMission ── */
   const renderMission = useCallback(() => {
     const s = stages[stage];
+    const csv = mbtiScenarios[characterRef.current]?.[stage];
     if (missionHeadingRef.current)
       missionHeadingRef.current.textContent = s.title;
     if (missionSubRef.current) missionSubRef.current.textContent = s.sub;
     if (missionKickerRef.current)
       missionKickerRef.current.textContent = s.kicker;
-    if (scenarioRef.current) scenarioRef.current.textContent = s.scenario;
+    if (scenarioRef.current)
+      scenarioRef.current.textContent = csv?.situation || s.scenario;
     if (npcImgRef.current) npcImgRef.current.src = s.npcImg;
     if (npcNameRef.current) npcNameRef.current.textContent = s.npc;
     if (npcTagRef.current) npcTagRef.current.textContent = s.npcTag;
     if (choicesRef.current) {
-      choicesRef.current.innerHTML = s.choices
-        .map(
-          (c) => `<button class="choice" data-choice-id="${c.id}">
-          <span class="letter">${c.id}</span>
-          <span class="text">${c.text}</span>
-          <span class="risk">${c.risk}</span>
-        </button>`
-        )
-        .join("");
+      if (csv) {
+        const labels = ["A", "B", "C", "D"] as const;
+        const correct = csv.kiridashi.correct;
+        choicesRef.current.innerHTML = labels
+          .map((id) => {
+            const isCorrect = id === correct;
+            return `<button class="choice" data-choice-id="${id}">
+              <span class="letter">${id}</span>
+              <span class="text">${csv.kiridashi[id]}</span>
+              <span class="risk">${isCorrect ? "？" : "？"}</span>
+            </button>`;
+          })
+          .join("");
+      } else {
+        choicesRef.current.innerHTML = s.choices
+          .map(
+            (c) => `<button class="choice" data-choice-id="${c.id}">
+            <span class="letter">${c.id}</span>
+            <span class="text">${c.text}</span>
+            <span class="risk">${c.risk}</span>
+          </button>`
+          )
+          .join("");
+      }
     }
   }, [stage]);
 
@@ -739,44 +763,57 @@ export default function Page() {
 
   /* ── renderFeedback ── */
   const renderFeedback = useCallback(
-    (answer: (typeof stages[1]["choices"][0]) & { score: number }) => {
+    (answer: (typeof stages[1]["choices"][0]) & { score: number; isCsv?: boolean; choiceId?: string; correctId?: string }) => {
+      const csv = mbtiScenarios[characterRef.current]?.[stage];
+      const isCorrect = answer.isCsv ? answer.choiceId === answer.correctId : answer.score >= 20;
       if (resultCardRef.current) {
         resultCardRef.current.className =
           "result-card " +
-          (answer.score >= 20
-            ? "good"
-            : answer.score <= 0
-              ? "bad"
-              : "okay");
+          (isCorrect ? "good" : answer.isCsv ? "bad" : answer.score <= 0 ? "bad" : "okay");
       }
       if (gradeRef.current)
-        gradeRef.current.textContent = answer.grade;
+        gradeRef.current.textContent = answer.isCsv ? (isCorrect ? "S" : "C") : answer.grade;
       if (feedbackHeadingRef.current)
-        feedbackHeadingRef.current.textContent = answer.title;
+        feedbackHeadingRef.current.textContent = answer.isCsv
+          ? (isCorrect ? "素晴らしい選択！" : "もう少し工夫できるかも")
+          : answer.title;
       if (feedbackMessageRef.current)
-        feedbackMessageRef.current.textContent = answer.message;
+        feedbackMessageRef.current.textContent = answer.isCsv
+          ? (isCorrect ? csv?.result || "相手との信頼が深まりました。" : "相手の立場に立って、もう一度考えてみましょう。")
+          : answer.message;
       if (npcQuoteRef.current) {
         const s = stages[stage];
-        npcQuoteRef.current.textContent = `${s.npc}「${answer.quote.replace(/[「」]/g, "")}」`;
+        npcQuoteRef.current.textContent = `${s.npc}「${isCorrect ? "いいね、その伝え方なら進めやすいよ。" : "もう少し具体的に教えてもらえると助かるな。"}」`;
       }
       if (coachBubbleRef.current) {
         coachBubbleRef.current.textContent =
-          answer.score >= 20
+          isCorrect
             ? "いい選択！相手が判断しやすい順番で伝えられています。"
-            : answer.score <= 0
-              ? "惜しい！相手の不安や負担が増えるポイントを減らそう。"
-              : "悪くない！あと一歩、具体性を足すともっと強いです。";
+            : "惜しい！相手の不安や負担が増えるポイントを減らそう。";
       }
       if (actionsRef.current) {
-        actionsRef.current.innerHTML = stages[stage].actions
-          .map(
-            (a) => `<button class="choice" data-action-id="${a.id}">
-          <span class="letter">${a.id}</span>
-          <span class="text">${a.text}</span>
-          <span class="risk">${a.risk}</span>
-        </button>`
-          )
-          .join("");
+        if (csv) {
+          const labels = ["A", "B", "C", "D"] as const;
+          actionsRef.current.innerHTML = labels
+            .map((id) => {
+              return `<button class="choice" data-action-id="${id}">
+                <span class="letter">${id}</span>
+                <span class="text">${csv.furumai[id]}</span>
+                <span class="risk">？</span>
+              </button>`;
+            })
+            .join("");
+        } else {
+          actionsRef.current.innerHTML = stages[stage].actions
+            .map(
+              (a) => `<button class="choice" data-action-id="${a.id}">
+            <span class="letter">${a.id}</span>
+            <span class="text">${a.text}</span>
+            <span class="risk">${a.risk}</span>
+          </button>`
+            )
+            .join("");
+        }
       }
       syncHud();
     },
@@ -786,6 +823,18 @@ export default function Page() {
   /* ── selectAnswer ── */
   const selectAnswer = useCallback(
     (id: string) => {
+      const csv = mbtiScenarios[characterRef.current]?.[stage];
+      if (csv) {
+        const isCorrect = id === csv.kiridashi.correct;
+        const scoreDelta = isCorrect ? 25 : -5;
+        const answerObj = { score: scoreDelta, isCsv: true as const, choiceId: id, correctId: csv.kiridashi.correct };
+        lastAnswerRef.current = answerObj;
+        lastChoiceRef.current = id;
+        applyScore(scoreDelta);
+        renderFeedback(answerObj as Parameters<typeof renderFeedback>[0]);
+        go("feedback");
+        return;
+      }
       const s = stages[stage];
       const answer = s.choices.find((c) => c.id === id);
       if (!answer) return;
@@ -794,22 +843,43 @@ export default function Page() {
       applyScore(answer.score);
       renderFeedback(answer);
       go("feedback");
-      if (answer.grade === "S") burst();
     },
-    [stage, applyScore, renderFeedback, go, burst]
+    [stage, applyScore, renderFeedback, go]
   );
 
   /* ── selectAction ── */
   const selectAction = useCallback(
     (id: string) => {
+      const csv = mbtiScenarios[characterRef.current]?.[stage];
+      /* mark stage as cleared */
+      setClearedStages((prev) => {
+        const next = new Set(prev);
+        next.add(stage);
+        clearedRef.current = next;
+        return next;
+      });
+
+      if (csv) {
+        const isCorrect = id === csv.furumai.correct;
+        const scoreDelta = isCorrect ? 20 : -5;
+        applyScore(scoreDelta);
+        toast(isCorrect ? csv.result : "相手の立場に立って行動を選び直してみましょう。");
+        setTimeout(() => {
+          renderLesson({ feedback: isCorrect ? csv.result : "" });
+          go("lesson");
+          /* confetti only when all 5 stages cleared */
+          if (clearedRef.current.size >= 5) burst();
+        }, 460);
+        return;
+      }
       const action = stages[stage].actions.find((a) => a.id === id);
       if (!action) return;
       applyScore(action.score);
       toast(action.feedback);
-      if (action.score > 10) burst();
       setTimeout(() => {
         renderLesson(action);
         go("lesson");
+        if (clearedRef.current.size >= 5) burst();
       }, 460);
     },
     [stage, applyScore, toast, burst, go]
@@ -819,20 +889,41 @@ export default function Page() {
   const renderLesson = useCallback(
     (action: { feedback: string }) => {
       const s = stages[stage];
+      const csv = mbtiScenarios[characterRef.current]?.[stage];
       if (lessonSubRef.current)
         lessonSubRef.current.textContent = `${s.title}｜${s.npcTag}を攻略しました。${action.feedback}`;
       if (lessonGridRef.current) {
-        lessonGridRef.current.innerHTML = s.lessons
-          .map(
-            ([title, body], idx) => `<article class="lesson-card ${idx === 0 ? "open" : ""}" data-lesson-toggle>
-          <div class="lesson-head">
-            <h3>${idx + 1}. ${title}</h3>
-            <span class="toggle">▼</span>
-          </div>
-          <div class="lesson-body"><div><p>${body}</p></div></div>
-        </article>`
-          )
-          .join("");
+        if (csv) {
+          const cards = [
+            { title: "なぜこの対応が正解なのか", body: csv.naze },
+            { title: "あなたの落とし穴", body: csv.otoshiana },
+            { title: "明日から使えるヒント", body: csv.hint },
+            { title: "もっと知りたい人へ", body: csv.more },
+          ];
+          lessonGridRef.current.innerHTML = cards
+            .map(
+              (card, idx) => `<article class="lesson-card ${idx === 0 ? "open" : ""}" data-lesson-toggle>
+            <div class="lesson-head">
+              <h3>${idx + 1}. ${card.title}</h3>
+              <span class="toggle">▼</span>
+            </div>
+            <div class="lesson-body"><div><p>${card.body}</p></div></div>
+          </article>`
+            )
+            .join("");
+        } else {
+          lessonGridRef.current.innerHTML = s.lessons
+            .map(
+              ([title, body], idx) => `<article class="lesson-card ${idx === 0 ? "open" : ""}" data-lesson-toggle>
+            <div class="lesson-head">
+              <h3>${idx + 1}. ${title}</h3>
+              <span class="toggle">▼</span>
+            </div>
+            <div class="lesson-body"><div><p>${body}</p></div></div>
+          </article>`
+            )
+            .join("");
+        }
       }
       syncHud();
     },
@@ -857,13 +948,15 @@ export default function Page() {
     setTrust(35);
     setScore(0);
     setCombo(0);
+    setClearedStages(new Set());
     trustRef.current = 35;
     scoreRef.current = 0;
     comboRef.current = 0;
+    clearedRef.current = new Set();
     lastChoiceRef.current = null;
     lastAnswerRef.current = null;
     syncHud();
-    go("title");
+    go("stage");
   }, [syncHud, go]);
 
   /* ── openGuide / closeGuide ── */
@@ -953,12 +1046,45 @@ export default function Page() {
 
   return (
     <>
-      <span className="bg-chip chip-1">🌙</span>
-      <span className="bg-chip chip-2">☀️</span>
-      <span className="bg-chip chip-3">💎</span>
-      <span className="bg-chip chip-4">🧩</span>
+      {/* ── DESKTOP: Phone mockup wrapper ── */}
+      <div className="phone-mockup-shell">
+        {/* Desktop-only decorative background elements */}
+        <div className="desktop-bg-decor">
+          <span className="bg-chip chip-1">🌙</span>
+          <span className="bg-chip chip-2">☀️</span>
+          <span className="bg-chip chip-3">💎</span>
+          <span className="bg-chip chip-4">🧩</span>
+        </div>
+
+        <div className="phone-mockup-container">
+          {/* Phone frame */}
+          <div className="phone-frame">
+            {/* Notch / Dynamic Island */}
+            <div className="phone-notch" />
+            {/* Side button: volume up */}
+            <div className="phone-btn phone-btn-vol-up" />
+            {/* Side button: volume down */}
+            <div className="phone-btn phone-btn-vol-down" />
+            {/* Side button: power */}
+            <div className="phone-btn phone-btn-power" />
+
+            {/* Screen area */}
+            <div className="phone-screen">
+              {/* Status bar */}
+              <div className="phone-status-bar">
+                <span className="phone-status-time">12:00</span>
+                <span className="phone-status-icons">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+                </span>
+              </div>
 
       <main className="app">
+        {/* ── Mobile-only background chips ── */}
+        <span className="bg-chip-mobile chip-1">🌙</span>
+        <span className="bg-chip-mobile chip-2">☀️</span>
+        <span className="bg-chip-mobile chip-3">💎</span>
+        <span className="bg-chip-mobile chip-4">🧩</span>
         {/* ── TITLE ── */}
         <section
           id="screen-title"
@@ -991,7 +1117,7 @@ export default function Page() {
                 <div className="actions">
                   <button
                     className="btn primary"
-                    onClick={() => go("character")}
+                    onClick={() => { syncHud(); go("stage"); }}
                   >
                     ゲーム開始 ▶
                   </button>
@@ -1019,49 +1145,14 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── CHARACTER SELECT ── */}
-        <section
-          id="screen-character"
-          className={isActive("character")}
-          aria-labelledby="character-heading"
-        >
-          <div className="window">
-            <div className="window-bar" aria-hidden="true">
-              <span className="dot red">×</span>
-              <span className="dot yellow">−</span>
-              <span className="dot green">□</span>
-              <span className="bar-title">SELECT CHARACTER</span>
-            </div>
-            <div className="window-body">
-              <div className="topbar">
-                <button
-                  className="back-btn"
-                  onClick={() => go("title")}
-                  aria-label="タイトルへ戻る"
-                >
-                  ←
-                </button>
-                <div>
-                  <h2
-                    id="character-heading"
-                    className="screen-title"
-                  >
-                    あなたのキャラクターを選ぼう
-                  </h2>
-                  <p className="subnote">
-                    タイプごとに「得意な伝え方」と「やりがちな落とし穴」が変わります。
-                  </p>
-                </div>
-                <div className="hud-card">⭐ {score}</div>
-              </div>
-              <div
-                id="character-grid"
-                ref={characterGridRef}
-                className="character-grid"
-              />
-            </div>
-          </div>
-        </section>
+        {/* ── CHARACTER SELECT (hidden, used for ref) ── */}
+        <div style={{ display: "none" }}>
+          <div
+            id="character-grid"
+            ref={characterGridRef}
+            className="character-grid"
+          />
+        </div>
 
         {/* ── STAGE SELECT ── */}
         <section
@@ -1072,8 +1163,8 @@ export default function Page() {
           <div className="topbar">
             <button
               className="back-btn"
-              onClick={() => go("character")}
-              aria-label="キャラクター選択へ戻る"
+              onClick={() => go("title")}
+              aria-label="タイトルへ戻る"
             >
               ←
             </button>
@@ -1089,73 +1180,96 @@ export default function Page() {
               ⭐ {score}
             </div>
           </div>
-          <div className="stage-map">
-            <div className="chosen-hero">
-              <img
-                id="chosen-img"
-                ref={chosenImgRef}
-                src={charImages[character]}
-                alt="選択中のキャラクター"
-              />
-              <div className="chosen-label">
-                <span id="chosen-type" ref={chosenTypeRef}>
-                  {character}
-                </span>
-                <span id="chosen-nick" ref={chosenNickRef}>
-                  {charNick[character]}
-                </span>
+
+          {/* ── MBTI badge + inline picker ── */}
+          <div className="mbti-bar">
+            <div className="mbti-badge" onClick={() => setCharPickerOpen(!charPickerOpen)}>
+              <img src={charImages[character]} alt="" className="mbti-badge-img" />
+              <span className="mbti-badge-type">{character}</span>
+              <span className="mbti-badge-nick">{charNick[character]}</span>
+              <span className="mbti-change-link">変更</span>
+            </div>
+          </div>
+          {charPickerOpen && (
+            <div className="mbti-picker-overlay" onClick={() => setCharPickerOpen(false)}>
+              <div className="mbti-picker" onClick={(e) => e.stopPropagation()}>
+                <h3>MBTIタイプを選択</h3>
+                <div className="mbti-picker-grid">
+                  {characters.map(([type, nick, group, cls]) => (
+                    <button
+                      key={type}
+                      className={`mbti-picker-card ${character === type ? "selected" : ""} ${cls}`}
+                      onClick={() => {
+                        selectCharacter(type);
+                        setCharPickerOpen(false);
+                      }}
+                    >
+                      <img src={charImages[type]} alt="" />
+                      <strong>{type}</strong>
+                      <small>{nick}</small>
+                    </button>
+                  ))}
+                </div>
+                <button className="btn" onClick={() => setCharPickerOpen(false)} style={{ marginTop: 12 }}>
+                  閉じる
+                </button>
               </div>
             </div>
-            <button
-              className="stage-node stage-1"
-              onClick={() => selectStage(1)}
-            >
-              <img src="/img/stage/st1.png" alt="" />
-              <span className="node-label">
-                先輩・上司
-                <small>報連相 / リスク報告</small>
-              </span>
-            </button>
-            <button
-              className="stage-node stage-2"
-              onClick={() => selectStage(2)}
-            >
-              <img src="/img/stage/st2.png" alt="" />
-              <span className="node-label">
-                同僚
-                <small>協力依頼 / すり合わせ</small>
-              </span>
-            </button>
-            <button
-              className="stage-node stage-3"
-              onClick={() => selectStage(3)}
-            >
-              <img src="/img/stage/st3.png" alt="" />
-              <span className="node-label">
-                後輩
-                <small>育成 / フィードバック</small>
-              </span>
-            </button>
-            <button
-              className="stage-node stage-4"
-              onClick={() => selectStage(4)}
-            >
-              <img src="/img/stage/st4.png" alt="" />
-              <span className="node-label">
-                クライアント
-                <small>期待調整 / 提案</small>
-              </span>
-            </button>
-            <button
-              className="stage-node stage-5"
-              onClick={() => selectStage(5)}
-            >
-              <img src="/img/stage/st5.png" alt="" />
-              <span className="node-label">
-                他部署
-                <small>巻き込み / 合意形成</small>
-              </span>
-            </button>
+          )}
+
+          <div className="stage-map">
+            <div className="stage-nodes">
+              <button
+                className="stage-node stage-1"
+                onClick={() => selectStage(1)}
+              >
+                <img src="/img/stage/st1.png" alt="" />
+                <span className="node-label">
+                  先輩・上司
+                  <small>報連相 / リスク報告</small>
+                </span>
+              </button>
+              <button
+                className="stage-node stage-2"
+                onClick={() => selectStage(2)}
+              >
+                <img src="/img/stage/st2.png" alt="" />
+                <span className="node-label">
+                  同僚
+                  <small>協力依頼 / すり合わせ</small>
+                </span>
+              </button>
+              <button
+                className="stage-node stage-3"
+                onClick={() => selectStage(3)}
+              >
+                <img src="/img/stage/st3.png" alt="" />
+                <span className="node-label">
+                  後輩
+                  <small>育成 / フィードバック</small>
+                </span>
+              </button>
+              <button
+                className="stage-node stage-4"
+                onClick={() => selectStage(4)}
+              >
+                <img src="/img/stage/st4.png" alt="" />
+                <span className="node-label">
+                  クライアント
+                  <small>期待調整 / 提案</small>
+                </span>
+              </button>
+              <button
+                className="stage-node stage-5"
+                onClick={() => selectStage(5)}
+              >
+                <img src="/img/stage/st5.png" alt="" />
+                <span className="node-label">
+                  他部署
+                  <small>巻き込み / 合意形成</small>
+                </span>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -1377,6 +1491,35 @@ export default function Page() {
           </div>
         </section>
       </main>
+
+              {/* Home indicator */}
+              <div className="phone-home-indicator" />
+            </div>{/* /phone-screen */}
+          </div>{/* /phone-frame */}
+        </div>{/* /phone-mockup-container */}
+
+        {/* Desktop side info */}
+        <div className="desktop-side-info">
+          <h2 className="desktop-title">Pieceful</h2>
+          <p className="desktop-subtitle">ピースフル</p>
+          <p className="desktop-desc">MBTIタイプ別キャラクターで<br/>職場コミュニケーションを攻略</p>
+          <div className="desktop-features">
+            <div className="desktop-feature">
+              <span className="desktop-feature-icon">🎮</span>
+              <span>5ステージ</span>
+            </div>
+            <div className="desktop-feature">
+              <span className="desktop-feature-icon">🧩</span>
+              <span>16タイプ</span>
+            </div>
+            <div className="desktop-feature">
+              <span className="desktop-feature-icon">💬</span>
+              <span>実践的</span>
+            </div>
+          </div>
+          <p className="desktop-hint">← モックアップ内でスクロール可能 →</p>
+        </div>
+      </div>{/* /phone-mockup-shell */}
 
       {/* ── GUIDE MODAL ── */}
       <div

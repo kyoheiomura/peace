@@ -1,0 +1,106 @@
+goal:
+  title: "MBTIゲーム UX完成"
+  slug: mbti-game-ux-complete
+  status: active
+  created: "2026-05-13"
+
+agents:
+  scout: bundled_not_installed
+  worker: bundled_not_installed
+  judge: bundled_not_installed
+
+tasks:
+  - id: T001
+    type: worker
+    assignee: Worker
+    status: queued
+    objective: "ナビゲーション改善: character画面の戻るをtitle→stageに変更、lesson画面の「最初から」をstage選択に戻るよう変更、全画面の戻るボタン挙動を確認"
+    allowed_files:
+      - app/page.tsx
+    verify:
+      - "character画面のback-btn onClickがgo('stage')になっている"
+      - "lesson画面のresetGameボタンがgo('stage')になっている"
+      - "mission/feedback/lessonの戻るがすべてgo('stage')である"
+    stop_if:
+      - "スコアや信頼度のリセットロジックを壊している"
+    receipt: null
+
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: queued
+    objective: "MBTI選択を目立たない配置に変更: 独立したcharacter画面を廃止し、stage選択画面に小型のMBTI表示+変更ボタンを配置。タイトル→stage直行フローにする"
+    allowed_files:
+      - app/page.tsx
+      - app/globals.css
+    verify:
+      - "タイトル画面のスタートボタンで直接stage画面に遷移する"
+      - "stage画面にMBTIタイプ表示と小さな変更リンクがある"
+      - "MBTI変更時にモーダルまたはインラインで選択できる"
+    stop_if:
+      - "既存のcharacter画面のDOMを壊して他の機能に影響がある"
+    receipt: null
+
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: queued
+    objective: "CSVデータ（80レコード・16MBTI×5相手）をpage.tsxに統合し、MBTI別シナリオをゲーム内で反映させる。stagesデータをMBTI別に切り替える"
+    allowed_files:
+      - app/page.tsx
+    verify:
+      - "csvData配列がpage.tsxに埋め込まれている"
+      - "ステージ選択時にcharacter（MBTIタイプ）に応じたシナリオが表示される"
+      - "選択肢・正解・フィードバックがMBTI別に切り替わる"
+    stop_if:
+      - "データサイズが大きすぎてビルドが失敗する"
+      - "CSVデータの20件の「なぜ正解」欠損でゲームが壊れる"
+    receipt: null
+
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: queued
+    objective: "ゲームポリッシュ: lesson画面にCSVのインサイトカード（なぜ正解・落とし穴・ヒント・もっと知りたい）を表示、スコア表示の改善、全画面のUI微調整"
+    allowed_files:
+      - app/page.tsx
+      - app/globals.css
+    verify:
+      - "lesson画面に4つのインサイトカードが表示される"
+      - "カードがMBTI別の内容を反映している"
+      - "レイアウトが崩れていない"
+    stop_if:
+      - "CSSが既存テーマと競合する"
+    receipt: null
+
+  - id: T005
+    type: worker
+    assignee: Worker
+    status: queued
+    objective: "ゲーム全体の動作確認と最終調整: 全画面遷移、スコア計算、コンボ、信頼度、戻るボタン、MBTI変更の動作確認。build成功確認"
+    allowed_files:
+      - app/page.tsx
+      - app/globals.css
+    verify:
+      - "npm run buildが成功する"
+      - "全画面遷移が正しく動作する"
+      - "スコア・コンボ・信頼度が正しく計算される"
+    stop_if:
+      - "ビルドエラーが解決できない"
+    receipt: null
+
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: queued
+    objective: "最終監査: ゲームが自己完結して成立するか、全UX改善が反映されているか、CSV統合が正しいかを確認"
+    inputs:
+      - "すべてのdone task receipts"
+      - "ビルド結果"
+      - "全画面の動作確認"
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "missing evidence"
+      - "next task if not complete"
+    receipt: null

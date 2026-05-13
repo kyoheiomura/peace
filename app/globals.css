@@ -65,8 +65,17 @@ button { color: inherit; }
 
 /* ── Original bg-chip: hidden on desktop (phone-mockup handles it) ── */
 .bg-chip {
-  display: none;
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  filter: drop-shadow(4px 4px 0 rgba(24,34,53,.18));
+  animation: floaty 5s ease-in-out infinite;
+  opacity: .88;
 }
+.chip-1 { left: 5vw; top: 9vh; font-size: clamp(34px, 7vw, 78px); }
+.chip-2 { right: 7vw; top: 11vh; font-size: clamp(40px, 8vw, 90px); animation-delay: .4s; }
+.chip-3 { left: 8vw; bottom: 12vh; font-size: clamp(28px, 5vw, 54px); animation-delay: .9s; }
+.chip-4 { right: 12vw; bottom: 10vh; font-size: clamp(30px, 6vw, 68px); animation-delay: 1.2s; }
 
 @keyframes floaty {
   0%, 100% { transform: translateY(0) rotate(-3deg); }
@@ -1781,370 +1790,268 @@ img {
 
 
 /* =====================================================
-   PHONE MOCKUP LAYOUT
-   Desktop: game in phone frame | Mobile: fullscreen
+   PHONE MOCKUP LAYOUT  (CSS-only approach)
+   Desktop: .app is constrained into phone shape via CSS
+   Mobile:  .app is fullscreen as originally designed
    ===================================================== */
 
-/* ── Mobile-only bg chips (hidden on desktop) ── */
-.bg-chip-mobile {
-  display: none;
-}
-
-/* ── Desktop background decor (hidden on mobile) ── */
-.desktop-bg-decor {
-  display: none;
-}
-
-/* ── Phone mockup shell: full viewport wrapper ── */
-.phone-mockup-shell {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 60px;
-  padding: 40px;
-}
-
-/* ── Phone mockup container ── */
-.phone-mockup-container {
-  display: none; /* hidden on mobile by default */
-}
-
-/* ── Desktop side info (hidden on mobile) ── */
+/* ── Desktop side info (JSX renders outside .app, CSS hides on mobile) ── */
 .desktop-side-info {
   display: none;
 }
 
-/* ── Phone frame ── */
-.phone-frame {
-  position: relative;
-  width: 390px;
-  height: 844px;
-  border-radius: 54px;
-  background: #1a1a2e;
-  padding: 12px;
-  box-shadow:
-    0 0 0 2px #2a2a4a,
-    0 0 0 4px #0a0a1a,
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 80px rgba(15, 127, 116, 0.15),
-    inset 0 0 20px rgba(255, 255, 255, 0.03);
-}
-
-/* ── Phone screen (scrollable game area) ── */
-.phone-screen {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 44px;
-  background: var(--paper, #fff6d8);
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,246,216,0.4) transparent;
-}
-
-.phone-screen::-webkit-scrollbar {
-  width: 4px;
-}
-.phone-screen::-webkit-scrollbar-track {
-  background: transparent;
-}
-.phone-screen::-webkit-scrollbar-thumb {
-  background: rgba(255, 246, 216, 0.4);
-  border-radius: 4px;
-}
-
-/* ── Dynamic Island / Notch ── */
-.phone-notch {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 32px;
-  background: #0a0a1a;
-  border-radius: 20px;
-  z-index: 15;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
-}
-.phone-notch::before {
-  content: "";
-  position: absolute;
-  right: 18px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #1a3a5c 0%, #0a1a2e 100%);
-  box-shadow: 0 0 3px rgba(23, 149, 204, 0.5);
-}
-
-/* ── Status bar inside screen ── */
-.phone-status-bar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 24px 8px;
-  background: rgba(7, 27, 58, 0.85);
-  backdrop-filter: blur(10px);
-  color: #fff6d8;
-  font-family: var(--font-pixel, monospace);
-  font-size: 12px;
-  font-weight: 700;
-}
-.phone-status-icons {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* ── Home indicator ── */
-.phone-home-indicator {
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(to top, rgba(7,27,58,0.9) 0%, rgba(7,27,58,0.6) 60%, transparent 100%);
-  pointer-events: none;
-}
-.phone-home-indicator::after {
-  content: "";
-  width: 134px;
-  height: 5px;
-  border-radius: 3px;
-  background: rgba(255, 246, 216, 0.5);
-}
-
-/* ── Side buttons ── */
-.phone-btn {
-  position: absolute;
-  background: #2a2a4a;
-  z-index: 2;
-}
-.phone-btn-vol-up {
-  left: -3px;
-  top: 140px;
-  width: 3px;
-  height: 40px;
-  border-radius: 2px 0 0 2px;
-}
-.phone-btn-vol-down {
-  left: -3px;
-  top: 195px;
-  width: 3px;
-  height: 40px;
-  border-radius: 2px 0 0 2px;
-}
-.phone-btn-power {
-  right: -3px;
-  top: 170px;
-  width: 3px;
-  height: 56px;
-  border-radius: 0 2px 2px 0;
-}
-
-/* ── Desktop side info ── */
-.desktop-side-info {
-  max-width: 280px;
-  text-align: center;
-}
-.desktop-title {
-  font-family: var(--font-pixel, 'DotGothic16', monospace);
-  font-size: 42px;
-  font-weight: 900;
-  color: #fff6d8;
-  letter-spacing: -0.02em;
-  text-shadow:
-    3px 0 0 #071024,
-    -3px 0 0 #071024,
-    0 3px 0 #071024,
-    0 -3px 0 #071024,
-    5px 5px 0 #b82e2e;
-  margin: 0 0 4px;
-}
-.desktop-title::first-letter { color: #e74d80; }
-.desktop-subtitle {
-  font-family: var(--font-pixel, 'DotGothic16', monospace);
-  font-size: 18px;
-  color: #f5c542;
-  margin: 0 0 20px;
-  text-shadow: 2px 2px 0 #071024;
-}
-.desktop-desc {
-  font-family: var(--font);
-  font-size: 16px;
-  line-height: 1.8;
-  color: #94a3b8;
-  font-weight: 700;
-  margin: 0 0 28px;
-}
-.desktop-features {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.desktop-feature {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 16px;
-  border: 2px solid rgba(255,246,216,0.15);
-  border-radius: 0;
-  background: rgba(255,246,216,0.04);
-  font-family: var(--font-pixel);
-  font-size: 11px;
-  color: #fff6d8;
-  text-shadow: 1px 1px 0 #071024;
-}
-.desktop-feature-icon {
-  font-size: 24px;
-}
-.desktop-hint {
-  font-size: 12px;
-  color: #536177;
-  font-family: var(--font-pixel);
-  letter-spacing: 0.04em;
-  animation: hintPulse 3s ease-in-out infinite;
-}
-@keyframes hintPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-/* ── DESKTOP (≥768px): show phone mockup ── */
+/* ─────────────────────────────────────────────────
+   DESKTOP (≥768px)
+   ───────────────────────────────────────────────── */
 @media (min-width: 768px) {
-  /* Hide mobile-only bg chips */
-  .bg-chip-mobile {
-    display: none !important;
-  }
-
-  /* Show desktop decor */
-  .desktop-bg-decor {
-    display: block;
-  }
-  .desktop-bg-decor .bg-chip {
-    position: fixed;
-    z-index: 0;
-    pointer-events: none;
-    filter: drop-shadow(4px 4px 0 rgba(24,34,53,.18));
-    animation: floaty 5s ease-in-out infinite;
-    opacity: .88;
-  }
-  .desktop-bg-decor .chip-1 { left: 5vw; top: 9vh; font-size: clamp(34px, 7vw, 78px); }
-  .desktop-bg-decor .chip-2 { right: 7vw; top: 11vh; font-size: clamp(40px, 8vw, 90px); animation-delay: .4s; }
-  .desktop-bg-decor .chip-3 { left: 8vw; bottom: 12vh; font-size: clamp(28px, 5vw, 54px); animation-delay: .9s; }
-  .desktop-bg-decor .chip-4 { right: 12vw; bottom: 10vh; font-size: clamp(30px, 6vw, 68px); animation-delay: 1.2s; }
-
-  /* Show phone mockup container */
-  .phone-mockup-container {
+  /* body becomes the flex container */
+  body {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-  }
-
-  /* Show desktop side info */
-  .desktop-side-info {
-    display: block;
-  }
-
-  /* Override .app to fit inside phone screen */
-  .phone-screen .app {
-    width: 100%;
-    max-width: 100%;
-    min-height: auto;
-    margin: 0;
-    padding: 0;
-    place-items: start;
-  }
-
-  /* Make body background darker/more immersive for desktop */
-  body {
+    gap: 48px;
+    padding: 20px;
     background:
       linear-gradient(rgba(255,255,255,.035) 50%, rgba(0,0,0,.035) 50%) 0 0 / 100% 4px,
-      linear-gradient(180deg, #040a18 0%, #0b2540 52%, #0a3a32 52%, #0a3a32 64%, #1a0e06 64%, #0d0804 100%);
-  }
-}
-
-/* ── MOBILE (<768px): fullscreen, no frame ── */
-@media (max-width: 767px) {
-  .phone-mockup-shell {
-    display: block;
-    min-height: auto;
-    padding: 0;
+      linear-gradient(180deg, #040a18 0%, #0b2540 52%, #0a3a32 52%, #0a3a32 64%, #1a0e06 64%, #0d0804 100%) !important;
   }
 
-  .phone-mockup-container {
-    display: none !important;
-  }
-
+  /* Desktop side info visible */
   .desktop-side-info {
-    display: none !important;
-  }
-
-  .phone-status-bar,
-  .phone-home-indicator {
-    display: none !important;
-  }
-
-  /* Show mobile bg chips */
-  .bg-chip-mobile {
     display: block;
-    position: fixed;
-    z-index: 0;
-    pointer-events: none;
-    filter: drop-shadow(4px 4px 0 rgba(24,34,53,.18));
-    animation: floaty 5s ease-in-out infinite;
-    opacity: .88;
+    max-width: 280px;
+    text-align: center;
+    flex-shrink: 0;
   }
-  .bg-chip-mobile.chip-1 { left: 5vw; top: 9vh; font-size: clamp(34px, 7vw, 78px); }
-  .bg-chip-mobile.chip-2 { right: 7vw; top: 11vh; font-size: clamp(40px, 8vw, 90px); animation-delay: .4s; }
-  .bg-chip-mobile.chip-3 { left: 8vw; bottom: 12vh; font-size: clamp(28px, 5vw, 54px); animation-delay: .9s; }
-  .bg-chip-mobile.chip-4 { right: 12vw; bottom: 10vh; font-size: clamp(30px, 6vw, 68px); animation-delay: 1.2s; }
+  .desktop-title {
+    font-family: var(--font-pixel, 'DotGothic16', monospace);
+    font-size: 42px;
+    font-weight: 900;
+    color: #fff6d8;
+    letter-spacing: -0.02em;
+    text-shadow:
+      3px 0 0 #071024, -3px 0 0 #071024,
+      0 3px 0 #071024, 0 -3px 0 #071024,
+      5px 5px 0 #b82e2e;
+    margin: 0 0 4px;
+  }
+  .desktop-title::first-letter { color: #e74d80; }
+  .desktop-subtitle {
+    font-family: var(--font-pixel, 'DotGothic16', monospace);
+    font-size: 18px;
+    color: #f5c542;
+    margin: 0 0 20px;
+    text-shadow: 2px 2px 0 #071024;
+  }
+  .desktop-desc {
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.8;
+    color: #94a3b8;
+    font-weight: 700;
+    margin: 0 0 28px;
+  }
+  .desktop-features {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .desktop-feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    border: 2px solid rgba(255,246,216,0.15);
+    border-radius: 0;
+    background: rgba(255,246,216,0.04);
+    font-family: var(--font-pixel);
+    font-size: 11px;
+    color: #fff6d8;
+    text-shadow: 1px 1px 0 #071024;
+  }
+  .desktop-feature-icon { font-size: 24px; }
+  .desktop-hint {
+    font-size: 12px;
+    color: #536177;
+    font-family: var(--font-pixel);
+    letter-spacing: 0.04em;
+    animation: hintPulse 3s ease-in-out infinite;
+  }
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ── .app becomes the phone frame ── */
+  .app {
+    /* Phone outer body */
+    position: relative;
+    width: 390px;
+    flex-shrink: 0;
+    max-height: 844px;
+    border-radius: 54px;
+    background: #1a1a2e;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #2a2a4a,
+      0 0 0 4px #0a0a1a,
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      0 0 80px rgba(15, 127, 116, 0.15),
+      inset 0 0 20px rgba(255, 255, 255, 0.03);
+    /* override original */
+    min-height: auto;
+    margin: 0;
+    padding: 12px;
+    place-items: stretch;
+  }
+
+  /* Dynamic Island — ::before on .app */
+  .app::before {
+    content: "" !important;
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 32px;
+    background: #0a0a1a;
+    border-radius: 20px;
+    z-index: 15;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.05),
+                inset 6px 0 0 -3px rgba(23,149,204,0.3);
+    /* override the 8-bit cloud decoration */
+    width: 120px !important;
+    height: 32px !important;
+    background: #0a0a1a !important;
+    opacity: 1 !important;
+    left: 50% !important;
+    top: 18px !important;
+    right: auto !important;
+    filter: none !important;
+    border-radius: 20px !important;
+  }
+  /* Remove the 2nd cloud (::after) on desktop */
+  .app::after {
+    display: none !important;
+  }
+
+  /* ── Phone inner screen area ── */
+  /* We add a wrapper via CSS: the first child of .app gets styled as the screen */
+  /* Actually, we use a box-shadow inset trick + overflow on .app itself */
+  
+  /* Make .app act as scrollable phone screen */
+  .app {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,246,216,0.3) transparent;
+  }
+  .app::-webkit-scrollbar {
+    width: 4px;
+  }
+  .app::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .app::-webkit-scrollbar-thumb {
+    background: rgba(255, 246, 216, 0.3);
+    border-radius: 4px;
+  }
+
+  /* Inner content area = the phone screen surface */
+  .app > .screen,
+  .app > .bg-chip {
+    /* offset for the phone bezel padding */
+  }
+
+  /* Add a screen bezel inset + status bar via inner box */
+  /* We'll use .app's padding for the bezel, and the bg-chip needs to be inside the screen */
+
+  /* Hide floating bg-chips on desktop (they'd be behind the phone frame) */
+  .app > .bg-chip {
+    display: none !important;
+  }
+
+  /* Status bar: we render as a pseudo element inside each active screen */
+  .app > .screen.active::before {
+    content: "12:00\2003\2003\2003📶 🔋";
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px 8px;
+    background: rgba(7, 27, 58, 0.9);
+    color: #fff6d8;
+    font-family: var(--font-pixel, monospace);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    margin: -12px -12px 0;
+    border-radius: 42px 42px 0 0;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Home indicator at bottom of phone */
+  .app > .screen.active::after {
+    content: "";
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 8px;
+    width: 134px;
+    height: 34px;
+    margin: 0 auto;
+    background: linear-gradient(to top, rgba(7,27,58,0.7), transparent);
+    border-radius: 3px;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  /* Constrain inner content width to phone screen */
+  .app > .screen.active {
+    max-width: 100%;
+    padding: 12px;
+  }
+
+  /* ── Phone side buttons (pure CSS) ── */
+  .app {
+    /* add relative for button positioning */
+  }
+  /* Volume Up button */
+  .app ~ .desktop-side-info::before {
+    /* We can't target siblings backwards, so let's skip side buttons for CSS-only */
+  }
 }
 
-/* ── Large desktop: bigger phone ── */
+/* ── Large desktop (≥1200px): bigger phone ── */
 @media (min-width: 1200px) {
-  .phone-frame {
+  .app {
     width: 430px;
-    height: 932px;
+    max-height: 932px;
     border-radius: 58px;
     padding: 14px;
   }
-  .phone-screen {
-    border-radius: 46px;
+  .app::before {
+    width: 126px !important;
+    height: 34px !important;
+  }
+  .app > .screen.active::before {
+    margin: -14px -14px 0;
+    border-radius: 44px 44px 0 0;
+  }
+  .app > .screen.active {
+    padding: 14px;
   }
 }
 
-/* ── Phone screen: ensure inner content fits ── */
-.phone-screen .app .screen {
-  width: 100%;
-}
-.phone-screen .app .screen.active {
-  display: block;
-}
-
-/* Fix modal & toast positioning inside phone screen */
-.phone-screen .modal-backdrop.active {
-  position: absolute;
-  inset: 0;
-}
-.phone-screen .toast {
-  width: min(calc(100% - 28px), 340px);
-}
-.phone-screen .confetti {
-  position: absolute;
-  inset: 0;
-}
+/* ─────────────────────────────────────────────────
+   MOBILE (<768px)
+   Original responsive design — nothing to override
+   ───────────────────────────────────────────────── */
+/* No changes needed: .app keeps its original mobile CSS */

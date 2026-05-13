@@ -1046,45 +1046,33 @@ export default function Page() {
 
   return (
     <>
-      {/* ── DESKTOP: Phone mockup wrapper ── */}
-      <div className="phone-mockup-shell">
-        {/* Desktop-only decorative background elements */}
-        <div className="desktop-bg-decor">
-          <span className="bg-chip chip-1">🌙</span>
-          <span className="bg-chip chip-2">☀️</span>
-          <span className="bg-chip chip-3">💎</span>
-          <span className="bg-chip chip-4">🧩</span>
+      {/* ── Desktop-only side info (CSS hidden on mobile) ── */}
+      <div className="desktop-side-info">
+        <h2 className="desktop-title">Pieceful</h2>
+        <p className="desktop-subtitle">ピースフル</p>
+        <p className="desktop-desc">MBTIタイプ別キャラクターで<br/>職場コミュニケーションを攻略</p>
+        <div className="desktop-features">
+          <div className="desktop-feature">
+            <span className="desktop-feature-icon">🎮</span>
+            <span>5ステージ</span>
+          </div>
+          <div className="desktop-feature">
+            <span className="desktop-feature-icon">🧩</span>
+            <span>16タイプ</span>
+          </div>
+          <div className="desktop-feature">
+            <span className="desktop-feature-icon">💬</span>
+            <span>実践的</span>
+          </div>
         </div>
-
-        <div className="phone-mockup-container">
-          {/* Phone frame */}
-          <div className="phone-frame">
-            {/* Notch / Dynamic Island */}
-            <div className="phone-notch" />
-            {/* Side button: volume up */}
-            <div className="phone-btn phone-btn-vol-up" />
-            {/* Side button: volume down */}
-            <div className="phone-btn phone-btn-vol-down" />
-            {/* Side button: power */}
-            <div className="phone-btn phone-btn-power" />
-
-            {/* Screen area */}
-            <div className="phone-screen">
-              {/* Status bar */}
-              <div className="phone-status-bar">
-                <span className="phone-status-time">12:00</span>
-                <span className="phone-status-icons">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
-                </span>
-              </div>
+        <p className="desktop-hint">← モックアップ内でスクロール可能 →</p>
+      </div>
 
       <main className="app">
-        {/* ── Mobile-only background chips ── */}
-        <span className="bg-chip-mobile chip-1">🌙</span>
-        <span className="bg-chip-mobile chip-2">☀️</span>
-        <span className="bg-chip-mobile chip-3">💎</span>
-        <span className="bg-chip-mobile chip-4">🧩</span>
+      <span className="bg-chip chip-1">🌙</span>
+      <span className="bg-chip chip-2">☀️</span>
+      <span className="bg-chip chip-3">💎</span>
+      <span className="bg-chip chip-4">🧩</span>
         {/* ── TITLE ── */}
         <section
           id="screen-title"
@@ -1491,35 +1479,6 @@ export default function Page() {
           </div>
         </section>
       </main>
-
-              {/* Home indicator */}
-              <div className="phone-home-indicator" />
-            </div>{/* /phone-screen */}
-          </div>{/* /phone-frame */}
-        </div>{/* /phone-mockup-container */}
-
-        {/* Desktop side info */}
-        <div className="desktop-side-info">
-          <h2 className="desktop-title">Pieceful</h2>
-          <p className="desktop-subtitle">ピースフル</p>
-          <p className="desktop-desc">MBTIタイプ別キャラクターで<br/>職場コミュニケーションを攻略</p>
-          <div className="desktop-features">
-            <div className="desktop-feature">
-              <span className="desktop-feature-icon">🎮</span>
-              <span>5ステージ</span>
-            </div>
-            <div className="desktop-feature">
-              <span className="desktop-feature-icon">🧩</span>
-              <span>16タイプ</span>
-            </div>
-            <div className="desktop-feature">
-              <span className="desktop-feature-icon">💬</span>
-              <span>実践的</span>
-            </div>
-          </div>
-          <p className="desktop-hint">← モックアップ内でスクロール可能 →</p>
-        </div>
-      </div>{/* /phone-mockup-shell */}
 
       {/* ── GUIDE MODAL ── */}
       <div

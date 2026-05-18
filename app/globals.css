@@ -3309,7 +3309,58 @@ body:has(.game-body)::before {
 }
 
 .game-body .pf-stage-bg .pf-safe {
+  position: relative;
   padding-bottom: 6px;
+}
+
+.game-body .pf-ss-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+}
+
+.game-body .pf-ss-confirm-preview {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  padding: 10px;
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.game-body .pf-ss-confirm-preview .pf-ss-piece {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.game-body .pf-ss-confirm-preview .pf-ss-piece img {
+  width: 60px;
+  height: auto;
+  max-height: 56px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.game-body .pf-ss-confirm-labels {
+  display: grid;
+  gap: 2px;
+}
+
+.game-body .pf-ss-confirm-labels .pf-ss-stage-label,
+.game-body .pf-ss-confirm-labels .pf-ss-boss-label {
+  color: #06111f;
+}
+
+.game-body .pf-ss-confirm-labels .pf-ss-stage-label {
+  font-size: 15px;
+}
+
+.game-body .pf-ss-confirm-labels .pf-ss-boss-label {
+  font-size: 13px;
 }
 
 .game-body .pf-alert-label {
@@ -3349,6 +3400,16 @@ body:has(.game-body)::before {
 
 .game-body .pf-scene-card p.short {
   font-size: 17px;
+}
+
+.game-body .pf-scene-card.pf-choice-scenario {
+  min-height: 0;
+  overflow: hidden;
+  align-content: start;
+}
+
+.game-body .pf-scene-card.pf-choice-scenario .pf-scene-recap {
+  min-height: 0;
 }
 
 .game-body .pf-prompt {
@@ -3519,7 +3580,7 @@ body:has(.game-body)::before {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   color: #f04497;
   line-height: 1.2;
@@ -3538,8 +3599,8 @@ body:has(.game-body)::before {
 
 .game-body .pf-action-kiridashi-text {
   margin: 0;
-  font-size: 11px;
-  line-height: 1.42;
+  font-size: 12px;
+  line-height: 1.45;
   font-weight: 900;
   color: #050505;
 }
@@ -4039,12 +4100,6 @@ body:has(.game-body)::before {
   margin: 0;
 }
 
-.game-body .pf-choice.is-recommended {
-  background: #fffbe9;
-  outline: 3px solid var(--pf-yellow);
-  outline-offset: -4px;
-}
-
 .game-body .pf-sr-only {
   position: absolute;
   width: 1px;
@@ -4171,7 +4226,7 @@ body:has(.game-body)::before {
 }
 
 .game-body .pf-type-layout--picker-2x8 {
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 5px;
 }
 
@@ -4289,11 +4344,11 @@ body:has(.game-body)::before {
   }
 }
 
-/* ── 縦スライド（vertical・本番デフォルト）2列×4行表示 + 下ピーク ── */
+/* ── 縦スライド（vertical・本番デフォルト）2列×2行表示 + 下ピーク ── */
 .game-body .pf-type-scroll-2x8-wrap.is-axis-vertical .pf-type-scroll-2x8-v {
-  --pf-picker-gap: 4px;
-  --pf-picker-visible-rows: 4;
-  --pf-picker-peek: 0.24;
+  --pf-picker-gap: 5px;
+  --pf-picker-visible-rows: 2;
+  --pf-picker-peek: 0.22;
   container-type: size;
   height: 100%;
   width: 100%;
@@ -4319,10 +4374,11 @@ body:has(.game-body)::before {
 }
 
 .game-body .pf-type-scroll-pane-v {
-  flex: 0 0 calc(100cqh * 4 / (var(--pf-picker-visible-rows) + var(--pf-picker-peek)));
+  flex: 0 0
+    calc(100cqh * var(--pf-picker-visible-rows) / (var(--pf-picker-visible-rows) + var(--pf-picker-peek)));
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: var(--pf-picker-gap);
   min-height: 0;
   scroll-snap-align: start;
@@ -4330,11 +4386,11 @@ body:has(.game-body)::before {
 
 @supports not (height: 1cqh) {
   .game-body .pf-type-scroll-track-v {
-    min-height: 179%;
+    min-height: 358%;
   }
 
   .game-body .pf-type-scroll-pane-v {
-    flex: 0 0 50%;
+    flex: 0 0 25%;
   }
 }
 

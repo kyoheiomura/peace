@@ -1,7 +1,9 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { charImages } from "@/lib/characters";
 import { ALL_STAGE_IDS, type StageId } from "@/lib/stageSelection";
+import { StageConfirmModal } from "./StageConfirmModal";
 import { StageSelectItem } from "./StageSelectItem";
 
 type StageSelectionScreenProps = {
@@ -19,48 +21,68 @@ export function StageSelectionScreen({
   onBack,
   onSelectStage,
 }: StageSelectionScreenProps) {
+  const [pendingStageId, setPendingStageId] = useState<StageId | null>(null);
+
+  const handleConfirm = useCallback(() => {
+    if (pendingStageId === null) return;
+    onSelectStage(pendingStageId);
+    setPendingStageId(null);
+  }, [pendingStageId, onSelectStage]);
+
+  const handleCancel = useCallback(() => {
+    setPendingStageId(null);
+  }, []);
+
   return (
-    <div className="pf-stage-layout pf-ss-layout">
-      <div className="pf-topbar pf-ss-topbar">
-        <button
-          type="button"
-          className="pf-back-btn"
-          onClick={onBack}
-          aria-label="タイプ選択へ戻る"
-        >
-          ←
-        </button>
-      </div>
-
-      <header className="pf-ss-hero">
-        <div className="pf-ss-hero-shell">
-          <img
-            className="pf-ss-hero-char"
-            src={charImages[character]}
-            alt=""
-          />
-          <div className="pf-ss-hero-body">
-            <div className="pf-ss-name-plate">
-              <span className="pf-ss-name-plate-inner">{character}</span>
-            </div>
-            <p className="pf-ss-hero-copy">ステージを選択しよう！</p>
-          </div>
+    <>
+      <div className="pf-stage-layout pf-ss-layout">
+        <div className="pf-topbar pf-ss-topbar">
+          <button
+            type="button"
+            className="pf-back-btn"
+            onClick={onBack}
+            aria-label="タイプ選択へ戻る"
+          >
+            ←
+          </button>
         </div>
-      </header>
 
-      <div className="pf-ss-list" role="list">
-        {ALL_STAGE_IDS.map((id) => (
-          <StageSelectItem
-            key={id}
-            stageId={id}
-            cleared={clearedStages.has(id)}
-            next={nextUnclearedStage === id}
-            onSelect={onSelectStage}
-          />
-        ))}
+        <header className="pf-ss-hero">
+          <div className="pf-ss-hero-shell">
+            <img
+              className="pf-ss-hero-char"
+              src={charImages[character]}
+              alt=""
+            />
+            <div className="pf-ss-hero-body">
+              <div className="pf-ss-name-plate">
+                <span className="pf-ss-name-plate-inner">{character}</span>
+              </div>
+              <p className="pf-ss-hero-copy">ステージを選択しよう！</p>
+            </div>
+          </div>
+        </header>
+
+        <div className="pf-ss-list" role="list">
+          {ALL_STAGE_IDS.map((id) => (
+            <StageSelectItem
+              key={id}
+              stageId={id}
+              cleared={clearedStages.has(id)}
+              next={nextUnclearedStage === id}
+              onSelect={setPendingStageId}
+            />
+          ))}
+        </div>
+
+        <div className="pf-ss-floor" aria-hidden />
       </div>
 
-      <div className="pf-ss-floor" aria-hidden />
-    </div>
+      <StageConfirmModal
+        stageId={pendingStageId}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+    </>
   );
 }

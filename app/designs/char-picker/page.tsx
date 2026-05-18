@@ -54,7 +54,7 @@ export default function CharPickerDesignIndex() {
         <h1>キャラ選択レイアウト</h1>
         <p>
           本番ゲームとは導線未接続。各ページを開いてスマホ枠内の見え方を確認できます。
-          2×8 は 2×4 表示＋縦スライドで16体（`lib/charPickerConfig.ts` で横にも切替可）。現行本番は 2×8 縦。
+          2×8 は 2×2 表示＋縦スライドで16体（4ページ）。`lib/charPickerConfig.ts` で横にも切替可。
         </p>
         <p>
           <Link href="/designs/flow">全体導線マップ →</Link>

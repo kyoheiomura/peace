@@ -7,12 +7,12 @@ export const ACTION_SCREEN_LAYOUT = {
   topbarFallback: 46,
   promptFallback: 28,
   kiridashiFallback: 56,
-  scenarioHeadFallback: 28,
-  scenarioPadding: 20,
-  choiceRowMin: 44,
+  scenarioHeadFallback: 14,
+  scenarioPadding: 8,
+  choiceRowMin: 52,
   choiceGap: 8,
   minScenarioLines: 3,
-  maxScenarioLinesCollapsed: 7,
+  maxScenarioLinesCollapsed: 4,
   /** 本文幅 ~300px 想定の1行あたり全角文字数目安 */
   charsPerLine: 34,
 } as const;
@@ -47,18 +47,7 @@ export function computeActionLayoutMetrics(
     ACTION_SCREEN_LAYOUT.scenarioHeadFallback +
     ACTION_SCREEN_LAYOUT.scenarioPadding;
 
-  const available = Math.max(
-    lh * ACTION_SCREEN_LAYOUT.minScenarioLines,
-    layoutHeightPx - reserved - choiceBlock
-  );
-
-  const maxCollapsedLines = Math.min(
-    ACTION_SCREEN_LAYOUT.maxScenarioLinesCollapsed,
-    Math.max(
-      ACTION_SCREEN_LAYOUT.minScenarioLines,
-      Math.floor(available / lh)
-    )
-  );
+  const maxCollapsedLines = ACTION_SCREEN_LAYOUT.maxScenarioLinesCollapsed;
 
   const scenarioClampPx =
     maxCollapsedLines * lh +

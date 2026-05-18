@@ -1,12 +1,21 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  type ReactNode,
+} from "react";
+import { charPickerScrollSubcopy } from "../lib/charPickerConfig";
 import { charImages, charNick, type CharacterType } from "../lib/characters";
 import { mbtiScenarios } from "../lib/mbtiScenarios";
 import { OnboardingScreens } from "./pieceful/OnboardingScreens";
 import { CharPicker2x8Scroll } from "./pieceful/CharPicker2x8Scroll";
 import { StageSelectionScreen } from "./pieceful/stage-selection/StageSelectionScreen";
 import { ALL_STAGE_IDS } from "../lib/stageSelection";
+import { computeActionLayoutMetrics } from "../lib/actionScreenLayout";
 
 const stages: Record<
   number,
@@ -484,7 +493,7 @@ const stages: Record<
 
 const PROGRESS_KEY = "pieceful:v1:progress" as const;
 const ONBOARDING_KEY = "pieceful:onboardingCompleted" as const;
-type Screen =
+export type PiecefulPreviewScreen =
   | "title"
   | "onboarding-1"
   | "onboarding-2"
@@ -497,6 +506,18 @@ type Screen =
   | "result"
   | "detail"
   | "clear";
+
+type Screen = PiecefulPreviewScreen;
+
+export type PiecefulGameProps = {
+  /** iframe embed: phone-mockup ラッパーを外す */
+  embed?: boolean;
+  /** 導線マップ用: 固定画面を表示 */
+  previewScreen?: PiecefulPreviewScreen;
+  previewClearedStages?: number[];
+  /** title プレビューで「続きから」を見せる */
+  previewHasSave?: boolean;
+};
 
 function hasCompletedOnboarding(): boolean {
   if (typeof window === "undefined") return false;
@@ -558,6 +579,111 @@ function isAllCleared(cleared: Set<number>): boolean {
   return ALL_STAGE_IDS.every((id) => cleared.has(id));
 }
 
+/** **強調** 記法を赤文字の span に変換して表示する */
+function renderEmphasisText(text: string, keyPrefix = "em"): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <span key={`${keyPrefix}-${key++}`} className="pf-emphasis">
+        {match[1]}
+      </span>
+    );
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length > 0 ? parts : [text];
+}
+
+function FormattedScenarioText({ text }: { text: string }) {
+  const paragraphs = text.split(/\n\n+/).filter((p) => p.length > 0);
+  if (paragraphs.length === 0) return null;
+  if (paragraphs.length === 1) {
+    return <p>{renderEmphasisText(paragraphs[0], "p0")}</p>;
+  }
+  return (
+    <>
+      {paragraphs.map((para, i) => (
+        <p key={i} className={i > 0 ? "pf-detail-para" : undefined}>
+          {renderEmphasisText(para, `p${i}`)}
+        </p>
+      ))}
+    </>
+  );
+}
+
+const RESULT_LESSON_TITLES = [
+  "なぜ正解なのか",
+  "あなたの落とし穴",
+  "明日から使えるヒント",
+  "もっと知りたい人へ",
+] as const;
+
+function ResultCtaBlock({ className }: { className?: string }) {
+  return (
+    <div className={["pf-result-cta", className].filter(Boolean).join(" ")}>
+      <p className="pf-result-cta-kicker">＼あなたの強みを活かす！／</p>
+      <button type="button" className="pf-yellow-pill pf-result-cta-btn">
+        詳しい解説と実践のコツを見る
+      </button>
+    </div>
+  );
+}
+
+function ResultAccordionItem({
+  index,
+  title,
+  body,
+  isOpen,
+  onToggle,
+}: {
+  index: number;
+  title: string;
+  body: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const panelId = `result-accordion-panel-${index}`;
+  const headId = `result-accordion-head-${index}`;
+  return (
+    <div className={`pf-result-accordion${isOpen ? " is-open" : ""}`}>
+      <button
+        type="button"
+        id={headId}
+        className="pf-result-accordion-head"
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        onClick={onToggle}
+      >
+        <span className="pf-result-accordion-title">
+          {index + 1}. {title}
+        </span>
+        <span className="pf-result-accordion-arrow" aria-hidden>
+          {isOpen ? "▲" : "▼"}
+        </span>
+      </button>
+      {isOpen ? (
+        <div
+          id={panelId}
+          className="pf-result-accordion-body"
+          role="region"
+          aria-labelledby={headId}
+        >
+          <FormattedScenarioText text={body} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function normalizeRestoredScreen(screen: string, cleared: Set<number>): Screen {
   if (
     screen === "mission" ||
@@ -595,10 +721,21 @@ function clamp(n: number, min: number, max: number): number {
 
 /* ── component ── */
 
-export function PiecefulGame() {
+export function PiecefulGame({
+  embed = false,
+  previewScreen,
+  previewClearedStages,
+  previewHasSave = false,
+}: PiecefulGameProps = {}) {
+  const isPreview = Boolean(previewScreen);
+
   /* state */
-  const [currentScreen, setCurrentScreen] = useState<Screen>("title");
-  const [character, setCharacter] = useState("ESTP");
+  const [currentScreen, setCurrentScreen] = useState<Screen>(
+    previewScreen ?? "title"
+  );
+  const [character, setCharacter] = useState(
+    isPreview ? "INTJ" : "ESTP"
+  );
   const [stage, setStage] = useState(1);
   const [trust, setTrust] = useState(35);
   const [score, setScore] = useState(0);
@@ -612,9 +749,14 @@ export function PiecefulGame() {
   const [selectedChoiceText, setSelectedChoiceText] = useState("");
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
+  const [resultExpandedSection, setResultExpandedSection] = useState<number | null>(
+    0
+  );
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
   const [priorChoiceOpen, setPriorChoiceOpen] = useState(false);
+  const [priorChoiceOverflows, setPriorChoiceOverflows] = useState(false);
+  const [scenarioClampPx, setScenarioClampPx] = useState<number | null>(null);
 
   /* refs for DOM containers that get innerHTML */
   const choicesRef = useRef<HTMLDivElement>(null);
@@ -641,12 +783,15 @@ export function PiecefulGame() {
   const npcQuoteRef = useRef<HTMLDivElement>(null);
   const coachBubbleRef = useRef<HTMLDivElement>(null);
   const resultSubRef = useRef<HTMLParagraphElement>(null);
-  const resultChoiceLineRef = useRef<HTMLSpanElement>(null);
-  const resultActionLineRef = useRef<HTMLSpanElement>(null);
+  const actionFlowRef = useRef<HTMLDivElement>(null);
+  const kiridashiRef = useRef<HTMLDivElement>(null);
+  const priorScenarioBodyRef = useRef<HTMLDivElement>(null);
+  const resultConfettiFiredRef = useRef(false);
 
   /* store lastAnswer / lastChoice as refs (used only by logic, not rendering) */
   const lastAnswerRef = useRef<Record<string, unknown> | null>(null);
   const lastChoiceRef = useRef<string | null>(null);
+  const lastActionRef = useRef<string | null>(null);
 
   /* local copy of trust for syncHud (avoids stale closure) */
   const trustRef = useRef(trust);
@@ -670,6 +815,77 @@ export function PiecefulGame() {
   useEffect(() => {
     clearedRef.current = clearedStages;
   }, [clearedStages]);
+
+  const priorScenarioParagraphs = useMemo(() => {
+    if (sceneParagraphs.length > 0) return sceneParagraphs;
+    const s = stages[stage];
+    const csv = mbtiScenarios[character]?.[stage];
+    const raw = csv?.situation || s?.scenario || "";
+    return splitScenarioParagraphs(raw);
+  }, [sceneParagraphs, stage, character]);
+
+  const measureActionLayout = useCallback(() => {
+    const layout = actionFlowRef.current;
+    const body = priorScenarioBodyRef.current;
+    if (!layout || !body) return;
+
+    const topbar =
+      layout.querySelector<HTMLElement>(".pf-topbar")?.offsetHeight ?? 46;
+    const kiridashi = kiridashiRef.current?.offsetHeight ?? 56;
+    const prompt =
+      layout.querySelector<HTMLElement>(".pf-prompt")?.offsetHeight ?? 28;
+
+    const metrics = computeActionLayoutMetrics(
+      layout.clientHeight,
+      topbar + kiridashi + prompt + 8 * 3
+    );
+
+    body.style.maxHeight = "none";
+    body.style.overflow = "visible";
+    const fullHeight = body.scrollHeight;
+    const overflows = fullHeight > metrics.scenarioClampPx + 2;
+
+    setPriorChoiceOverflows(overflows);
+    if (!overflows) {
+      setScenarioClampPx(null);
+      setPriorChoiceOpen(false);
+      return;
+    }
+    if (priorChoiceOpen) {
+      setScenarioClampPx(null);
+    } else {
+      setScenarioClampPx(metrics.scenarioClampPx);
+    }
+  }, [priorChoiceOpen]);
+
+  useEffect(() => {
+    if (currentScreen !== "action") return;
+    const run = () => measureActionLayout();
+    run();
+    const raf = requestAnimationFrame(() => requestAnimationFrame(run));
+
+    const layout = actionFlowRef.current;
+    if (!layout) {
+      return () => cancelAnimationFrame(raf);
+    }
+
+    const observer = new ResizeObserver(() => measureActionLayout());
+    observer.observe(layout);
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
+  }, [
+    currentScreen,
+    priorScenarioParagraphs,
+    selectedChoiceText,
+    measureActionLayout,
+  ]);
+
+  useEffect(() => {
+    if (currentScreen !== "action") return;
+    measureActionLayout();
+  }, [priorChoiceOpen, currentScreen, measureActionLayout]);
 
   /* ── helper: active class ── */
   const isActive = (screen: Screen) =>
@@ -761,6 +977,17 @@ export function PiecefulGame() {
       if (confettiRef.current) confettiRef.current.innerHTML = "";
     }, 1500);
   }, []);
+
+  useEffect(() => {
+    if (currentScreen !== "result") {
+      resultConfettiFiredRef.current = false;
+      return;
+    }
+    if (resultConfettiFiredRef.current) return;
+    resultConfettiFiredRef.current = true;
+    const timer = setTimeout(burst, 120);
+    return () => clearTimeout(timer);
+  }, [currentScreen, burst]);
 
   /* ── selectCharacter ── */
   const selectCharacter = useCallback(
@@ -963,6 +1190,7 @@ export function PiecefulGame() {
         lastChoiceRef.current = id;
         setSelectedChoiceText(csv.kiridashi[id as keyof typeof csv.kiridashi] as string);
         applyScore(scoreDelta);
+        setPriorChoiceOpen(false);
         renderFeedback(answerObj as Parameters<typeof renderFeedback>[0]);
         go("action");
         return;
@@ -974,16 +1202,50 @@ export function PiecefulGame() {
       lastChoiceRef.current = id;
       setSelectedChoiceText(answer.text);
       applyScore(answer.score);
+      setPriorChoiceOpen(false);
       renderFeedback(answer);
       go("action");
     },
     [stage, applyScore, renderFeedback, go]
   );
 
+  /* ── renderResult ── */
+  const renderResult = useCallback(
+    (_action: { feedback: string }) => {
+      const s = stages[stage];
+      const csv = mbtiScenarios[characterRef.current]?.[stage];
+
+      if (resultSubRef.current) {
+        resultSubRef.current.textContent = "";
+      }
+
+      let cards: LessonCard[];
+      if (csv) {
+        cards = [
+          { title: RESULT_LESSON_TITLES[0], body: csv.naze },
+          { title: RESULT_LESSON_TITLES[1], body: csv.otoshiana },
+          { title: RESULT_LESSON_TITLES[2], body: csv.hint },
+          { title: RESULT_LESSON_TITLES[3], body: csv.more },
+        ];
+      } else {
+        cards = s.lessons.slice(0, 4).map(([title, body], i) => ({
+          title: RESULT_LESSON_TITLES[i] ?? title,
+          body,
+        }));
+      }
+      setLessonCards(cards);
+      setResultExpandedSection(0);
+      setDetailIndex(0);
+      syncHud();
+    },
+    [stage, syncHud]
+  );
+
   /* ── selectAction ── */
   const selectAction = useCallback(
     (id: string) => {
       const csv = mbtiScenarios[characterRef.current]?.[stage];
+      lastActionRef.current = id;
       /* mark stage as cleared */
       setClearedStages((prev) => {
         const next = new Set(prev);
@@ -1001,7 +1263,6 @@ export function PiecefulGame() {
         setTimeout(() => {
           renderResult({ feedback: isCorrect ? csv.result : "" });
           go("result");
-          if (clearedRef.current.size >= 5) burst();
         }, 460);
         return;
       }
@@ -1013,62 +1274,9 @@ export function PiecefulGame() {
       setTimeout(() => {
         renderResult(action);
         go("result");
-        if (clearedRef.current.size >= 5) burst();
       }, 460);
     },
-    [stage, applyScore, toast, burst, go]
-  );
-
-  /* ── renderResult ── */
-  const renderResult = useCallback(
-    (action: { feedback: string }) => {
-      const s = stages[stage];
-      const csv = mbtiScenarios[characterRef.current]?.[stage];
-      const choiceId = lastChoiceRef.current ?? "A";
-      const last = lastAnswerRef.current as
-        | { title?: string; isCsv?: boolean }
-        | null;
-
-      if (resultSubRef.current) {
-        resultSubRef.current.textContent = "";
-      }
-      if (resultChoiceLineRef.current) {
-        const talkCorrect = csv?.kiridashi.correct ?? getTalkCorrectId();
-        const talkSummary =
-          choiceId === talkCorrect
-            ? "目的を先に伝えた"
-            : selectedChoiceText.slice(0, 28) || "選択した言い方";
-        resultChoiceLineRef.current.textContent = `切り出し：${talkSummary}`;
-      }
-      if (resultActionLineRef.current) {
-        const actionCorrect = csv?.furumai.correct ?? getActionCorrectId();
-        const lastActionId =
-          (lastAnswerRef.current as { actionId?: string } | null)?.actionId;
-        const actionSummary =
-          selectedActionText
-            ? selectedActionText.slice(0, 28)
-            : "選択した振る舞いで進めた";
-        resultActionLineRef.current.textContent =
-          lastActionId === actionCorrect || selectedActionText
-            ? `行動：${actionSummary}`
-            : "行動：選択した振る舞いで進めた";
-      }
-
-      let cards: LessonCard[];
-      if (csv) {
-        cards = [
-          { title: "なぜ正解?", body: csv.naze },
-          { title: "落とし穴", body: csv.otoshiana },
-          { title: "明日使えるヒント", body: csv.hint },
-        ];
-      } else {
-        cards = s.lessons.slice(0, 3).map(([title, body]) => ({ title, body }));
-      }
-      setLessonCards(cards);
-      setDetailIndex(0);
-      syncHud();
-    },
-    [stage, syncHud, selectedChoiceText, selectedActionText, getTalkCorrectId, getActionCorrectId]
+    [stage, applyScore, toast, go, renderResult]
   );
 
   const handlePrimaryStart = useCallback(() => {
@@ -1305,8 +1513,98 @@ export function PiecefulGame() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
+  /* ── design preview: 固定画面の初期データ ── */
+  useEffect(() => {
+    if (!previewScreen) return;
+
+    const previewChar = "INTJ";
+    characterRef.current = previewChar;
+    setCharacter(previewChar);
+    setStage(1);
+
+    if (previewScreen.startsWith("onboarding")) {
+      setOnboardingDone(false);
+    } else {
+      setOnboardingDone(true);
+    }
+
+    if (previewClearedStages?.length) {
+      const cleared = new Set(previewClearedStages);
+      setClearedStages(cleared);
+      clearedRef.current = cleared;
+    }
+
+    if (previewScreen === "title" && previewHasSave) {
+      setHasSave(true);
+    }
+
+    if (previewScreen === "clear") {
+      const all = new Set(ALL_STAGE_IDS);
+      setClearedStages(all);
+      clearedRef.current = all;
+      setScore(128);
+      scoreRef.current = 128;
+      setMaxCombo(4);
+      setTrust(72);
+      trustRef.current = 72;
+    }
+
+    if (previewScreen === "choice" || previewScreen === "action") {
+      loadStageContent();
+    }
+
+    if (previewScreen === "action") {
+      const csv = mbtiScenarios[previewChar]?.[1];
+      const choiceText =
+        csv?.kiridashi.A ??
+        stages[1].choices[0]?.text ??
+        "選択した言い方";
+      lastChoiceRef.current = "A";
+      setSelectedChoiceText(choiceText);
+    }
+
+    if (previewScreen === "result" || previewScreen === "detail") {
+      const csv = mbtiScenarios[previewChar]?.[1];
+      const choiceText =
+        csv?.kiridashi.A ??
+        stages[1].choices[0]?.text ??
+        "選択した言い方";
+      const actionText =
+        csv?.furumai.A ?? stages[1].actions[0]?.text ?? "選択した振る舞い";
+      lastChoiceRef.current = "A";
+      lastActionRef.current = "A";
+      setSelectedChoiceText(choiceText);
+      setSelectedActionText(actionText);
+      renderResult({ feedback: "" });
+    }
+
+    if (previewScreen === "detail") {
+      setDetailIndex(0);
+    }
+
+    setCurrentScreen(previewScreen);
+    syncHud();
+  }, [
+    previewScreen,
+    previewClearedStages,
+    previewHasSave,
+    loadStageContent,
+    renderResult,
+    syncHud,
+  ]);
+
+  useEffect(() => {
+    if (!previewScreen) return;
+    const id = requestAnimationFrame(() => {
+      if (previewScreen === "choice") renderChoices();
+      if (previewScreen === "action") renderActions();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [previewScreen, renderChoices, renderActions]);
+
   /* ── persist progress (skip trivial title-only new session) ── */
   useEffect(() => {
+    if (isPreview) return;
     const trivial =
       currentScreen === "title" &&
       score === 0 &&
@@ -1347,6 +1645,7 @@ export function PiecefulGame() {
   /* ── mount: sync HUD + detect save + onboarding ── */
   useEffect(() => {
     syncHud();
+    if (isPreview) return;
     setOnboardingDone(hasCompletedOnboarding());
     try {
       const raw = localStorage.getItem(PROGRESS_KEY);
@@ -1357,7 +1656,7 @@ export function PiecefulGame() {
     } catch {
       /* ignore */
     }
-  }, [syncHud]);
+  }, [syncHud, isPreview]);
 
   /* ── ref callback helpers ── */
   const addTrustLabelRef = useCallback(
@@ -1404,11 +1703,13 @@ export function PiecefulGame() {
     }
   }, [shareText, toast]);
 
-  return (
-    <>
-      {/* ── Phone shell: notch + safe zone on all viewports ── */}
-      <div className="phone-mockup">
-      <main className="app pf-app" ref={appRef}>
+  const appMain = (
+      <main
+        className={["app pf-app", embed ? "pf-embed-preview" : ""]
+          .filter(Boolean)
+          .join(" ")}
+        ref={appRef}
+      >
       <span className="bg-chip chip-1">🌙</span>
       <span className="bg-chip chip-2">☀️</span>
       <span className="bg-chip chip-3">💎</span>
@@ -1514,7 +1815,7 @@ export function PiecefulGame() {
                     <h2 id="type-heading" className="pf-screen-title">
                       キャラを選ぼう!
                     </h2>
-                    <p className="pf-screen-sub">2×4表示 · 横スライドで16タイプ</p>
+                    <p className="pf-screen-sub">{charPickerScrollSubcopy()}</p>
                   </div>
                   <span className="pf-mini-btn">ALL</span>
                 </div>
@@ -1626,9 +1927,7 @@ export function PiecefulGame() {
         >
           <div className="pf-screen pf-paper">
             <div className="pf-safe">
-              <div
-                className={`pf-scene-layout action-flow${priorChoiceOpen ? " is-expanded" : ""}`}
-              >
+              <div ref={actionFlowRef} className="pf-scene-layout action-flow">
                 <div className="pf-topbar">
                   <button
                     type="button"
@@ -1648,40 +1947,80 @@ export function PiecefulGame() {
                   </div>
                   <span className="pf-mini-btn">2/2</span>
                 </div>
-                <div className="pf-prior-choice-wrap">
-                  <div className="pf-prior-choice-bar">
-                    <p className="pf-prior-choice-preview">
+                <section
+                  className="pf-action-scenario-block"
+                  aria-label="状況説明"
+                >
+                  <div className="pf-action-scenario-head">
+                    <span className="pf-action-scenario-label">状況</span>
+                    {priorChoiceOverflows ? (
+                      <button
+                        type="button"
+                        className="pf-action-scenario-toggle"
+                        aria-expanded={priorChoiceOpen}
+                        aria-controls="prior-choice-panel"
+                        onClick={() => setPriorChoiceOpen((open) => !open)}
+                      >
+                        <span aria-hidden>{priorChoiceOpen ? "▲" : "▼"}</span>
+                        <span className="pf-sr-only">
+                          {priorChoiceOpen
+                            ? "状況説明を閉じる"
+                            : "状況説明を続きまで表示"}
+                        </span>
+                      </button>
+                    ) : null}
+                  </div>
+                  <div
+                    id="prior-choice-panel"
+                    ref={priorScenarioBodyRef}
+                    className={[
+                      "pf-action-scenario-body",
+                      priorChoiceOverflows
+                        ? priorChoiceOpen
+                          ? "is-open"
+                          : "is-clamped"
+                        : "fits",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    style={
+                      priorChoiceOverflows &&
+                      !priorChoiceOpen &&
+                      scenarioClampPx
+                        ? { maxHeight: scenarioClampPx }
+                        : undefined
+                    }
+                  >
+                    {priorScenarioParagraphs.map((p, i) => (
+                      <p key={i} className="pf-action-scenario-text">
+                        {p}
+                      </p>
+                    ))}
+                  </div>
+                </section>
+                <section
+                  ref={kiridashiRef}
+                  className="pf-action-kiridashi"
+                  aria-label="前の回答：どう切り出す"
+                >
+                  <p className="pf-action-kiridashi-kicker">
+                    <span className="pf-prompt-icon" aria-hidden>
+                      💬
+                    </span>
+                    どう切り出す
+                  </p>
+                  <div className="pf-action-kiridashi-line">
+                    <span
+                      className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
+                    >
+                      {lastChoiceRef.current ?? "A"}
+                    </span>
+                    <p className="pf-action-kiridashi-text">
                       {selectedChoiceText || "選択した言い方"}
                     </p>
-                    <button
-                      type="button"
-                      className="pf-prior-choice-toggle"
-                      aria-expanded={priorChoiceOpen}
-                      aria-controls="prior-choice-panel"
-                      onClick={() => setPriorChoiceOpen((open) => !open)}
-                    >
-                      <span className="pf-prior-choice-toggle-icon" aria-hidden>
-                        {priorChoiceOpen ? "▲" : "▼"}
-                      </span>
-                      <span className="pf-sr-only">
-                        {priorChoiceOpen
-                          ? "選んだ切り出しを閉じる"
-                          : "選んだ切り出しを開く"}
-                      </span>
-                    </button>
                   </div>
-                  {priorChoiceOpen ? (
-                    <div id="prior-choice-panel" className="pf-prior-choice-full">
-                      <span
-                        className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
-                      >
-                        {lastChoiceRef.current ?? "A"}
-                      </span>
-                      <p>{selectedChoiceText || "選択した言い方"}</p>
-                    </div>
-                  ) : null}
-                </div>
-                <h3 className="pf-prompt">
+                </section>
+                <h3 className="pf-prompt pf-prompt-action">
                   <span className="pf-prompt-icon" aria-hidden>
                     💬
                   </span>
@@ -1690,7 +2029,7 @@ export function PiecefulGame() {
                 <div
                   id="actions"
                   ref={actionsRef}
-                  className="pf-choice-grid"
+                  className="pf-choice-grid pf-choice-grid-action"
                 />
                 <div className="pf-hidden-feedback" aria-hidden>
                   <div ref={resultCardRef} />
@@ -1712,8 +2051,9 @@ export function PiecefulGame() {
           aria-labelledby="result-heading"
         >
           <div className="pf-screen pf-paper">
-            <div className="pf-safe">
-              <div className="pf-result-layout">
+            <div className="pf-safe pf-result-safe">
+              <div className="pf-result-scroll">
+                <div className="pf-result-layout">
                 <h2 id="result-heading" className="pf-result-title">
                   チャレンジ結果
                 </h2>
@@ -1722,42 +2062,54 @@ export function PiecefulGame() {
                 </div>
                 <p className="pf-clear-label">クリア</p>
                 <p id="result-sub" ref={resultSubRef} className="pf-small-note pf-sr-only" aria-hidden />
-                <div className="pf-selected-line">
-                  <span
-                    className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
-                  >
-                    {lastChoiceRef.current ?? "A"}
-                  </span>
-                  <span ref={resultChoiceLineRef} />
-                </div>
-                <div className="pf-selected-line">
-                  <span className="pf-choice-letter a">A</span>
-                  <span ref={resultActionLineRef} />
-                </div>
-                <div className="pf-tip-list">
-                  {lessonCards.map((card, idx) => (
-                    <button
-                      key={card.title}
-                      type="button"
-                      className="pf-tip"
-                      data-tip-index={idx}
+                <div className="pf-result-answers">
+                  <div className="pf-selected-line">
+                    <span
+                      className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
                     >
-                      <span>
-                        {idx + 1}. {card.title}
-                      </span>
-                      <span className="arrow" aria-hidden>
-                        ▶
-                      </span>
-                    </button>
+                      {lastChoiceRef.current ?? "A"}
+                    </span>
+                    <p className="pf-selected-answer-text">
+                      {selectedChoiceText || "選択した言い方"}
+                    </p>
+                  </div>
+                  <div className="pf-selected-line">
+                    <span
+                      className={`pf-choice-letter ${(lastActionRef.current ?? "a").toLowerCase()}`}
+                    >
+                      {lastActionRef.current ?? "A"}
+                    </span>
+                    <p className="pf-selected-answer-text">
+                      {selectedActionText || "選択した振る舞い"}
+                    </p>
+                  </div>
+                </div>
+                <ResultCtaBlock />
+                <div className="pf-result-accordion-list">
+                  {lessonCards.map((card, idx) => (
+                    <ResultAccordionItem
+                      key={card.title}
+                      index={idx}
+                      title={card.title}
+                      body={card.body}
+                      isOpen={resultExpandedSection === idx}
+                      onToggle={() =>
+                        setResultExpandedSection((current) =>
+                          current === idx ? null : idx
+                        )
+                      }
+                    />
                   ))}
                 </div>
+                <ResultCtaBlock className="pf-result-cta-bottom" />
                 <button
                   type="button"
-                  className="pf-yellow-pill"
-                  onClick={() => openDetail(0)}
+                  className="pf-back-wide pf-result-back"
+                  onClick={() => go("stage")}
                 >
-                  詳しい解説へ ▶
+                  ◀ ステージ選択画面に戻る
                 </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1801,7 +2153,7 @@ export function PiecefulGame() {
                     </div>
                     <div className="pf-detail-card">
                       <h3>{lessonCards[detailIndex].title}</h3>
-                      <p>{lessonCards[detailIndex].body}</p>
+                      <FormattedScenarioText text={lessonCards[detailIndex].body} />
                     </div>
                   </>
                 )}
@@ -1900,6 +2252,11 @@ export function PiecefulGame() {
           </div>
         </section>
       </main>
+  );
+
+  return (
+    <>
+      {embed ? appMain : <div className="phone-mockup">{appMain}</div>}
 
       {/* ── PICK CONFIRM MODAL ── */}
       <div
@@ -1985,7 +2342,6 @@ export function PiecefulGame() {
       <div id="toast" ref={toastElRef} className="toast" />
       {/* ── CONFETTI ── */}
       <div id="confetti" ref={confettiRef} className="confetti" aria-hidden="true" />
-      </div>
     </>
   );
 }

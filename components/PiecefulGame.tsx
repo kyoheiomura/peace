@@ -750,7 +750,7 @@ export function PiecefulGame({
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
   const [resultExpandedSection, setResultExpandedSection] = useState<number | null>(
-    0
+    null
   );
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
@@ -994,7 +994,9 @@ export function PiecefulGame({
     (type: string, options?: { fromPicker?: boolean }) => {
       setCharacter(type);
       characterRef.current = type;
-      toast(`${type}：${charNick[type]} を選択！`);
+      if (!options?.fromPicker) {
+        toast(`${type}：${charNick[type]} を選択！`);
+      }
       syncHud();
       if (!options?.fromPicker) {
         setTimeout(() => go("type"), 180);
@@ -1006,36 +1008,12 @@ export function PiecefulGame({
   const choiceButtonHtml = (
     id: string,
     text: string,
-    dataAttr: "data-choice-id" | "data-action-id",
-    isRecommended?: boolean
+    dataAttr: "data-choice-id" | "data-action-id"
   ) =>
-    `<button type="button" class="pf-choice${isRecommended ? " is-recommended" : ""}" ${dataAttr}="${id}">
+    `<button type="button" class="pf-choice" ${dataAttr}="${id}">
       <span class="pf-choice-letter ${id.toLowerCase()}">${id}</span>
       <span>${text}</span>
     </button>`;
-
-  const isTutorialAssist = useMemo(
-    () => clearedStages.size === 0,
-    [clearedStages]
-  );
-
-  const getTalkCorrectId = useCallback((): string | null => {
-    const csv = mbtiScenarios[characterRef.current]?.[stage];
-    if (csv) return csv.kiridashi.correct;
-    const best = stages[stage]?.choices.reduce((a, b) =>
-      a.score > b.score ? a : b
-    );
-    return best?.id ?? null;
-  }, [stage]);
-
-  const getActionCorrectId = useCallback((): string | null => {
-    const csv = mbtiScenarios[characterRef.current]?.[stage];
-    if (csv) return csv.furumai.correct;
-    const best = stages[stage]?.actions.reduce((a, b) =>
-      a.score > b.score ? a : b
-    );
-    return best?.id ?? null;
-  }, [stage]);
 
   const getChoiceLabel = useCallback((id: string): string => {
     const csv = mbtiScenarios[characterRef.current]?.[stage];
@@ -1064,64 +1042,38 @@ export function PiecefulGame({
   const renderChoices = useCallback(() => {
     const s = stages[stage];
     const csv = mbtiScenarios[characterRef.current]?.[stage];
-    const correctId = isTutorialAssist ? getTalkCorrectId() : null;
     if (!choicesRef.current) return;
     if (csv) {
       const labels = ["A", "B", "C", "D"] as const;
       choicesRef.current.innerHTML = labels
         .map((id) =>
-          choiceButtonHtml(
-            id,
-            csv.kiridashi[id],
-            "data-choice-id",
-            isTutorialAssist && id === correctId
-          )
+          choiceButtonHtml(id, csv.kiridashi[id], "data-choice-id")
         )
         .join("");
     } else {
       choicesRef.current.innerHTML = s.choices
-        .map((c) =>
-          choiceButtonHtml(
-            c.id,
-            c.text,
-            "data-choice-id",
-            isTutorialAssist && c.id === correctId
-          )
-        )
+        .map((c) => choiceButtonHtml(c.id, c.text, "data-choice-id"))
         .join("");
     }
-  }, [stage, isTutorialAssist, getTalkCorrectId]);
+  }, [stage]);
 
   const renderActions = useCallback(() => {
     const s = stages[stage];
     const csv = mbtiScenarios[characterRef.current]?.[stage];
-    const correctId = isTutorialAssist ? getActionCorrectId() : null;
     if (!actionsRef.current) return;
     if (csv) {
       const labels = ["A", "B", "C", "D"] as const;
       actionsRef.current.innerHTML = labels
         .map((id) =>
-          choiceButtonHtml(
-            id,
-            csv.furumai[id],
-            "data-action-id",
-            isTutorialAssist && id === correctId
-          )
+          choiceButtonHtml(id, csv.furumai[id], "data-action-id")
         )
         .join("");
     } else {
       actionsRef.current.innerHTML = s.actions
-        .map((a) =>
-          choiceButtonHtml(
-            a.id,
-            a.text,
-            "data-action-id",
-            isTutorialAssist && a.id === correctId
-          )
-        )
+        .map((a) => choiceButtonHtml(a.id, a.text, "data-action-id"))
         .join("");
     }
-  }, [stage, isTutorialAssist, getActionCorrectId]);
+  }, [stage]);
 
   /* ── applyScore ── */
   const applyScore = useCallback((delta: number) => {
@@ -1234,7 +1186,7 @@ export function PiecefulGame({
         }));
       }
       setLessonCards(cards);
-      setResultExpandedSection(0);
+      setResultExpandedSection(null);
       setDetailIndex(0);
       syncHud();
     },
@@ -1754,13 +1706,15 @@ export function PiecefulGame({
                   >
                     {onboardingDone ? "ゲーム開始 ▶" : "30秒でわかる ▶"}
                   </button>
-                  <button
-                    type="button"
-                    className="pf-big-btn pink"
-                    onClick={handleQuickStart}
-                  >
-                    すぐゲーム開始
-                  </button>
+                  {!onboardingDone && (
+                    <button
+                      type="button"
+                      className="pf-big-btn pink"
+                      onClick={handleQuickStart}
+                    >
+                      すぐゲーム開始
+                    </button>
+                  )}
                 </div>
                 <div className="pf-character-callout">
                   <img
@@ -1769,11 +1723,21 @@ export function PiecefulGame({
                     alt=""
                   />
                   <div className="pf-speech">
-                    まずは3画面で
-                    <br />
-                    遊び方を確認。
-                    <br />
-                    そのあと練習!
+                    {onboardingDone ? (
+                      <>
+                        タイプを選んで
+                        <br />
+                        ステージに挑戦!
+                      </>
+                    ) : (
+                      <>
+                        まずは3画面で
+                        <br />
+                        遊び方を確認。
+                        <br />
+                        そのあと練習!
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="pf-pager" aria-hidden>
@@ -1898,10 +1862,12 @@ export function PiecefulGame({
                 <div className="pf-alert-label">
                   {stages[stage]?.kicker ?? ""}
                 </div>
-                <div className="pf-scene-recap">
-                  {sceneParagraphs.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
+                <div className="pf-scene-card pf-choice-scenario">
+                  <div className="pf-scene-recap">
+                    {sceneParagraphs.map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                  </div>
                 </div>
                 <h3 className="pf-prompt">
                   <span className="pf-prompt-icon" aria-hidden>

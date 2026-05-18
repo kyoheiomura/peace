@@ -837,7 +837,7 @@ export function PiecefulGame({
 
     const metrics = computeActionLayoutMetrics(
       layout.clientHeight,
-      topbar + kiridashi + prompt + 8 * 3
+      topbar + kiridashi + prompt + 4 * 3
     );
 
     body.style.maxHeight = "none";
@@ -1837,7 +1837,7 @@ export function PiecefulGame({
           className={isActive("choice")}
           aria-labelledby="choice-heading"
         >
-          <div className="pf-screen pf-paper">
+          <div className="pf-screen pf-paper pf-scene-plain">
             <div className="pf-safe">
               <div className="pf-scene-layout choice-flow">
                 <div className="pf-topbar">
@@ -1862,14 +1862,12 @@ export function PiecefulGame({
                 <div className="pf-alert-label">
                   {stages[stage]?.kicker ?? ""}
                 </div>
-                <div className="pf-scene-card pf-choice-scenario">
-                  <div className="pf-scene-recap">
-                    {sceneParagraphs.map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
-                  </div>
+                <div className="pf-scene-recap pf-choice-scenario">
+                  {sceneParagraphs.map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
                 </div>
-                <h3 className="pf-prompt">
+                <h3 className="pf-prompt pf-prompt-compact">
                   <span className="pf-prompt-icon" aria-hidden>
                     💬
                   </span>
@@ -1891,7 +1889,7 @@ export function PiecefulGame({
           className={isActive("action")}
           aria-labelledby="action-heading"
         >
-          <div className="pf-screen pf-paper">
+          <div className="pf-screen pf-paper pf-scene-plain">
             <div className="pf-safe">
               <div ref={actionFlowRef} className="pf-scene-layout action-flow">
                 <div className="pf-topbar">
@@ -1917,25 +1915,7 @@ export function PiecefulGame({
                   className="pf-action-scenario-block"
                   aria-label="状況説明"
                 >
-                  <div className="pf-action-scenario-head">
-                    <span className="pf-action-scenario-label">状況</span>
-                    {priorChoiceOverflows ? (
-                      <button
-                        type="button"
-                        className="pf-action-scenario-toggle"
-                        aria-expanded={priorChoiceOpen}
-                        aria-controls="prior-choice-panel"
-                        onClick={() => setPriorChoiceOpen((open) => !open)}
-                      >
-                        <span aria-hidden>{priorChoiceOpen ? "▲" : "▼"}</span>
-                        <span className="pf-sr-only">
-                          {priorChoiceOpen
-                            ? "状況説明を閉じる"
-                            : "状況説明を続きまで表示"}
-                        </span>
-                      </button>
-                    ) : null}
-                  </div>
+                  <span className="pf-action-scenario-label">状況</span>
                   <div
                     id="prior-choice-panel"
                     ref={priorScenarioBodyRef}
@@ -1963,6 +1943,22 @@ export function PiecefulGame({
                       </p>
                     ))}
                   </div>
+                  {priorChoiceOverflows ? (
+                    <button
+                      type="button"
+                      className="pf-action-scenario-toggle pf-action-scenario-toggle--foot"
+                      aria-expanded={priorChoiceOpen}
+                      aria-controls="prior-choice-panel"
+                      onClick={() => setPriorChoiceOpen((open) => !open)}
+                    >
+                      <span aria-hidden>{priorChoiceOpen ? "▲" : "▼"}</span>
+                      <span className="pf-sr-only">
+                        {priorChoiceOpen
+                          ? "状況説明を閉じる"
+                          : "状況説明を続きまで表示"}
+                      </span>
+                    </button>
+                  ) : null}
                 </section>
                 <section
                   ref={kiridashiRef}
@@ -1986,7 +1982,7 @@ export function PiecefulGame({
                     </p>
                   </div>
                 </section>
-                <h3 className="pf-prompt pf-prompt-action">
+                <h3 className="pf-prompt pf-prompt-action pf-prompt-compact">
                   <span className="pf-prompt-icon" aria-hidden>
                     💬
                   </span>

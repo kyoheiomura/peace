@@ -15,7 +15,10 @@ import { OnboardingScreens } from "./pieceful/OnboardingScreens";
 import { CharPicker2x8Scroll } from "./pieceful/CharPicker2x8Scroll";
 import { StageSelectionScreen } from "./pieceful/stage-selection/StageSelectionScreen";
 import { ALL_STAGE_IDS } from "../lib/stageSelection";
-import { computeActionLayoutMetrics } from "../lib/actionScreenLayout";
+import {
+  ACTION_SCREEN_LAYOUT,
+  computeActionLayoutMetrics,
+} from "../lib/actionScreenLayout";
 
 const stages: Record<
   number,
@@ -555,6 +558,18 @@ type PendingPick = {
   label: string;
 };
 
+function normalizePickId(id: string): string {
+  return id.trim().toUpperCase();
+}
+
+function readPickLabelFromButton(btn: HTMLElement): string {
+  const spans = btn.querySelectorAll(":scope > span");
+  if (spans.length >= 2) {
+    return (spans[spans.length - 1].textContent ?? "").trim();
+  }
+  return (btn.textContent ?? "").trim();
+}
+
 type PiecefulProgressV1 = {
   version: 1;
   selectedType: string;
@@ -746,6 +761,7 @@ export function PiecefulGame({
   const [hasSave, setHasSave] = useState(false);
   const [detailIndex, setDetailIndex] = useState(0);
   const [sceneParagraphs, setSceneParagraphs] = useState<string[]>([]);
+  const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
   const [selectedChoiceText, setSelectedChoiceText] = useState("");
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
@@ -843,7 +859,14 @@ export function PiecefulGame({
     body.style.maxHeight = "none";
     body.style.overflow = "visible";
     const fullHeight = body.scrollHeight;
-    const overflows = fullHeight > metrics.scenarioClampPx + 2;
+    const estimatedLines = priorScenarioParagraphs.reduce(
+      (sum, p) =>
+        sum + Math.max(1, Math.ceil(p.length / ACTION_SCREEN_LAYOUT.charsPerLine)),
+      0
+    );
+    const overflows =
+      fullHeight > metrics.scenarioClampPx + 2 ||
+      estimatedLines > metrics.maxCollapsedLines;
 
     setPriorChoiceOverflows(overflows);
     if (!overflows) {
@@ -856,7 +879,7 @@ export function PiecefulGame({
     } else {
       setScenarioClampPx(metrics.scenarioClampPx);
     }
-  }, [priorChoiceOpen]);
+  }, [priorChoiceOpen, priorScenarioParagraphs]);
 
   useEffect(() => {
     if (currentScreen !== "action") return;
@@ -1016,19 +1039,21 @@ export function PiecefulGame({
     </button>`;
 
   const getChoiceLabel = useCallback((id: string): string => {
+    const pickId = normalizePickId(id);
     const csv = mbtiScenarios[characterRef.current]?.[stage];
     if (csv) {
-      return csv.kiridashi[id as keyof typeof csv.kiridashi] as string;
+      return csv.kiridashi[pickId as keyof typeof csv.kiridashi] as string;
     }
-    return stages[stage]?.choices.find((c) => c.id === id)?.text ?? "";
+    return stages[stage]?.choices.find((c) => c.id === pickId)?.text ?? "";
   }, [stage]);
 
   const getActionLabel = useCallback((id: string): string => {
+    const pickId = normalizePickId(id);
     const csv = mbtiScenarios[characterRef.current]?.[stage];
     if (csv) {
-      return csv.furumai[id as keyof typeof csv.furumai] as string;
+      return csv.furumai[pickId as keyof typeof csv.furumai] as string;
     }
-    return stages[stage]?.actions.find((a) => a.id === id)?.text ?? "";
+    return stages[stage]?.actions.find((a) => a.id === pickId)?.text ?? "";
   }, [stage]);
 
   /* ── loadStageContent / renderChoices / renderActions ── */
@@ -1135,12 +1160,21 @@ export function PiecefulGame({
     (id: string) => {
       const csv = mbtiScenarios[characterRef.current]?.[stage];
       if (csv) {
-        const isCorrect = id === csv.kiridashi.correct;
+        const pickId = normalizePickId(id);
+        const isCorrect = pickId === csv.kiridashi.correct;
         const scoreDelta = isCorrect ? 25 : -5;
-        const answerObj = { score: scoreDelta, isCsv: true as const, choiceId: id, correctId: csv.kiridashi.correct };
+        const answerObj = {
+          score: scoreDelta,
+          isCsv: true as const,
+          choiceId: pickId,
+          correctId: csv.kiridashi.correct,
+        };
         lastAnswerRef.current = answerObj;
-        lastChoiceRef.current = id;
-        setSelectedChoiceText(csv.kiridashi[id as keyof typeof csv.kiridashi] as string);
+        lastChoiceRef.current = pickId;
+        setSelectedChoiceId(pickId);
+        setSelectedChoiceText(
+          csv.kiridashi[pickId as keyof typeof csv.kiridashi] as string
+        );
         applyScore(scoreDelta);
         setPriorChoiceOpen(false);
         renderFeedback(answerObj as Parameters<typeof renderFeedback>[0]);
@@ -1148,10 +1182,12 @@ export function PiecefulGame({
         return;
       }
       const s = stages[stage];
-      const answer = s.choices.find((c) => c.id === id);
+      const pickId = normalizePickId(id);
+      const answer = s.choices.find((c) => c.id === pickId);
       if (!answer) return;
       lastAnswerRef.current = answer;
-      lastChoiceRef.current = id;
+      lastChoiceRef.current = pickId;
+      setSelectedChoiceId(pickId);
       setSelectedChoiceText(answer.text);
       applyScore(answer.score);
       setPriorChoiceOpen(false);
@@ -1207,9 +1243,12 @@ export function PiecefulGame({
       });
 
       if (csv) {
-        const isCorrect = id === csv.furumai.correct;
+        const pickId = normalizePickId(id);
+        const isCorrect = pickId === csv.furumai.correct;
         const scoreDelta = isCorrect ? 20 : -5;
-        setSelectedActionText(csv.furumai[id as keyof typeof csv.furumai] as string);
+        setSelectedActionText(
+          csv.furumai[pickId as keyof typeof csv.furumai] as string
+        );
         applyScore(scoreDelta);
         toast(isCorrect ? csv.result : "相手の立場に立って行動を選び直してみましょう。");
         setTimeout(() => {
@@ -1258,8 +1297,15 @@ export function PiecefulGame({
   }, [completeOnboarding]);
 
   const openPickConfirm = useCallback(
-    (kind: PendingPick["kind"], id: string) => {
-      const label = kind === "choice" ? getChoiceLabel(id) : getActionLabel(id);
+    (kind: PendingPick["kind"], btn: HTMLElement) => {
+      const rawId =
+        kind === "choice" ? btn.dataset.choiceId : btn.dataset.actionId;
+      if (!rawId) return;
+      const id = normalizePickId(rawId);
+      const labelFromDom = readPickLabelFromButton(btn);
+      const label =
+        labelFromDom ||
+        (kind === "choice" ? getChoiceLabel(id) : getActionLabel(id));
       if (!label) return;
       setPendingPick({ kind, id, label });
     },
@@ -1288,6 +1334,7 @@ export function PiecefulGame({
       setStage(stageNo);
       lastChoiceRef.current = null;
       lastAnswerRef.current = null;
+      setSelectedChoiceId(null);
       setSelectedChoiceText("");
       setSelectedActionText("");
       setPendingPick(null);
@@ -1319,6 +1366,9 @@ export function PiecefulGame({
     clearedRef.current = new Set();
     lastChoiceRef.current = null;
     lastAnswerRef.current = null;
+    setSelectedChoiceId(null);
+    setSelectedChoiceText("");
+    setSelectedActionText("");
     syncHud();
     go(opts?.screen ?? "stage");
   }, [syncHud, go]);
@@ -1426,7 +1476,7 @@ export function PiecefulGame({
         | HTMLElement
         | null;
       if (choiceBtn) {
-        openPickConfirm("choice", choiceBtn.dataset.choiceId!);
+        openPickConfirm("choice", choiceBtn);
         return;
       }
 
@@ -1434,7 +1484,7 @@ export function PiecefulGame({
         | HTMLElement
         | null;
       if (actionBtn) {
-        openPickConfirm("action", actionBtn.dataset.actionId!);
+        openPickConfirm("action", actionBtn);
         return;
       }
 
@@ -1891,7 +1941,20 @@ export function PiecefulGame({
         >
           <div className="pf-screen pf-paper pf-scene-plain">
             <div className="pf-safe">
-              <div ref={actionFlowRef} className="pf-scene-layout action-flow">
+              <div
+                ref={actionFlowRef}
+                className={[
+                  "pf-scene-layout action-flow",
+                  priorChoiceOverflows && !priorChoiceOpen
+                    ? "is-scenario-clamped"
+                    : "",
+                  priorChoiceOverflows && priorChoiceOpen
+                    ? "is-scenario-expanded"
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
                 <div className="pf-topbar">
                   <button
                     type="button"
@@ -1911,6 +1974,7 @@ export function PiecefulGame({
                   </div>
                   <span className="pf-mini-btn">2/2</span>
                 </div>
+                <div className="pf-action-context">
                 <section
                   className="pf-action-scenario-block"
                   aria-label="状況説明"
@@ -1973,15 +2037,16 @@ export function PiecefulGame({
                   </p>
                   <div className="pf-action-kiridashi-line">
                     <span
-                      className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
+                      className={`pf-choice-letter ${(selectedChoiceId ?? "A").toLowerCase()}`}
                     >
-                      {lastChoiceRef.current ?? "A"}
+                      {selectedChoiceId ?? "A"}
                     </span>
                     <p className="pf-action-kiridashi-text">
                       {selectedChoiceText || "選択した言い方"}
                     </p>
                   </div>
                 </section>
+                </div>
                 <h3 className="pf-prompt pf-prompt-action pf-prompt-compact">
                   <span className="pf-prompt-icon" aria-hidden>
                     💬
@@ -2238,7 +2303,19 @@ export function PiecefulGame({
               ? "この切り出しで決定しますか？"
               : "この振る舞いで決定しますか？"}
           </h2>
-          <p className="pf-confirm-preview">{pendingPick?.label ?? ""}</p>
+          <div className="pf-confirm-preview">
+            {pendingPick ? (
+              <>
+                <span
+                  className={`pf-choice-letter ${pendingPick.id.toLowerCase()}`}
+                  aria-hidden
+                >
+                  {pendingPick.id}
+                </span>
+                <p>{pendingPick.label}</p>
+              </>
+            ) : null}
+          </div>
           <div className="pf-confirm-actions">
             <button
               type="button"

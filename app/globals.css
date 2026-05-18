@@ -2564,9 +2564,89 @@ body:has(.game-body)::before {
 }
 
 .game-body .pf-scene-layout.action-flow {
-  grid-template-rows: auto minmax(0, auto) auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 4px;
   min-height: 0;
+}
+
+.game-body .pf-action-context {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 6px;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-clamped .pf-action-context {
+  gap: 4px;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-clamped .pf-action-scenario-block {
+  flex: 0 0 auto;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-clamped .pf-action-kiridashi {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: center;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-expanded .pf-action-scenario-block {
+  flex: 1 1 58%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-expanded .pf-action-scenario-body.is-open {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-expanded .pf-action-kiridashi {
+  flex: 0 0 auto;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-clamped .pf-action-kiridashi-kicker {
+  font-size: 15px;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-clamped .pf-action-kiridashi-text {
+  font-size: 15px;
+  line-height: 1.48;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-clamped .pf-action-kiridashi-line {
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-clamped .pf-action-kiridashi .pf-choice-letter {
+  width: 38px;
+  height: 38px;
+  font-size: 20px;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-expanded .pf-action-kiridashi-kicker {
+  font-size: 11px;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-expanded .pf-action-kiridashi-text {
+  font-size: 11px;
+  line-height: 1.38;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-expanded .pf-action-kiridashi-line {
+  grid-template-columns: 30px 1fr;
+  gap: 6px;
+}
+
+.game-body .pf-scene-layout.action-flow.is-scenario-expanded .pf-action-kiridashi .pf-choice-letter {
+  width: 28px;
+  height: 28px;
+  font-size: 15px;
 }
 
 .game-body .pf-result-layout {
@@ -3578,6 +3658,7 @@ body:has(.game-body)::before {
 
 .game-body .pf-action-scenario-body.is-clamped {
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .game-body .pf-action-scenario-body.is-clamped::after {
@@ -3680,6 +3761,10 @@ body:has(.game-body)::before {
 }
 
 .game-body .pf-confirm-preview {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: start;
   margin: 0;
   padding: 10px;
   background: #fff;
@@ -3689,6 +3774,13 @@ body:has(.game-body)::before {
   font-weight: 900;
   line-height: 1.5;
   color: #06111f;
+}
+
+.game-body .pf-confirm-preview p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 900;
 }
 
 .game-body .pf-confirm-actions {

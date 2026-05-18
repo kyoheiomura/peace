@@ -2562,11 +2562,9 @@ body:has(.game-body)::before {
 }
 
 .game-body .pf-scene-layout.action-flow {
-  grid-template-rows: auto auto auto auto 1fr;
-}
-
-.game-body .pf-scene-layout.action-flow.is-expanded {
-  grid-template-rows: auto auto auto auto auto 1fr;
+  grid-template-rows: auto minmax(0, auto) auto auto minmax(0, 1fr);
+  gap: 8px;
+  min-height: 0;
 }
 
 .game-body .pf-result-layout {
@@ -3302,41 +3300,35 @@ body:has(.game-body)::before {
   align-self: center;
 }
 
-.game-body .pf-prior-choice-wrap {
+.game-body .pf-action-scenario-block {
+  min-height: 0;
   display: grid;
   gap: 6px;
-  min-height: 0;
-}
-
-.game-body .pf-prior-choice-bar {
-  display: grid;
-  grid-template-columns: 1fr 40px;
-  gap: 8px;
-  align-items: start;
+  padding: 8px 10px;
   background: #fff;
   border: 4px solid #000;
-  box-shadow: 4px 4px 0 #000;
-  padding: 8px 10px;
+  box-shadow: var(--pf-shadow);
 }
 
-.game-body .pf-prior-choice-preview {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
+.game-body .pf-action-scenario-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.game-body .pf-action-scenario-label {
+  font-size: 10px;
   font-weight: 900;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  background: linear-gradient(90deg, #f04497 0%, #7d67c4 55%, #3f98cd 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  letter-spacing: 0.08em;
+  color: #27304a;
 }
 
-.game-body .pf-prior-choice-toggle {
-  width: 38px;
-  height: 38px;
+.game-body .pf-action-scenario-toggle {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
   border: 3px solid #000;
   box-shadow: 3px 3px 0 #000;
   background: var(--pf-yellow);
@@ -3345,30 +3337,94 @@ body:has(.game-body)::before {
   padding: 0;
   cursor: pointer;
   font-family: inherit;
-}
-
-.game-body .pf-prior-choice-toggle-icon {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
   line-height: 1;
 }
 
-.game-body .pf-prior-choice-full {
+.game-body .pf-action-scenario-body {
+  position: relative;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 10px;
-  align-items: center;
-  background: #fff;
-  border: 4px solid #000;
-  box-shadow: 4px 4px 0 #000;
-  padding: 10px;
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1.45;
+  gap: 8px;
 }
 
-.game-body .pf-prior-choice-full p {
+.game-body .pf-action-scenario-text {
   margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 900;
+  color: #050505;
+}
+
+.game-body .pf-action-scenario-body.is-clamped {
+  overflow: hidden;
+}
+
+.game-body .pf-action-scenario-body.is-clamped::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(3.6em, 45%);
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    #fff 58%,
+    #fff 100%
+  );
+}
+
+.game-body .pf-action-scenario-body.is-open,
+.game-body .pf-action-scenario-body.fits {
+  overflow: visible;
+}
+
+.game-body .pf-action-kiridashi {
+  min-height: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.game-body .pf-action-kiridashi-kicker {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #f04497;
+  line-height: 1.2;
+}
+
+.game-body .pf-action-kiridashi-line {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 8px;
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+}
+
+.game-body .pf-action-kiridashi-text {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.42;
+  font-weight: 900;
+  color: #050505;
+}
+
+.game-body .pf-prompt-action {
+  margin: 0;
+  font-size: 18px;
+}
+
+.game-body .pf-choice-grid-action {
+  min-height: 0;
 }
 
 .game-body .pf-confirm-backdrop {
@@ -3582,6 +3638,23 @@ body:has(.game-body)::before {
   font-size: 15px;
   line-height: 1.65;
   font-weight: 900;
+}
+
+.game-body .pf-detail-card .pf-detail-para {
+  margin-top: 12px;
+}
+
+.game-body .pf-detail-card .pf-emphasis {
+  color: #dc2626;
+  font-weight: 900;
+}
+
+.game-body .pf-selected-answer-text {
+  margin: 0;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
 }
 
 .game-body .pf-clear-stats {

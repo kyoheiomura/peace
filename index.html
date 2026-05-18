@@ -1003,25 +1003,11 @@
       );
     }
 
+  /* 8-bit cloud decorations — hidden until art direction settles */
     .app::before,
     .app::after {
-      content: "";
-      position: fixed;
-      z-index: 0;
-      pointer-events: none;
-      width: 120px;
-      height: 48px;
-      opacity: .85;
-      background:
-        linear-gradient(#fff6d8 0 0) 0 18px / 24px 12px no-repeat,
-        linear-gradient(#fff6d8 0 0) 20px 10px / 64px 24px no-repeat,
-        linear-gradient(#fff6d8 0 0) 82px 20px / 34px 12px no-repeat,
-        linear-gradient(#d8d0ae 0 0) 8px 30px / 76px 6px no-repeat;
-      filter: drop-shadow(4px 4px 0 rgba(0,0,0,.24));
-      animation: pixelCloud 8s steps(5, end) infinite;
+      display: none !important;
     }
-    .app::before { left: 4vw; top: 9vh; }
-    .app::after { right: 5vw; top: 13vh; transform: scale(.9); animation-delay: 1s; }
 
     @keyframes pixelCloud {
       0%, 100% { translate: 0 0; }

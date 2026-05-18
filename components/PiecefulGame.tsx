@@ -493,7 +493,7 @@ const stages: Record<
 
 const PROGRESS_KEY = "pieceful:v1:progress" as const;
 const ONBOARDING_KEY = "pieceful:onboardingCompleted" as const;
-type Screen =
+export type PiecefulPreviewScreen =
   | "title"
   | "onboarding-1"
   | "onboarding-2"
@@ -506,6 +506,18 @@ type Screen =
   | "result"
   | "detail"
   | "clear";
+
+type Screen = PiecefulPreviewScreen;
+
+export type PiecefulGameProps = {
+  /** iframe embed: phone-mockup ラッパーを外す */
+  embed?: boolean;
+  /** 導線マップ用: 固定画面を表示 */
+  previewScreen?: PiecefulPreviewScreen;
+  previewClearedStages?: number[];
+  /** title プレビューで「続きから」を見せる */
+  previewHasSave?: boolean;
+};
 
 function hasCompletedOnboarding(): boolean {
   if (typeof window === "undefined") return false;
@@ -608,6 +620,70 @@ function FormattedScenarioText({ text }: { text: string }) {
   );
 }
 
+const RESULT_LESSON_TITLES = [
+  "なぜ正解なのか",
+  "あなたの落とし穴",
+  "明日から使えるヒント",
+  "もっと知りたい人へ",
+] as const;
+
+function ResultCtaBlock({ className }: { className?: string }) {
+  return (
+    <div className={["pf-result-cta", className].filter(Boolean).join(" ")}>
+      <p className="pf-result-cta-kicker">＼あなたの強みを活かす！／</p>
+      <button type="button" className="pf-yellow-pill pf-result-cta-btn">
+        詳しい解説と実践のコツを見る
+      </button>
+    </div>
+  );
+}
+
+function ResultAccordionItem({
+  index,
+  title,
+  body,
+  isOpen,
+  onToggle,
+}: {
+  index: number;
+  title: string;
+  body: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const panelId = `result-accordion-panel-${index}`;
+  const headId = `result-accordion-head-${index}`;
+  return (
+    <div className={`pf-result-accordion${isOpen ? " is-open" : ""}`}>
+      <button
+        type="button"
+        id={headId}
+        className="pf-result-accordion-head"
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        onClick={onToggle}
+      >
+        <span className="pf-result-accordion-title">
+          {index + 1}. {title}
+        </span>
+        <span className="pf-result-accordion-arrow" aria-hidden>
+          {isOpen ? "▲" : "▼"}
+        </span>
+      </button>
+      {isOpen ? (
+        <div
+          id={panelId}
+          className="pf-result-accordion-body"
+          role="region"
+          aria-labelledby={headId}
+        >
+          <FormattedScenarioText text={body} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function normalizeRestoredScreen(screen: string, cleared: Set<number>): Screen {
   if (
     screen === "mission" ||
@@ -645,10 +721,21 @@ function clamp(n: number, min: number, max: number): number {
 
 /* ── component ── */
 
-export function PiecefulGame() {
+export function PiecefulGame({
+  embed = false,
+  previewScreen,
+  previewClearedStages,
+  previewHasSave = false,
+}: PiecefulGameProps = {}) {
+  const isPreview = Boolean(previewScreen);
+
   /* state */
-  const [currentScreen, setCurrentScreen] = useState<Screen>("title");
-  const [character, setCharacter] = useState("ESTP");
+  const [currentScreen, setCurrentScreen] = useState<Screen>(
+    previewScreen ?? "title"
+  );
+  const [character, setCharacter] = useState(
+    isPreview ? "INTJ" : "ESTP"
+  );
   const [stage, setStage] = useState(1);
   const [trust, setTrust] = useState(35);
   const [score, setScore] = useState(0);
@@ -662,6 +749,9 @@ export function PiecefulGame() {
   const [selectedChoiceText, setSelectedChoiceText] = useState("");
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
+  const [resultExpandedSection, setResultExpandedSection] = useState<number | null>(
+    0
+  );
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
   const [priorChoiceOpen, setPriorChoiceOpen] = useState(false);
@@ -1132,14 +1222,19 @@ export function PiecefulGame() {
       let cards: LessonCard[];
       if (csv) {
         cards = [
-          { title: "なぜ正解?", body: csv.naze },
-          { title: "落とし穴", body: csv.otoshiana },
-          { title: "明日使えるヒント", body: csv.hint },
+          { title: RESULT_LESSON_TITLES[0], body: csv.naze },
+          { title: RESULT_LESSON_TITLES[1], body: csv.otoshiana },
+          { title: RESULT_LESSON_TITLES[2], body: csv.hint },
+          { title: RESULT_LESSON_TITLES[3], body: csv.more },
         ];
       } else {
-        cards = s.lessons.slice(0, 3).map(([title, body]) => ({ title, body }));
+        cards = s.lessons.slice(0, 4).map(([title, body], i) => ({
+          title: RESULT_LESSON_TITLES[i] ?? title,
+          body,
+        }));
       }
       setLessonCards(cards);
+      setResultExpandedSection(0);
       setDetailIndex(0);
       syncHud();
     },
@@ -1418,8 +1513,98 @@ export function PiecefulGame() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
+  /* ── design preview: 固定画面の初期データ ── */
+  useEffect(() => {
+    if (!previewScreen) return;
+
+    const previewChar = "INTJ";
+    characterRef.current = previewChar;
+    setCharacter(previewChar);
+    setStage(1);
+
+    if (previewScreen.startsWith("onboarding")) {
+      setOnboardingDone(false);
+    } else {
+      setOnboardingDone(true);
+    }
+
+    if (previewClearedStages?.length) {
+      const cleared = new Set(previewClearedStages);
+      setClearedStages(cleared);
+      clearedRef.current = cleared;
+    }
+
+    if (previewScreen === "title" && previewHasSave) {
+      setHasSave(true);
+    }
+
+    if (previewScreen === "clear") {
+      const all = new Set(ALL_STAGE_IDS);
+      setClearedStages(all);
+      clearedRef.current = all;
+      setScore(128);
+      scoreRef.current = 128;
+      setMaxCombo(4);
+      setTrust(72);
+      trustRef.current = 72;
+    }
+
+    if (previewScreen === "choice" || previewScreen === "action") {
+      loadStageContent();
+    }
+
+    if (previewScreen === "action") {
+      const csv = mbtiScenarios[previewChar]?.[1];
+      const choiceText =
+        csv?.kiridashi.A ??
+        stages[1].choices[0]?.text ??
+        "選択した言い方";
+      lastChoiceRef.current = "A";
+      setSelectedChoiceText(choiceText);
+    }
+
+    if (previewScreen === "result" || previewScreen === "detail") {
+      const csv = mbtiScenarios[previewChar]?.[1];
+      const choiceText =
+        csv?.kiridashi.A ??
+        stages[1].choices[0]?.text ??
+        "選択した言い方";
+      const actionText =
+        csv?.furumai.A ?? stages[1].actions[0]?.text ?? "選択した振る舞い";
+      lastChoiceRef.current = "A";
+      lastActionRef.current = "A";
+      setSelectedChoiceText(choiceText);
+      setSelectedActionText(actionText);
+      renderResult({ feedback: "" });
+    }
+
+    if (previewScreen === "detail") {
+      setDetailIndex(0);
+    }
+
+    setCurrentScreen(previewScreen);
+    syncHud();
+  }, [
+    previewScreen,
+    previewClearedStages,
+    previewHasSave,
+    loadStageContent,
+    renderResult,
+    syncHud,
+  ]);
+
+  useEffect(() => {
+    if (!previewScreen) return;
+    const id = requestAnimationFrame(() => {
+      if (previewScreen === "choice") renderChoices();
+      if (previewScreen === "action") renderActions();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [previewScreen, renderChoices, renderActions]);
+
   /* ── persist progress (skip trivial title-only new session) ── */
   useEffect(() => {
+    if (isPreview) return;
     const trivial =
       currentScreen === "title" &&
       score === 0 &&
@@ -1460,6 +1645,7 @@ export function PiecefulGame() {
   /* ── mount: sync HUD + detect save + onboarding ── */
   useEffect(() => {
     syncHud();
+    if (isPreview) return;
     setOnboardingDone(hasCompletedOnboarding());
     try {
       const raw = localStorage.getItem(PROGRESS_KEY);
@@ -1470,7 +1656,7 @@ export function PiecefulGame() {
     } catch {
       /* ignore */
     }
-  }, [syncHud]);
+  }, [syncHud, isPreview]);
 
   /* ── ref callback helpers ── */
   const addTrustLabelRef = useCallback(
@@ -1517,11 +1703,13 @@ export function PiecefulGame() {
     }
   }, [shareText, toast]);
 
-  return (
-    <>
-      {/* ── Phone shell: notch + safe zone on all viewports ── */}
-      <div className="phone-mockup">
-      <main className="app pf-app" ref={appRef}>
+  const appMain = (
+      <main
+        className={["app pf-app", embed ? "pf-embed-preview" : ""]
+          .filter(Boolean)
+          .join(" ")}
+        ref={appRef}
+      >
       <span className="bg-chip chip-1">🌙</span>
       <span className="bg-chip chip-2">☀️</span>
       <span className="bg-chip chip-3">💎</span>
@@ -1863,8 +2051,9 @@ export function PiecefulGame() {
           aria-labelledby="result-heading"
         >
           <div className="pf-screen pf-paper">
-            <div className="pf-safe">
-              <div className="pf-result-layout">
+            <div className="pf-safe pf-result-safe">
+              <div className="pf-result-scroll">
+                <div className="pf-result-layout">
                 <h2 id="result-heading" className="pf-result-title">
                   チャレンジ結果
                 </h2>
@@ -1873,50 +2062,54 @@ export function PiecefulGame() {
                 </div>
                 <p className="pf-clear-label">クリア</p>
                 <p id="result-sub" ref={resultSubRef} className="pf-small-note pf-sr-only" aria-hidden />
-                <div className="pf-selected-line">
-                  <span
-                    className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
-                  >
-                    {lastChoiceRef.current ?? "A"}
-                  </span>
-                  <p className="pf-selected-answer-text">
-                    {selectedChoiceText || "選択した言い方"}
-                  </p>
-                </div>
-                <div className="pf-selected-line">
-                  <span
-                    className={`pf-choice-letter ${(lastActionRef.current ?? "a").toLowerCase()}`}
-                  >
-                    {lastActionRef.current ?? "A"}
-                  </span>
-                  <p className="pf-selected-answer-text">
-                    {selectedActionText || "選択した振る舞い"}
-                  </p>
-                </div>
-                <div className="pf-tip-list">
-                  {lessonCards.map((card, idx) => (
-                    <button
-                      key={card.title}
-                      type="button"
-                      className="pf-tip"
-                      data-tip-index={idx}
+                <div className="pf-result-answers">
+                  <div className="pf-selected-line">
+                    <span
+                      className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
                     >
-                      <span>
-                        {idx + 1}. {card.title}
-                      </span>
-                      <span className="arrow" aria-hidden>
-                        ▶
-                      </span>
-                    </button>
+                      {lastChoiceRef.current ?? "A"}
+                    </span>
+                    <p className="pf-selected-answer-text">
+                      {selectedChoiceText || "選択した言い方"}
+                    </p>
+                  </div>
+                  <div className="pf-selected-line">
+                    <span
+                      className={`pf-choice-letter ${(lastActionRef.current ?? "a").toLowerCase()}`}
+                    >
+                      {lastActionRef.current ?? "A"}
+                    </span>
+                    <p className="pf-selected-answer-text">
+                      {selectedActionText || "選択した振る舞い"}
+                    </p>
+                  </div>
+                </div>
+                <ResultCtaBlock />
+                <div className="pf-result-accordion-list">
+                  {lessonCards.map((card, idx) => (
+                    <ResultAccordionItem
+                      key={card.title}
+                      index={idx}
+                      title={card.title}
+                      body={card.body}
+                      isOpen={resultExpandedSection === idx}
+                      onToggle={() =>
+                        setResultExpandedSection((current) =>
+                          current === idx ? null : idx
+                        )
+                      }
+                    />
                   ))}
                 </div>
+                <ResultCtaBlock className="pf-result-cta-bottom" />
                 <button
                   type="button"
-                  className="pf-yellow-pill"
-                  onClick={() => openDetail(0)}
+                  className="pf-back-wide pf-result-back"
+                  onClick={() => go("stage")}
                 >
-                  詳しい解説へ ▶
+                  ◀ ステージ選択画面に戻る
                 </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2059,6 +2252,11 @@ export function PiecefulGame() {
           </div>
         </section>
       </main>
+  );
+
+  return (
+    <>
+      {embed ? appMain : <div className="phone-mockup">{appMain}</div>}
 
       {/* ── PICK CONFIRM MODAL ── */}
       <div
@@ -2144,7 +2342,6 @@ export function PiecefulGame() {
       <div id="toast" ref={toastElRef} className="toast" />
       {/* ── CONFETTI ── */}
       <div id="confetti" ref={confettiRef} className="confetti" aria-hidden="true" />
-      </div>
     </>
   );
 }

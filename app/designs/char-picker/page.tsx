@@ -57,6 +57,8 @@ export default function CharPickerDesignIndex() {
           2×8 は 2×4 表示＋縦スライドで16体（`lib/charPickerConfig.ts` で横にも切替可）。現行本番は 2×8 縦。
         </p>
         <p>
+          <Link href="/designs/flow">全体導線マップ →</Link>
+          {" · "}
           <Link href="/game">本番ゲームへ →</Link>
         </p>
       </header>

@@ -4093,15 +4093,16 @@ body:has(.game-body)::before {
   color: var(--pf-ink);
 }
 
-/* 2×4 表示 + 横スライド（4列・16体、約2.24列が見える） */
-.game-body .pf-type-scroll-2x4-wrap {
+/* 2×8 キャラグリッド（軸は lib/charPickerConfig.ts で切替） */
+.game-body .pf-type-scroll-2x8-wrap {
   position: relative;
   min-height: 0;
   height: 100%;
   min-width: 0;
 }
 
-.game-body .pf-type-scroll-2x4 {
+/* ── 横スライド（horizontal）復旧用 ── */
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-2x4 {
   --pf-picker-gap: 4px;
   --pf-picker-visible-cols: 2;
   --pf-picker-peek: 0.24;
@@ -4117,11 +4118,11 @@ body:has(.game-body)::before {
   touch-action: pan-x;
 }
 
-.game-body .pf-type-scroll-2x4::-webkit-scrollbar {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-2x4::-webkit-scrollbar {
   display: none;
 }
 
-.game-body .pf-type-scroll-track {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-track {
   display: flex;
   gap: var(--pf-picker-gap);
   height: 100%;
@@ -4129,7 +4130,7 @@ body:has(.game-body)::before {
   min-width: 100%;
 }
 
-.game-body .pf-type-scroll-col {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-col {
   flex: 0 0 calc(100cqi / (var(--pf-picker-visible-cols) + var(--pf-picker-peek)));
   display: grid;
   grid-template-rows: repeat(4, minmax(0, 1fr));
@@ -4138,23 +4139,72 @@ body:has(.game-body)::before {
   scroll-snap-align: start;
 }
 
-.game-body .pf-type-scroll-col:nth-child(3) {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-col:nth-child(3) {
   scroll-snap-align: start;
 }
 
 @supports not (width: 1cqi) {
-  .game-body .pf-type-scroll-track {
+  .game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-track {
     width: 179%;
   }
 
-  .game-body .pf-type-scroll-col {
+  .game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-col {
     flex: 0 0 25%;
   }
 }
 
+/* ── 縦スライド（vertical・本番デフォルト）2列×4行表示 + 下ピーク ── */
+.game-body .pf-type-scroll-2x8-wrap.is-axis-vertical .pf-type-scroll-2x8-v {
+  --pf-picker-gap: 4px;
+  --pf-picker-visible-rows: 4;
+  --pf-picker-peek: 0.24;
+  container-type: size;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-y;
+}
+
+.game-body .pf-type-scroll-2x8-wrap.is-axis-vertical .pf-type-scroll-2x8-v::-webkit-scrollbar {
+  display: none;
+}
+
+.game-body .pf-type-scroll-track-v {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pf-picker-gap);
+  width: 100%;
+  min-height: 100%;
+}
+
+.game-body .pf-type-scroll-pane-v {
+  flex: 0 0 calc(100cqh * 4 / (var(--pf-picker-visible-rows) + var(--pf-picker-peek)));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: var(--pf-picker-gap);
+  min-height: 0;
+  scroll-snap-align: start;
+}
+
+@supports not (height: 1cqh) {
+  .game-body .pf-type-scroll-track-v {
+    min-height: 179%;
+  }
+
+  .game-body .pf-type-scroll-pane-v {
+    flex: 0 0 50%;
+  }
+}
+
 /* 初回のみ: 暗転 + スワイプ案内（スライドで非表示） */
-.game-body .pf-type-scroll-2x4-wrap.is-coach-active .pf-type-scroll-edge,
-.game-body .pf-type-scroll-2x4-wrap.is-coach-active .pf-type-scroll-hint {
+.game-body .pf-type-scroll-2x8-wrap.is-coach-active .pf-type-scroll-edge,
+.game-body .pf-type-scroll-2x8-wrap.is-coach-active .pf-type-scroll-hint {
   opacity: 0;
   animation: none;
 }
@@ -4214,7 +4264,7 @@ body:has(.game-body)::before {
   }
 }
 
-.game-body .pf-type-scroll-edge {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-edge {
   position: absolute;
   top: 0;
   right: 0;
@@ -4224,7 +4274,17 @@ body:has(.game-body)::before {
   background: linear-gradient(90deg, transparent 0%, var(--pf-paper) 78%);
 }
 
-.game-body .pf-type-scroll-hint {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-vertical .pf-type-scroll-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 36px;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, var(--pf-paper) 78%);
+}
+
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal .pf-type-scroll-hint {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -4237,20 +4297,38 @@ body:has(.game-body)::before {
   opacity: 0.5;
   pointer-events: none;
   transition: opacity 0.25s ease;
-  animation: pf-scroll-hint-nudge 1.5s ease-in-out infinite;
+  animation: pf-scroll-hint-nudge-x 1.5s ease-in-out infinite;
+}
+
+.game-body .pf-type-scroll-2x8-wrap.is-axis-vertical .pf-type-scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 2;
+  transform: translateX(-50%);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--pf-ink);
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  animation: pf-scroll-hint-nudge-y 1.5s ease-in-out infinite;
 }
 
 .game-body .pf-type-scroll-hint.is-done,
-.game-body .pf-type-scroll-2x4-wrap:has(.pf-type-scroll-2x4[data-at-end="true"]) .pf-type-scroll-hint {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal:has(.pf-type-scroll-2x4[data-at-end="true"]) .pf-type-scroll-hint,
+.game-body .pf-type-scroll-2x8-wrap.is-axis-vertical:has(.pf-type-scroll-2x8-v[data-at-end="true"]) .pf-type-scroll-hint {
   opacity: 0;
   animation: none;
 }
 
-.game-body .pf-type-scroll-2x4-wrap:has(.pf-type-scroll-2x4[data-at-end="true"]) .pf-type-scroll-edge {
+.game-body .pf-type-scroll-2x8-wrap.is-axis-horizontal:has(.pf-type-scroll-2x4[data-at-end="true"]) .pf-type-scroll-edge,
+.game-body .pf-type-scroll-2x8-wrap.is-axis-vertical:has(.pf-type-scroll-2x8-v[data-at-end="true"]) .pf-type-scroll-edge {
   opacity: 0;
 }
 
-@keyframes pf-scroll-hint-nudge {
+@keyframes pf-scroll-hint-nudge-x {
   0%,
   100% {
     transform: translateY(-50%) translateX(0);
@@ -4260,6 +4338,34 @@ body:has(.game-body)::before {
   50% {
     transform: translateY(-50%) translateX(4px);
     opacity: 0.7;
+  }
+}
+
+@keyframes pf-scroll-hint-nudge-y {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(4px);
+    opacity: 0.7;
+  }
+}
+
+.game-body .pf-type-scroll-2x8-wrap.is-axis-vertical .pf-type-scroll-coach-text {
+  animation: pf-scroll-coach-pulse-y 1.5s ease-in-out infinite;
+}
+
+@keyframes pf-scroll-coach-pulse-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(5px);
   }
 }
 

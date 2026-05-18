@@ -8,6 +8,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { charPickerScrollSubcopy } from "../lib/charPickerConfig";
 import { charImages, charNick, type CharacterType } from "../lib/characters";
 import { mbtiScenarios } from "../lib/mbtiScenarios";
 import { OnboardingScreens } from "./pieceful/OnboardingScreens";
@@ -1626,7 +1627,7 @@ export function PiecefulGame() {
                     <h2 id="type-heading" className="pf-screen-title">
                       キャラを選ぼう!
                     </h2>
-                    <p className="pf-screen-sub">2×4表示 · 横スライドで16タイプ</p>
+                    <p className="pf-screen-sub">{charPickerScrollSubcopy()}</p>
                   </div>
                   <span className="pf-mini-btn">ALL</span>
                 </div>

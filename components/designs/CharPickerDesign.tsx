@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { charPickerScrollSubcopy } from "@/lib/charPickerConfig";
 import {
   charGroupLabels,
   charImages,
@@ -37,7 +38,7 @@ export function CharPickerDesign({
   const activeType = layout === "2x8" ? picked : selected;
   const pageChars = charactersForPage(layout, page);
   const groupLabel =
-    layout === "4x4" ? charGroupLabels[page - 1] : "2×4 + スワイプ · 16タイプ";
+    layout === "4x4" ? charGroupLabels[page - 1] : `2×8 · ${charPickerScrollSubcopy()}`;
 
   return (
     <main className="app pf-app">
@@ -59,7 +60,7 @@ export function CharPickerDesign({
                     </h2>
                     <p className="pf-screen-sub">
                       {layout === "2x8"
-                        ? "2×4表示 · 横スライドで16タイプ"
+                        ? charPickerScrollSubcopy()
                         : "4×4 象限（4ページ）"}
                     </p>
                   </div>

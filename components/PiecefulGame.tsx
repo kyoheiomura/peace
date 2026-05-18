@@ -1,37 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { charImages, charNick, type CharacterType } from "../lib/characters";
 import { mbtiScenarios } from "../lib/mbtiScenarios";
 import { OnboardingScreens } from "./pieceful/OnboardingScreens";
-
-/* ── module-level constants ── */
-
-const characters = [
-  ["INTJ", "戦略設計型", "Analyst", "group-analyst"],
-  ["INTP", "仮説探究型", "Analyst", "group-analyst"],
-  ["ENTJ", "司令塔型", "Analyst", "group-analyst"],
-  ["ENTP", "発明家型", "Analyst", "group-analyst"],
-  ["ISTJ", "堅実管理型", "Sentinel", "group-sentinel"],
-  ["ISFJ", "支援守備型", "Sentinel", "group-sentinel"],
-  ["ESTJ", "実行統率型", "Sentinel", "group-sentinel"],
-  ["ESFJ", "調整支援型", "Sentinel", "group-sentinel"],
-  ["INFP", "価値観共鳴型", "Diplomat", "group-diplomat"],
-  ["ENFJ", "伴走リーダー型", "Diplomat", "group-diplomat"],
-  ["ENFP", "アイデア共創型", "Diplomat", "group-diplomat"],
-  ["INFJ", "洞察設計型", "Diplomat", "group-diplomat"],
-  ["ISTP", "現場解決型", "Explorer", "group-explorer"],
-  ["ISFP", "感性実装型", "Explorer", "group-explorer"],
-  ["ESTP", "瞬発アクション型", "Explorer", "group-explorer"],
-  ["ESFP", "ムードメイク型", "Explorer", "group-explorer"],
-] as const;
-
-const charImages = Object.fromEntries(
-  characters.map((c, i) => [c[0], `/img/${i + 1}.png`])
-) as Record<string, string>;
-
-const charNick = Object.fromEntries(
-  characters.map((c) => [c[0], c[1]])
-) as Record<string, string>;
+import { CharPicker2x8Scroll } from "./pieceful/CharPicker2x8Scroll";
+import { StageSelectionScreen } from "./pieceful/stage-selection/StageSelectionScreen";
+import { ALL_STAGE_IDS } from "../lib/stageSelection";
 
 const stages: Record<
   number,
@@ -509,8 +484,6 @@ const stages: Record<
 
 const PROGRESS_KEY = "pieceful:v1:progress" as const;
 const ONBOARDING_KEY = "pieceful:onboardingCompleted" as const;
-const ALL_STAGE_IDS = [1, 2, 3, 4, 5] as const;
-
 type Screen =
   | "title"
   | "onboarding-1"
@@ -542,41 +515,7 @@ function markOnboardingCompleted(): void {
   }
 }
 
-const STAGE_SCENE_PURPOSE: Record<number, string> = {
-  1: "今回の目的：事実を報告し、次の対応を相談する",
-  2: "今回の目的：負担を抑えて協力してもらう",
-  3: "今回の目的：やる気を保ちながら直してもらう",
-  4: "今回の目的：期待を調整し、合意を作る",
-  5: "今回の目的：相手のメリットを伝えて巻き込む",
-};
-
-const STAGE_CHOICE_HINT: Record<number, string> = {
-  1: "見るポイント：相手が受け止める準備を作れているか",
-  2: "見るポイント：相手の負担が読める依頼になっているか",
-  3: "見るポイント：良い点を認めてから改善点を伝えているか",
-  4: "見るポイント：否定せず選択肢を示せているか",
-  5: "見るポイント：相手部署のメリットが見えるか",
-};
-
-const STAGE_ACTION_HINT = "見るポイント：落ち着き・準備・相手への敬意";
-
 const DETAIL_BADGES = ["話の目的を先に示す", "タイプ別の注意点", "現場で使う順番"] as const;
-
-const STAGE_PIECE_COLORS = [
-  "#e91f6e",
-  "#8a5be7",
-  "#f2d52b",
-  "#61d63c",
-  "#59c5ef",
-] as const;
-
-const STAGE_SHORT_LABELS: Record<number, [string, string]> = {
-  1: ["ステージ1", "先輩・上司"],
-  2: ["ステージ2", "同僚"],
-  3: ["ステージ3", "後輩"],
-  4: ["ステージ4", "クライアント"],
-  5: ["ステージ5", "他部署"],
-};
 
 function splitScenarioParagraphs(text: string): string[] {
   const parts = text
@@ -588,6 +527,12 @@ function splitScenarioParagraphs(text: string): string[] {
 }
 
 type LessonCard = { title: string; body: string };
+
+type PendingPick = {
+  kind: "choice" | "action";
+  id: string;
+  label: string;
+};
 
 type PiecefulProgressV1 = {
   version: 1;
@@ -668,6 +613,8 @@ export function PiecefulGame() {
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
   const [onboardingDone, setOnboardingDone] = useState(false);
+  const [pendingPick, setPendingPick] = useState<PendingPick | null>(null);
+  const [priorChoiceOpen, setPriorChoiceOpen] = useState(false);
 
   /* refs for DOM containers that get innerHTML */
   const choicesRef = useRef<HTMLDivElement>(null);
@@ -686,14 +633,7 @@ export function PiecefulGame() {
   const chosenNickRef = useRef<HTMLSpanElement>(null);
   const coachImgRef = useRef<HTMLImageElement>(null);
 
-  /* refs for mission/feedback elements */
-  const missionHeadingRef = useRef<HTMLHeadingElement>(null);
-  const missionSubRef = useRef<HTMLParagraphElement>(null);
-  const missionKickerRef = useRef<HTMLDivElement>(null);
-  const scenarioRef = useRef<HTMLParagraphElement>(null);
-  const npcImgRef = useRef<HTMLImageElement>(null);
-  const npcNameRef = useRef<HTMLDivElement>(null);
-  const npcTagRef = useRef<HTMLSpanElement>(null);
+  /* refs for feedback elements */
   const resultCardRef = useRef<HTMLDivElement>(null);
   const gradeRef = useRef<HTMLDivElement>(null);
   const feedbackHeadingRef = useRef<HTMLHeadingElement>(null);
@@ -870,16 +810,27 @@ export function PiecefulGame() {
     return best?.id ?? null;
   }, [stage]);
 
-  /* ── renderScene / renderChoices / renderActions ── */
-  const renderScene = useCallback(() => {
+  const getChoiceLabel = useCallback((id: string): string => {
+    const csv = mbtiScenarios[characterRef.current]?.[stage];
+    if (csv) {
+      return csv.kiridashi[id as keyof typeof csv.kiridashi] as string;
+    }
+    return stages[stage]?.choices.find((c) => c.id === id)?.text ?? "";
+  }, [stage]);
+
+  const getActionLabel = useCallback((id: string): string => {
+    const csv = mbtiScenarios[characterRef.current]?.[stage];
+    if (csv) {
+      return csv.furumai[id as keyof typeof csv.furumai] as string;
+    }
+    return stages[stage]?.actions.find((a) => a.id === id)?.text ?? "";
+  }, [stage]);
+
+  /* ── loadStageContent / renderChoices / renderActions ── */
+  const loadStageContent = useCallback(() => {
     const s = stages[stage];
     const csv = mbtiScenarios[characterRef.current]?.[stage];
     const scenario = csv?.situation || s.scenario;
-    if (missionHeadingRef.current)
-      missionHeadingRef.current.textContent = s.title;
-    if (missionSubRef.current) missionSubRef.current.textContent = "まず状況を読む";
-    if (missionKickerRef.current)
-      missionKickerRef.current.textContent = s.kicker;
     setSceneParagraphs(splitScenarioParagraphs(scenario));
   }, [stage]);
 
@@ -1146,6 +1097,31 @@ export function PiecefulGame() {
     completeOnboarding();
   }, [completeOnboarding]);
 
+  const openPickConfirm = useCallback(
+    (kind: PendingPick["kind"], id: string) => {
+      const label = kind === "choice" ? getChoiceLabel(id) : getActionLabel(id);
+      if (!label) return;
+      setPendingPick({ kind, id, label });
+    },
+    [getChoiceLabel, getActionLabel]
+  );
+
+  const cancelPendingPick = useCallback(() => {
+    setPendingPick(null);
+  }, []);
+
+  const confirmPendingPick = useCallback(() => {
+    if (!pendingPick) return;
+    const { kind, id } = pendingPick;
+    setPendingPick(null);
+    if (kind === "choice") {
+      setPriorChoiceOpen(false);
+      selectAnswer(id);
+      return;
+    }
+    selectAction(id);
+  }, [pendingPick, selectAnswer, selectAction]);
+
   /* ── selectStage ── */
   const selectStage = useCallback(
     (stageNo: number) => {
@@ -1154,11 +1130,13 @@ export function PiecefulGame() {
       lastAnswerRef.current = null;
       setSelectedChoiceText("");
       setSelectedActionText("");
-      renderScene();
+      setPendingPick(null);
+      setPriorChoiceOpen(false);
+      loadStageContent();
       renderChoices();
-      go("scene");
+      go("choice");
     },
-    [renderScene, renderChoices, go]
+    [loadStageContent, renderChoices, go]
   );
 
   /* ── resetGame ── */
@@ -1288,7 +1266,7 @@ export function PiecefulGame() {
         | HTMLElement
         | null;
       if (choiceBtn) {
-        selectAnswer(choiceBtn.dataset.choiceId!);
+        openPickConfirm("choice", choiceBtn.dataset.choiceId!);
         return;
       }
 
@@ -1296,7 +1274,7 @@ export function PiecefulGame() {
         | HTMLElement
         | null;
       if (actionBtn) {
-        selectAction(actionBtn.dataset.actionId!);
+        openPickConfirm("action", actionBtn.dataset.actionId!);
         return;
       }
 
@@ -1313,13 +1291,14 @@ export function PiecefulGame() {
 
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
-  }, [selectAnswer, selectAction]);
+  }, [openPickConfirm, go]);
 
   /* ── keyboard: Escape closes guide / picker ── */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setGuideOpen(false);
+        setPendingPick(null);
       }
     };
     document.addEventListener("keydown", handler);
@@ -1427,7 +1406,7 @@ export function PiecefulGame() {
 
   return (
     <>
-      {/* ── PhoneMockup shell (desktop) / full-screen (mobile) ── */}
+      {/* ── Phone shell: notch + safe zone on all viewports ── */}
       <div className="phone-mockup">
       <main className="app pf-app" ref={appRef}>
       <span className="bg-chip chip-1">🌙</span>
@@ -1440,14 +1419,16 @@ export function PiecefulGame() {
           className={isActive("title")}
           aria-labelledby="title-heading"
         >
-          <div className="pf-screen pf-paper">
+          <div className="pf-screen pf-paper is-title">
             <div className="pf-safe">
               <div className="pf-home-layout">
                 <div className="pf-red-banner">
-                  <span className="pf-piece-icon" aria-hidden />
-                  個性を活かした伝え方で
-                  <br />
-                  仕事をもっと快適に!
+                  <p className="pf-red-banner-text">
+                    <span className="pf-piece-icon" aria-hidden />
+                    個性を活かした伝え方で
+                    <br />
+                    仕事をもっと快適に!
+                  </p>
                 </div>
                 <div>
                   <h1 id="title-heading" className="pf-home-logo">
@@ -1519,7 +1500,7 @@ export function PiecefulGame() {
         >
           <div className="pf-screen pf-paper">
             <div className="pf-safe">
-              <div className="pf-type-layout">
+              <div className="pf-type-layout pf-type-layout--picker-2x8">
                 <div className="pf-topbar">
                   <button
                     type="button"
@@ -1533,35 +1514,24 @@ export function PiecefulGame() {
                     <h2 id="type-heading" className="pf-screen-title">
                       キャラを選ぼう!
                     </h2>
-                    <p className="pf-screen-sub">16タイプから選択</p>
+                    <p className="pf-screen-sub">2×4表示 · 横スライドで16タイプ</p>
                   </div>
                   <span className="pf-mini-btn">ALL</span>
                 </div>
-                <div className="pf-selected-type">
+                <div className="pf-selected-type pf-selected-type--hero">
                   <img src={charImages[character]} alt="" />
                   <div>
                     <h3>{character}</h3>
-                    <p>
-                      選ぶとステージ内容が少し変わります。
-                      <br />
-                      迷ったらESTPで開始。
+                    <p className="pf-selected-type-nick">{charNick[character]}</p>
+                    <p className="pf-selected-type-note">
+                      選ぶとステージ内容が少し変わります。迷ったらESTPで開始。
                     </p>
                   </div>
                 </div>
-                <div className="pf-type-grid16">
-                  {characters.map(([type, nick, , cls]) => (
-                    <button
-                      key={type}
-                      type="button"
-                      className={`pf-char-tile ${cls.replace("group-", "")} ${character === type ? "selected" : ""}`}
-                      onClick={() => selectCharacter(type, { fromPicker: true })}
-                      aria-pressed={character === type}
-                      aria-label={`${type} ${nick}`}
-                    >
-                      <img src={charImages[type]} alt="" />
-                    </button>
-                  ))}
-                </div>
+                <CharPicker2x8Scroll
+                  selected={character as CharacterType}
+                  onSelect={(type) => selectCharacter(type, { fromPicker: true })}
+                />
                 <button
                   type="button"
                   className="pf-big-btn"
@@ -1582,132 +1552,16 @@ export function PiecefulGame() {
         >
           <div className="pf-screen pf-stage-bg">
             <div className="pf-safe">
-              <div className="pf-stage-layout">
-                <div className="pf-topbar">
-                  <button
-                    type="button"
-                    className="pf-back-btn"
-                    onClick={() => go("type")}
-                    aria-label="タイプ選択へ戻る"
-                  >
-                    ←
-                  </button>
-                  <h2 id="stage-heading" className="pf-screen-title light">
-                    ステージ選択
-                  </h2>
-                  <button
-                    type="button"
-                    className="pf-mini-btn"
-                    onClick={() => go("type")}
-                  >
-                    {character}
-                  </button>
-                </div>
-                <div className="pf-stage-hero">
-                  <img src={charImages[character]} alt="" />
-                  <div>
-                    <div className="pf-name-plate">{character}</div>
-                    <p className="pf-stage-hero-copy">
-                      相手ごとに
-                      <br />
-                      伝え方が変わる!
-                    </p>
-                  </div>
-                </div>
-                <div className="pf-stage-list">
-                  {ALL_STAGE_IDS.map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      className={[
-                        "pf-stage-card",
-                        clearedStages.has(id) ? "cleared" : "",
-                        nextUnclearedStage === id ? "next" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      onClick={() => selectStage(id)}
-                    >
-                      <span
-                        className="pf-stage-piece"
-                        style={{
-                          background: STAGE_PIECE_COLORS[id - 1],
-                        }}
-                      />
-                      <h3>
-                        {STAGE_SHORT_LABELS[id][0]}
-                        <span>{STAGE_SHORT_LABELS[id][1]}</span>
-                      </h3>
-                    </button>
-                  ))}
-                </div>
-                <div className="pf-pager light" aria-hidden>
-                  <span className="on" />
-                  <span />
-                  <span />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── SCENE ── */}
-        <section
-          id="screen-scene"
-          className={isActive("scene")}
-          aria-labelledby="mission-heading"
-        >
-          <div className="pf-screen pf-paper">
-            <div className="pf-safe">
-              <div className="pf-scene-layout has-help">
-                <div className="pf-topbar">
-                  <button
-                    type="button"
-                    className="pf-back-btn"
-                    onClick={() => go("stage")}
-                    aria-label="ステージ選択へ戻る"
-                  >
-                    ←
-                  </button>
-                  <div>
-                    <h2
-                      id="mission-heading"
-                      ref={missionHeadingRef}
-                      className="pf-screen-title"
-                    />
-                    <p
-                      id="mission-sub"
-                      ref={missionSubRef}
-                      className="pf-screen-sub"
-                    />
-                  </div>
-                  <span className="pf-mini-btn">1/3</span>
-                </div>
-                <div
-                  id="mission-kicker"
-                  ref={missionKickerRef}
-                  className="pf-alert-label"
-                />
-                <p className="pf-mini-help">{STAGE_SCENE_PURPOSE[stage]}</p>
-                <div className="pf-scene-card">
-                  {sceneParagraphs.map((p, i) => (
-                    <p key={i} className={i === 0 ? "short" : undefined}>
-                      {p}
-                    </p>
-                  ))}
-                </div>
-                <h3 className="pf-prompt">次は、どう切り出す?</h3>
-                <button
-                  type="button"
-                  className="pf-big-btn"
-                  onClick={() => {
-                    renderChoices();
-                    go("choice");
-                  }}
-                >
-                  選択へ進む ▶
-                </button>
-              </div>
+              <h2 id="stage-heading" className="pf-sr-only">
+                ステージ選択
+              </h2>
+              <StageSelectionScreen
+                character={character}
+                clearedStages={clearedStages}
+                nextUnclearedStage={nextUnclearedStage}
+                onBack={() => go("type")}
+                onSelectStage={selectStage}
+              />
             </div>
           </div>
         </section>
@@ -1725,31 +1579,40 @@ export function PiecefulGame() {
                   <button
                     type="button"
                     className="pf-back-btn"
-                    onClick={() => go("scene")}
-                    aria-label="状況説明へ戻る"
+                    onClick={() => {
+                      setPendingPick(null);
+                      go("stage");
+                    }}
+                    aria-label="ステージ選択へ戻る"
                   >
                     ←
                   </button>
                   <div>
                     <h2 id="choice-heading" className="pf-screen-title">
-                      どう切り出す?
-                    </h2>
-                    <p className="pf-screen-sub">
                       {stages[stage]?.title ?? ""}
-                    </p>
+                    </h2>
                   </div>
-                  <span className="pf-mini-btn">2/3</span>
+                  <span className="pf-mini-btn">1/2</span>
                 </div>
-                <div className="pf-alert-label">💬 切り出しを選ぶ</div>
-                <p className="pf-mini-help">{STAGE_CHOICE_HINT[stage]}</p>
+                <div className="pf-alert-label">
+                  {stages[stage]?.kicker ?? ""}
+                </div>
+                <div className="pf-scene-recap">
+                  {sceneParagraphs.map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+                <h3 className="pf-prompt">
+                  <span className="pf-prompt-icon" aria-hidden>
+                    💬
+                  </span>
+                  どう切り出す？
+                </h3>
                 <div
                   id="choices"
                   ref={choicesRef}
                   className="pf-choice-grid"
                 />
-                <p className="pf-small-note">
-                  選択肢は必ず4件以内。1件は2行以内。
-                </p>
               </div>
             </div>
           </div>
@@ -1763,12 +1626,17 @@ export function PiecefulGame() {
         >
           <div className="pf-screen pf-paper">
             <div className="pf-safe">
-              <div className="pf-scene-layout choice-flow">
+              <div
+                className={`pf-scene-layout action-flow${priorChoiceOpen ? " is-expanded" : ""}`}
+              >
                 <div className="pf-topbar">
                   <button
                     type="button"
                     className="pf-back-btn"
-                    onClick={() => go("choice")}
+                    onClick={() => {
+                      setPendingPick(null);
+                      go("choice");
+                    }}
                     aria-label="切り出し選択へ戻る"
                   >
                     ←
@@ -1777,30 +1645,53 @@ export function PiecefulGame() {
                     <h2 id="action-heading" className="pf-screen-title">
                       どう振る舞う?
                     </h2>
-                    <p className="pf-screen-sub">
-                      選んだ切り出し：{lastChoiceRef.current ?? "—"}
-                    </p>
                   </div>
-                  <span className="pf-mini-btn">3/3</span>
+                  <span className="pf-mini-btn">2/2</span>
                 </div>
-                <div className="pf-selected-line">
-                  <span
-                    className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
-                  >
-                    {lastChoiceRef.current ?? "A"}
+                <div className="pf-prior-choice-wrap">
+                  <div className="pf-prior-choice-bar">
+                    <p className="pf-prior-choice-preview">
+                      {selectedChoiceText || "選択した言い方"}
+                    </p>
+                    <button
+                      type="button"
+                      className="pf-prior-choice-toggle"
+                      aria-expanded={priorChoiceOpen}
+                      aria-controls="prior-choice-panel"
+                      onClick={() => setPriorChoiceOpen((open) => !open)}
+                    >
+                      <span className="pf-prior-choice-toggle-icon" aria-hidden>
+                        {priorChoiceOpen ? "▲" : "▼"}
+                      </span>
+                      <span className="pf-sr-only">
+                        {priorChoiceOpen
+                          ? "選んだ切り出しを閉じる"
+                          : "選んだ切り出しを開く"}
+                      </span>
+                    </button>
+                  </div>
+                  {priorChoiceOpen ? (
+                    <div id="prior-choice-panel" className="pf-prior-choice-full">
+                      <span
+                        className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
+                      >
+                        {lastChoiceRef.current ?? "A"}
+                      </span>
+                      <p>{selectedChoiceText || "選択した言い方"}</p>
+                    </div>
+                  ) : null}
+                </div>
+                <h3 className="pf-prompt">
+                  <span className="pf-prompt-icon" aria-hidden>
+                    💬
                   </span>
-                  <span>{selectedChoiceText || "選択した言い方"}</span>
-                </div>
-                <h3 className="pf-prompt blue">行動を選ぼう</h3>
-                <p className="pf-mini-help">{STAGE_ACTION_HINT}</p>
+                  どう振る舞う？
+                </h3>
                 <div
                   id="actions"
                   ref={actionsRef}
                   className="pf-choice-grid"
                 />
-                <p className="pf-small-note">
-                  状況文は再表示しない。前画面の記憶で進める。
-                </p>
                 <div className="pf-hidden-feedback" aria-hidden>
                   <div ref={resultCardRef} />
                   <div ref={gradeRef} />
@@ -2009,7 +1900,45 @@ export function PiecefulGame() {
           </div>
         </section>
       </main>
+
+      {/* ── PICK CONFIRM MODAL ── */}
+      <div
+        className={`pf-confirm-backdrop${pendingPick ? " active" : ""}`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) cancelPendingPick();
+        }}
+      >
+        <div
+          className="pf-confirm-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pf-confirm-title"
+        >
+          <h2 id="pf-confirm-title" className="pf-confirm-title">
+            {pendingPick?.kind === "choice"
+              ? "この切り出しで決定しますか？"
+              : "この振る舞いで決定しますか？"}
+          </h2>
+          <p className="pf-confirm-preview">{pendingPick?.label ?? ""}</p>
+          <div className="pf-confirm-actions">
+            <button
+              type="button"
+              className="pf-confirm-btn cancel"
+              onClick={cancelPendingPick}
+            >
+              取り消し
+            </button>
+            <button
+              type="button"
+              className="pf-confirm-btn confirm"
+              onClick={confirmPendingPick}
+            >
+              決定
+            </button>
+          </div>
+        </div>
       </div>
+
       {/* ── GUIDE MODAL ── */}
       <div
         id="guide-modal"
@@ -2056,6 +1985,7 @@ export function PiecefulGame() {
       <div id="toast" ref={toastElRef} className="toast" />
       {/* ── CONFETTI ── */}
       <div id="confetti" ref={confettiRef} className="confetti" aria-hidden="true" />
+      </div>
     </>
   );
 }

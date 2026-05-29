@@ -76,7 +76,6 @@ export default async function GameFlowEmbedPage({ params }: Props) {
       embed
       previewScreen={preview.screen}
       previewClearedStages={preview.clearedStages}
-      previewHasSave={slug === "title"}
     />
   );
 }

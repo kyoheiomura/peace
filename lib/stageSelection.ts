@@ -20,8 +20,16 @@ export const STAGE_LABELS: Record<StageId, string> = {
 
 export const STAGE_BOSSES: Record<StageId, string> = {
   1: "先輩・上司",
-  2: "同僚",
+  2: "同期",
   3: "後輩",
   4: "クライアント",
   5: "他部署",
+};
+
+export const STAGE_DESCRIPTIONS: Record<StageId, string> = {
+  1: "上司や先輩とのやり取りを通して、信頼関係を築くコミュニケーションを学ぼう！",
+  2: "同僚との協力を通して、円滑なコミュニケーションを学ぼう！",
+  3: "後輩との関わりを通して、指導とサポートのコミュニケーションを学ぼう！",
+  4: "クライアントとの対応を通して、丁寧で的確なコミュニケーションを学ぼう！",
+  5: "他部署との連携を通して、社内調整のコミュニケーションを学ぼう！",
 };

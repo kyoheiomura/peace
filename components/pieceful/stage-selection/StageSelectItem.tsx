@@ -1,7 +1,13 @@
 import type { StageId } from "@/lib/stageSelection";
-import { Boss } from "./Boss";
-import { Piece } from "./Piece";
-import { Stage } from "./Stage";
+import { STAGE_LABELS, STAGE_BOSSES, STAGE_PIECE_IMAGES } from "@/lib/stageSelection";
+
+const STAGE_COLORS: Record<StageId, string> = {
+  1: "rgb(255, 0, 127)",
+  2: "rgb(138, 43, 226)",
+  3: "rgb(255, 140, 0)",
+  4: "rgb(50, 205, 50)",
+  5: "rgb(0, 191, 255)",
+};
 
 type StageSelectItemProps = {
   stageId: StageId;
@@ -20,7 +26,7 @@ export function StageSelectItem({
     <button
       type="button"
       className={[
-        "pf-ss-item",
+        "pf-ss-item-stitch",
         cleared ? "cleared" : "",
         next ? "next" : "",
       ]
@@ -28,16 +34,16 @@ export function StageSelectItem({
         .join(" ")}
       onClick={() => onSelect(stageId)}
     >
-      <span className="pf-ss-item-shell">
-        <Piece stageId={stageId} />
-        <span className="pf-ss-item-info">
-          <span className="pf-ss-item-info-frame">
-            <Stage stageId={stageId} />
-            <Boss stageId={stageId} />
-          </span>
+      <div className="pf-ss-item-piece">
+        <img src={STAGE_PIECE_IMAGES[stageId]} alt="" draggable={false} />
+      </div>
+      <div className="pf-ss-item-text">
+        <span className="pf-ss-item-label">{STAGE_LABELS[stageId]}</span>
+        <span className="pf-ss-item-boss" style={{ color: STAGE_COLORS[stageId] }}>
+          {STAGE_BOSSES[stageId]}
         </span>
-      </span>
-      {cleared ? <span className="pf-ss-cleared-mark" aria-hidden>✓</span> : null}
+      </div>
+      {cleared ? <span className="pf-ss-cleared-mark-stitch" aria-hidden>✓</span> : null}
     </button>
   );
 }

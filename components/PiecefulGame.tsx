@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { charPickerScrollSubcopy } from "../lib/charPickerConfig";
-import { charImages, charNick, type CharacterType } from "../lib/characters";
+import { characters, charImages, charNick, charGroup, type CharacterType } from "../lib/characters";
 import { mbtiScenarios } from "../lib/mbtiScenarios";
 import { OnboardingScreens } from "./pieceful/OnboardingScreens";
 import { CharPicker2x8Scroll } from "./pieceful/CharPicker2x8Scroll";
@@ -51,7 +51,7 @@ const stages: Record<
   }
 > = {
   1: {
-    title: "ステージ1：先輩・上司",
+    title: "ステージ1:先輩・上司",
     sub: "遅延報告ミッション",
     kicker: "⚠️ 納期遅延 / 早期相談",
     npc: "田中部長",
@@ -66,7 +66,7 @@ const stages: Record<
         score: 25,
         grade: "S",
         title: "最高の切り出し",
-        text: "「納期に影響する遅延が判明しました。現状・影響・対応案を3分で共有して、判断をいただきたいです。」",
+        text: "「部長、今お時間よろしいでしょうか。〇〇プロジェクトについて、ご報告とご相談がございます。」",
         message:
           "事実、影響、相談事項が先に見えるので、責任者が判断しやすい伝え方です。",
         quote: "「いいね。まず全体影響から確認しよう。」",
@@ -77,7 +77,7 @@ const stages: Record<
         score: -10,
         grade: "C",
         title: "勢いはあるが危険",
-        text: "「ちょっと大変なことになりました！でも多分なんとかなると思います！」",
+        text: "「部長！〇〇プロジェクト、協力会社が遅れてます。俺、もう別の業者に当たってます！」",
         message:
           "緊急感は伝わりますが、根拠と判断材料が不足しています。上司の不安を増やしやすい切り出しです。",
         quote: "「多分では判断できない。事実を整理して。」",
@@ -88,10 +88,21 @@ const stages: Record<
         score: 5,
         grade: "B",
         title: "相談姿勢は良い",
-        text: "「協力会社の納品が遅れそうです。どうすればいいでしょうか……？」",
+        text: "「部長…お忙しいところ申し訳ないんですが…〇〇の件で、ちょっとご相談が…」",
         message:
           "相談はできていますが、丸投げに見えやすいです。最低限の状況整理と案を添えると信頼が上がります。",
-        quote: "「状況は分かった。あなたの案は？」",
+        quote: "「状況は分かった。あなたの案は?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -8,
+        grade: "C",
+        title: "軽すぎる報告",
+        text: "「部長、〇〇プロジェクトですけど、納期厳しいっすね。どうします？」",
+        message:
+          "事実は伝わりますが、判断を丸投げしており責任感が感じられません。報告には自分の見解を添えましょう。",
+        quote: "「どうするじゃなくて、お前はどう思ってるんだ?」",
       },
     ],
     actions: [
@@ -122,7 +133,7 @@ const stages: Record<
     ],
     lessons: [
       [
-        "なぜ正解なのか？",
+        "なぜ正解なのか?",
         "上司が知りたいのは「何が起きたか」「どれくらい危ないか」「何を決めればいいか」です。感情より判断材料を先に出すと信頼されます。",
       ],
       [
@@ -140,7 +151,7 @@ const stages: Record<
     ],
   },
   2: {
-    title: "ステージ2：同僚",
+    title: "ステージ2:同期",
     sub: "協力依頼ミッション",
     kicker: "🤝 巻き込み / 役割分担",
     npc: "佐藤さん",
@@ -155,7 +166,7 @@ const stages: Record<
         score: 22,
         grade: "S",
         title: "協力しやすい依頼",
-        text: "「10分だけレビューをお願いできますか？見てほしいのは数字の整合性だけです。今日16時までだと助かります。」",
+        text: "「10分だけレビューをお願いできますか?見てほしいのは数字の整合性だけです。今日16時までだと助かります。」",
         message:
           "所要時間・範囲・期限が明確なので、相手が引き受けやすい依頼です。",
         quote: "「それなら見られるよ。数字だけ確認するね。」",
@@ -166,10 +177,10 @@ const stages: Record<
         score: -8,
         grade: "C",
         title: "重く見える依頼",
-        text: "「この資料、全体的に良い感じに見てもらえますか？」",
+        text: "「この資料、全体的に良い感じに見てもらえますか?」",
         message:
           "範囲が曖昧で、相手の負担が読めません。忙しい相手ほど断りたくなります。",
-        quote: "「全体的にって、どこまで見ればいい？」",
+        quote: "「全体的にって、どこまで見ればいい?」",
       },
       {
         id: "C",
@@ -177,10 +188,21 @@ const stages: Record<
         score: 6,
         grade: "B",
         title: "気遣いはある",
-        text: "「忙しいところすみません。もし無理なら大丈夫なんですが、少しだけ見てもらえませんか？」",
+        text: "「忙しいところすみません。もし無理なら大丈夫なんですが、少しだけ見てもらえませんか?」",
         message:
           "丁寧ですが、何をどれくらい見ればいいかが不足しています。",
-        quote: "「少しって何分くらい？」",
+        quote: "「少しって何分くらい?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -6,
+        grade: "C",
+        title: "押しが強すぎる",
+        text: "「これ、今日中にお願いできます?他にも手が回らなくて。明日の朝イチで必要で…」",
+        message:
+          "期限は明確ですが、相手の状況を無視した依頼は反感を買いやすいです。",
+        quote: "「こっちも締め切りがあるんだけど…」",
       },
     ],
     actions: [
@@ -207,6 +229,14 @@ const stages: Record<
         feedback:
           "悪くはありませんが、依頼内容が残る形にすると認識ズレを防げます。",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -4,
+        text: "チーム全員に一斉にチャットで依頼を流す。",
+        feedback:
+          "全員に振ると誰もやらない現象が起きやすいです。指名して依頼しましょう。",
+      },
     ],
     lessons: [
       [
@@ -228,7 +258,7 @@ const stages: Record<
     ],
   },
   3: {
-    title: "ステージ3：後輩",
+    title: "ステージ3:後輩",
     sub: "フィードバックミッション",
     kicker: "🌱 育成 / 伝え方",
     npc: "山本さん",
@@ -246,7 +276,7 @@ const stages: Record<
         text: "「調査量はすごく良いです。さらに伝わる資料にするために、最初に結論を1行足してみよう。」",
         message:
           "良い点を認めてから、次の改善点を具体化できています。",
-        quote: "「ありがとうございます。結論から直してみます！」",
+        quote: "「ありがとうございます。結論から直してみます!」",
       },
       {
         id: "B",
@@ -257,7 +287,7 @@ const stages: Record<
         text: "「これだと何が言いたいのか分からない。最初からやり直して。」",
         message:
           "問題点は伝わりますが、改善方向が見えず、相手の意欲を下げやすいです。",
-        quote: "「すみません……どこから直せばいいですか？」",
+        quote: "「すみません......どこから直せばいいですか?」",
       },
       {
         id: "C",
@@ -268,7 +298,18 @@ const stages: Record<
         text: "「全体的にはいいと思うよ。もう少し分かりやすくしてみて。」",
         message:
           "優しさはありますが、何を直せばいいかが曖昧です。",
-        quote: "「分かりやすく……どのあたりでしょう？」",
+        quote: "「分かりやすく......どのあたりでしょう?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -10,
+        grade: "C",
+        title: "放置に近い",
+        text: "「あー、うん。まあこんなもんかな。出しといて。」",
+        message:
+          "確認していない印象を与え、後輩の成長機会を奪います。忙しくても最低限の指摘を。",
+        quote: "「見てくれたんですか…?」",
       },
     ],
     actions: [
@@ -295,6 +336,14 @@ const stages: Record<
         feedback:
           "情報量が多すぎると優先順位が分からなくなります。まず1〜2点に絞りましょう。",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -5,
+        text: "「あとでちゃんと見るね」と言ったまま、結局見ない。",
+        feedback:
+          "放置は信頼低下の原因です。時間が取れないならその旨を伝えましょう。",
+      },
     ],
     lessons: [
       [
@@ -316,14 +365,14 @@ const stages: Record<
     ],
   },
   4: {
-    title: "ステージ4：クライアント",
+    title: "ステージ4:クライアント",
     sub: "期待調整ミッション",
     kicker: "🧑‍💼 提案 / 合意形成",
     npc: "鈴木様",
     npcTag: "慎重派・顧客",
     npcImg: "/img/5.png",
     scenario:
-      "クライアントから「来週までに追加機能も入れられますよね？」と相談された。実装は可能だが、品質確認の時間が足りなくなるリスクがある。関係を壊さず期待調整したい。",
+      "クライアントから「来週までに追加機能も入れられますよね?」と相談された。実装は可能だが、品質確認の時間が足りなくなるリスクがある。関係を壊さず期待調整したい。",
     choices: [
       {
         id: "A",
@@ -342,7 +391,7 @@ const stages: Record<
         score: -10,
         grade: "C",
         title: "安請け合い",
-        text: "「はい、大丈夫だと思います！なんとかします！」",
+        text: "「はい、大丈夫だと思います!なんとかします!」",
         message:
           "一時的には安心されますが、後から品質・納期トラブルになりやすいです。",
         quote: "「ではそれでお願いします。」",
@@ -356,7 +405,18 @@ const stages: Record<
         text: "「それは無理です。今から追加はできません。」",
         message:
           "境界線は引けていますが、代替案がなく関係性が硬くなりやすいです。",
-        quote: "「そうですか……他に方法はないですか？」",
+        quote: "「そうですか......他に方法はないですか?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -12,
+        grade: "C",
+        title: "過剰な約束",
+        text: "「もちろんです！追加機能も全部入れますよ！安心してください！」",
+        message:
+          "その場は喜ばれますが、品質も納期も守れなくなる危険が高いです。",
+        quote: "「じゃあお願いします！期待してます！」",
       },
     ],
     actions: [
@@ -383,6 +443,14 @@ const stages: Record<
         feedback:
           "保留は有効ですが、いつ何を回答するかを明確にすると安心されます。",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -6,
+        text: "とりあえず「はい」と答えて、後から「やっぱり無理でした」と伝える。",
+        feedback:
+          "後出しの変更は信頼を大きく損ないます。最初に無理なものは無理と伝えましょう。",
+      },
     ],
     lessons: [
       [
@@ -404,7 +472,7 @@ const stages: Record<
     ],
   },
   5: {
-    title: "ステージ5：他部署",
+    title: "ステージ5:他部署",
     sub: "巻き込みミッション",
     kicker: "🌀 部署間連携 / 合意形成",
     npc: "高橋さん",
@@ -419,7 +487,7 @@ const stages: Record<
         score: 23,
         grade: "S",
         title: "相手目線の巻き込み",
-        text: "「この施策で御部署の問い合わせ対応が減る可能性があります。まず負担が少ない形で10分だけ相談できますか？」",
+        text: "「この施策で御部署の問い合わせ対応が減る可能性があります。まず負担が少ない形で10分だけ相談できますか?」",
         message:
           "相手部署のメリットと負担の小ささを先に伝えられています。",
         quote: "「問い合わせが減るなら、一度聞きたいです。」",
@@ -446,6 +514,17 @@ const stages: Record<
           "丁寧ですが、なぜ協力する価値があるのかが不足しています。",
         quote: "「内容次第ですね。」",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -9,
+        grade: "C",
+        title: "上から目線",
+        text: "「全社のプロジェクトなんで、協力は当然ですよね。よろしくお願いします。」",
+        message:
+          "強制感が強く、相手の協力意欲を下げます。「当然」は禁句です。",
+        quote: "「当然って…こちらにも予定があるんですが。」",
+      },
     ],
     actions: [
       {
@@ -471,6 +550,14 @@ const stages: Record<
         text: "まず雑談で関係を作ってから、後日あらためて相談する。",
         feedback:
           "関係づくりは良いですが、目的とメリットの説明もセットにしましょう。",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -7,
+        text: "会議の場で他部署の出席者に突然振って、その場で決めようとする。",
+        feedback:
+          "不意打ちは相手の防衛本能を刺激します。事前の個別相談が基本です。",
       },
     ],
     lessons: [
@@ -518,8 +605,6 @@ export type PiecefulGameProps = {
   /** 導線マップ用: 固定画面を表示 */
   previewScreen?: PiecefulPreviewScreen;
   previewClearedStages?: number[];
-  /** title プレビューで「続きから」を見せる */
-  previewHasSave?: boolean;
 };
 
 function hasCompletedOnboarding(): boolean {
@@ -543,7 +628,7 @@ const DETAIL_BADGES = ["話の目的を先に示す", "タイプ別の注意点"
 
 function splitScenarioParagraphs(text: string): string[] {
   const parts = text
-    .split(/(?<=[。！？])/)
+    .split(/(?<=[。!?])/)
     .map((s) => s.trim())
     .filter(Boolean);
   if (parts.length <= 3) return parts;
@@ -645,7 +730,7 @@ const RESULT_LESSON_TITLES = [
 function ResultCtaBlock({ className }: { className?: string }) {
   return (
     <div className={["pf-result-cta", className].filter(Boolean).join(" ")}>
-      <p className="pf-result-cta-kicker">＼あなたの強みを活かす！／</p>
+      <p className="pf-result-cta-kicker">\あなたの強みを活かす!/</p>
       <button type="button" className="pf-yellow-pill pf-result-cta-btn">
         詳しい解説と実践のコツを見る
       </button>
@@ -740,7 +825,6 @@ export function PiecefulGame({
   embed = false,
   previewScreen,
   previewClearedStages,
-  previewHasSave = false,
 }: PiecefulGameProps = {}) {
   const isPreview = Boolean(previewScreen);
 
@@ -757,8 +841,8 @@ export function PiecefulGame({
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [pendingChar, setPendingChar] = useState<CharacterType | null>(null);
   const [clearedStages, setClearedStages] = useState<Set<number>>(new Set());
-  const [hasSave, setHasSave] = useState(false);
   const [detailIndex, setDetailIndex] = useState(0);
   const [sceneParagraphs, setSceneParagraphs] = useState<string[]>([]);
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
@@ -1018,7 +1102,7 @@ export function PiecefulGame({
       setCharacter(type);
       characterRef.current = type;
       if (!options?.fromPicker) {
-        toast(`${type}：${charNick[type]} を選択！`);
+        toast(`${type}:${charNick[type]} を選択!`);
       }
       syncHud();
       if (!options?.fromPicker) {
@@ -1133,7 +1217,7 @@ export function PiecefulGame({
         gradeRef.current.textContent = answer.isCsv ? (isCorrect ? "S" : "C") : answer.grade;
       if (feedbackHeadingRef.current)
         feedbackHeadingRef.current.textContent = answer.isCsv
-          ? (isCorrect ? "素晴らしい選択！" : "もう少し工夫できるかも")
+          ? (isCorrect ? "素晴らしい選択!" : "もう少し工夫できるかも")
           : answer.title;
       if (feedbackMessageRef.current)
         feedbackMessageRef.current.textContent = answer.isCsv
@@ -1146,8 +1230,8 @@ export function PiecefulGame({
       if (coachBubbleRef.current) {
         coachBubbleRef.current.textContent =
           isCorrect
-            ? "いい選択！相手が判断しやすい順番で伝えられています。"
-            : "惜しい！相手の不安や負担が増えるポイントを減らそう。";
+            ? "いい選択!相手が判断しやすい順番で伝えられています。"
+            : "惜しい!相手の不安や負担が増えるポイントを減らそう。";
       }
       renderActions();
       syncHud();
@@ -1353,7 +1437,6 @@ export function PiecefulGame({
     } catch {
       /* ignore */
     }
-    setHasSave(false);
     setStage(1);
     setTrust(35);
     setScore(0);
@@ -1375,7 +1458,7 @@ export function PiecefulGame({
 
   const resetGameWithConfirm = useCallback(() => {
     const ok = window.confirm(
-      "スコア・コンボ・信頼度・クリア状況を消して、最初からやり直しますか？"
+      "スコア・コンボ・信頼度・クリア状況を消して、最初からやり直しますか?"
     );
     if (!ok) return;
     resetGame();
@@ -1383,7 +1466,7 @@ export function PiecefulGame({
 
   const discardSaveAndNew = useCallback(() => {
     const ok = window.confirm(
-      "保存された進捗を消して、新しく始めますか？"
+      "保存された進捗を消して、新しく始めますか?"
     );
     if (!ok) return;
     resetGame({ screen: "title" });
@@ -1536,10 +1619,6 @@ export function PiecefulGame({
       clearedRef.current = cleared;
     }
 
-    if (previewScreen === "title" && previewHasSave) {
-      setHasSave(true);
-    }
-
     if (previewScreen === "clear") {
       const all = new Set(ALL_STAGE_IDS);
       setClearedStages(all);
@@ -1589,7 +1668,6 @@ export function PiecefulGame({
   }, [
     previewScreen,
     previewClearedStages,
-    previewHasSave,
     loadStageContent,
     renderResult,
     syncHud,
@@ -1629,7 +1707,6 @@ export function PiecefulGame({
         updatedAt: new Date().toISOString(),
       };
       localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-      setHasSave(true);
     } catch {
       /* ignore */
     }
@@ -1653,7 +1730,7 @@ export function PiecefulGame({
       const raw = localStorage.getItem(PROGRESS_KEY);
       if (raw) {
         const data = JSON.parse(raw) as PiecefulProgressV1;
-        if (data?.version === 1 && data.selectedType) setHasSave(true);
+        if (data?.version === 1 && data.selectedType) { /* save data exists */ }
       }
     } catch {
       /* ignore */
@@ -1692,7 +1769,7 @@ export function PiecefulGame({
 
   const shareText = useMemo(
     () =>
-      `Piecefulをクリア！\nMBTI: ${character}（${charNick[character]}）\nScore: ${score}\nMaxCombo: ${maxCombo}\nTrust: ${trust}%`,
+      `Piecefulをクリア!\nMBTI: ${character}(${charNick[character]})\nScore: ${score}\nMaxCombo: ${maxCombo}\nTrust: ${trust}%`,
     [character, score, maxCombo, trust]
   );
 
@@ -1701,7 +1778,7 @@ export function PiecefulGame({
       await navigator.clipboard.writeText(shareText);
       toast("結果をコピーしました");
     } catch {
-      toast("コピーできませんでした（ブラウザの許可を確認してください）");
+      toast("コピーできませんでした(ブラウザの許可を確認してください)");
     }
   }, [shareText, toast]);
 
@@ -1723,14 +1800,20 @@ export function PiecefulGame({
           aria-labelledby="title-heading"
         >
           <div className="pf-screen pf-paper is-title">
+            <div className="pf-window-header">
+              <div className="pf-window-buttons">
+                <span className="pf-win-btn pf-win-close">×</span>
+                <span className="pf-win-btn pf-win-minimize">-</span>
+                <span className="pf-win-btn pf-win-maximize">▢</span>
+              </div>
+            </div>
             <div className="pf-safe">
               <div className="pf-home-layout">
                 <div className="pf-red-banner">
                   <p className="pf-red-banner-text">
-                    <span className="pf-piece-icon" aria-hidden />
-                    個性を活かした伝え方で
+                    🧩 個性を活かしたコミュニケーションで
                     <br />
-                    仕事をもっと快適に!
+                    職場をもっと快適に!
                   </p>
                 </div>
                 <div>
@@ -1740,31 +1823,20 @@ export function PiecefulGame({
                   <p className="pf-home-subtitle">- ピースフル -</p>
                 </div>
                 <div className="pf-home-actions">
-                  {hasSave && (
-                    <button
-                      type="button"
-                      className="pf-big-btn"
-                      onClick={restoreProgress}
-                    >
-                      続きから ▶
-                    </button>
-                  )}
                   <button
                     type="button"
-                    className="pf-big-btn"
-                    onClick={handlePrimaryStart}
+                    className="pf-big-btn yellow"
+                    onClick={handleQuickStart}
                   >
-                    {onboardingDone ? "ゲーム開始 ▶" : "30秒でわかる ▶"}
+                    ゲーム開始 ▶
                   </button>
-                  {!onboardingDone && (
-                    <button
-                      type="button"
-                      className="pf-big-btn pink"
-                      onClick={handleQuickStart}
-                    >
-                      すぐゲーム開始
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="pf-big-btn pink"
+                    onClick={openGuide}
+                  >
+                    遊び方を見る 📖
+                  </button>
                 </div>
                 <div className="pf-character-callout">
                   <img
@@ -1772,28 +1844,16 @@ export function PiecefulGame({
                     src={charImages[character]}
                     alt=""
                   />
-                  <div className="pf-speech">
-                    {onboardingDone ? (
-                      <>
-                        タイプを選んで
-                        <br />
-                        ステージに挑戦!
-                      </>
-                    ) : (
-                      <>
-                        まずは3画面で
-                        <br />
-                        遊び方を確認。
-                        <br />
-                        そのあと練習!
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="pf-pager" aria-hidden>
-                  <span className="on" />
-                  <span />
-                  <span />
+                  <img
+                    className="pf-callout-flag"
+                    src="/img/flag.png"
+                    alt=""
+                  />
+                  <img
+                    className="pf-callout-cloud"
+                    src="/img/cloud.png"
+                    alt=""
+                  />
                 </div>
               </div>
             </div>
@@ -1813,47 +1873,41 @@ export function PiecefulGame({
           className={isActive("type")}
           aria-labelledby="type-heading"
         >
-          <div className="pf-screen pf-paper">
+          <div className="pf-screen pf-type-screen-bg">
             <div className="pf-safe">
-              <div className="pf-type-layout pf-type-layout--picker-2x8">
-                <div className="pf-topbar">
-                  <button
-                    type="button"
-                    className="pf-back-btn"
-                    onClick={() => go("title")}
-                    aria-label="タイトルへ戻る"
-                  >
-                    ←
-                  </button>
-                  <div>
-                    <h2 id="type-heading" className="pf-screen-title">
-                      キャラを選ぼう!
-                    </h2>
-                    <p className="pf-screen-sub">{charPickerScrollSubcopy()}</p>
-                  </div>
-                  <span className="pf-mini-btn">ALL</span>
-                </div>
-                <div className="pf-selected-type pf-selected-type--hero">
-                  <img src={charImages[character]} alt="" />
-                  <div>
-                    <h3>{character}</h3>
-                    <p className="pf-selected-type-nick">{charNick[character]}</p>
-                    <p className="pf-selected-type-note">
-                      選ぶとステージ内容が少し変わります。迷ったらESTPで開始。
-                    </p>
-                  </div>
-                </div>
-                <CharPicker2x8Scroll
-                  selected={character as CharacterType}
-                  onSelect={(type) => selectCharacter(type, { fromPicker: true })}
-                />
+              <div className="pf-type-layout-stitch">
                 <button
                   type="button"
-                  className="pf-big-btn"
-                  onClick={() => go("stage")}
+                  className="pf-type-back-btn"
+                  onClick={() => go("title")}
+                  aria-label="タイトルへ戻る"
                 >
-                  このタイプで開始 ▶
+                  ←
                 </button>
+                <div className="pf-type-heading">
+                  <h2 id="type-heading" className="pf-type-heading-title">
+                    あなたのキャラクターを選ぼう！
+                  </h2>
+                  <p className="pf-type-heading-sub">
+                    タイプによって学習内容が変わるよ！
+                  </p>
+                </div>
+                <div className="pf-type-grid-2col">
+                  {characters.map(([type, nick, , cls]) => (
+                    <button
+                      key={type}
+                      type="button"
+                      className={`pf-type-tile ${cls.replace("group-", "")} ${
+                        character === type ? "selected" : ""
+                      }`}
+                      aria-pressed={character === type}
+                      aria-label={`${type} ${nick}`}
+                      onClick={() => setPendingChar(type as CharacterType)}
+                    >
+                      <img src={charImages[type as CharacterType]} alt={type} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1865,13 +1919,14 @@ export function PiecefulGame({
           className={isActive("stage")}
           aria-labelledby="stage-heading"
         >
-          <div className="pf-screen pf-stage-bg">
+          <div className="pf-screen pf-stage-screen-bg">
             <div className="pf-safe">
               <h2 id="stage-heading" className="pf-sr-only">
                 ステージ選択
               </h2>
               <StageSelectionScreen
                 character={character}
+                group={charGroup[character as CharacterType] ?? "analyst"}
                 clearedStages={clearedStages}
                 nextUnclearedStage={nextUnclearedStage}
                 onBack={() => go("type")}
@@ -1921,12 +1976,12 @@ export function PiecefulGame({
                   <span className="pf-prompt-icon" aria-hidden>
                     💬
                   </span>
-                  どう切り出す？
+                  どう切り出す?
                 </h3>
                 <div
                   id="choices"
                   ref={choicesRef}
-                  className="pf-choice-grid"
+                  className="pf-choice-grid pf-choice-grid-stitch"
                 />
               </div>
             </div>
@@ -2027,7 +2082,7 @@ export function PiecefulGame({
                 <section
                   ref={kiridashiRef}
                   className="pf-action-kiridashi"
-                  aria-label="前の回答：どう切り出す"
+                  aria-label="前の回答:どう切り出す"
                 >
                   <p className="pf-action-kiridashi-kicker">
                     <span className="pf-prompt-icon" aria-hidden>
@@ -2051,7 +2106,7 @@ export function PiecefulGame({
                   <span className="pf-prompt-icon" aria-hidden>
                     💬
                   </span>
-                  どう振る舞う？
+                  どう振る舞う?
                 </h3>
                 <div
                   id="actions"
@@ -2230,7 +2285,7 @@ export function PiecefulGame({
                   <div>
                     <dt>MBTI</dt>
                     <dd>
-                      {character}（{charNick[character]}）
+                      {character}({charNick[character]})
                     </dd>
                   </div>
                   <div>
@@ -2278,6 +2333,48 @@ export function PiecefulGame({
             </div>
           </div>
         </section>
+      {/* ── CHARACTER CONFIRM MODAL ── */}
+      <div
+        className={`char-confirm-backdrop${pendingChar ? " active" : ""}`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setPendingChar(null);
+        }}
+      >
+        <div
+          className="char-confirm-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${pendingChar ?? ""}で決定しますか？`}
+        >
+          <div className="char-confirm-name">
+            {pendingChar}
+          </div>
+          <div className="char-confirm-img">
+            {pendingChar && <img src={charImages[pendingChar]} alt={pendingChar} />}
+          </div>
+          <div className="char-confirm-btns">
+            <button
+              type="button"
+              className="char-confirm-btn char-confirm-btn--back"
+              onClick={() => setPendingChar(null)}
+            >
+              戻る
+            </button>
+            <button
+              type="button"
+              className="char-confirm-btn char-confirm-btn--ok"
+              onClick={() => {
+                if (!pendingChar) return;
+                selectCharacter(pendingChar, { fromPicker: true });
+                setPendingChar(null);
+                setTimeout(() => go("stage"), 200);
+              }}
+            >
+              決定
+            </button>
+          </div>
+        </div>
+      </div>
       </main>
   );
 
@@ -2300,8 +2397,8 @@ export function PiecefulGame({
         >
           <h2 id="pf-confirm-title" className="pf-confirm-title">
             {pendingPick?.kind === "choice"
-              ? "この切り出しで決定しますか？"
-              : "この振る舞いで決定しますか？"}
+              ? "この切り出しで決定しますか?"
+              : "この振る舞いで決定しますか?"}
           </h2>
           <div className="pf-confirm-preview">
             {pendingPick ? (
@@ -2338,42 +2435,55 @@ export function PiecefulGame({
       {/* ── GUIDE MODAL ── */}
       <div
         id="guide-modal"
-        className={`modal-backdrop${guideOpen ? " active" : ""}`}
+        className={`guide-backdrop${guideOpen ? " active" : ""}`}
         onClick={(e) => closeGuide(e)}
       >
         <div
-          className="modal"
+          className="guide-modal"
           role="dialog"
           aria-modal="true"
           aria-labelledby="guide-title"
         >
-          <h2 id="guide-title">📖 Pieceful 攻略ガイド</h2>
-          <p>
-            このゲームは「正論を言う」よりも、「相手のタイプに合わせて、受け取りやすい順番で伝える」ことが大切です。
+          <h2 id="guide-title" className="guide-title">★遊び方★</h2>
+          <p className="guide-desc">
+            あなたのMBTIタイプに合わせた問題に挑戦。
+            <br />
+            シチュエーションごとに
+            <br />
+            「どう話すか」と「どう振る舞うか」を選び、
+            <br />
+            タイプ別の解説を確認しよう！
           </p>
-          <ul>
-            <li>
-              <strong>論理派</strong>
-              には、結論・根拠・選択肢を短く。
-            </li>
-            <li>
-              <strong>共感派</strong>
-              には、背景・気持ち・協力の姿勢を先に。
-            </li>
-            <li>
-              <strong>実行派</strong>
-              には、今やること・期限・担当を明確に。
-            </li>
-            <li>
-              <strong>慎重派</strong>
-              には、リスク・代替案・確認ポイントを添える。
-            </li>
-          </ul>
-          <div className="actions">
-            <button className="btn primary" type="button" onClick={() => closeGuide()} aria-label="ガイドを閉じる">
-              閉じる
-            </button>
+          <div className="guide-steps">
+            <div className="guide-step">
+              <span className="guide-step-num">①</span>
+              <span>🧩 タイプを選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">②</span>
+              <span>🎯 ステージを選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">③</span>
+              <span>💬 会話を選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">④</span>
+              <span>👀 行動を選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">⑤</span>
+              <span>✨ タイプ別解説を確認</span>
+            </div>
           </div>
+          <button
+            type="button"
+            className="guide-btn"
+            onClick={() => closeGuide()}
+            aria-label="ガイドを閉じる"
+          >
+            戻る
+          </button>
         </div>
       </div>
 

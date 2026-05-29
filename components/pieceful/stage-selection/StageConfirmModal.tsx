@@ -1,9 +1,15 @@
 "use client";
 
 import type { StageId } from "@/lib/stageSelection";
-import { Boss } from "./Boss";
-import { Piece } from "./Piece";
-import { Stage } from "./Stage";
+import { STAGE_LABELS, STAGE_BOSSES, STAGE_PIECE_IMAGES, STAGE_DESCRIPTIONS } from "@/lib/stageSelection";
+
+const STAGE_COLORS: Record<StageId, string> = {
+  1: "#FF007A",
+  2: "#8A2BE2",
+  3: "#FF8C00",
+  4: "#32CD32",
+  5: "#00BFFF",
+};
 
 type StageConfirmModalProps = {
   stageId: StageId | null;
@@ -20,38 +26,42 @@ export function StageConfirmModal({
 
   return (
     <div
-      className="pf-confirm-backdrop active pf-ss-confirm-backdrop"
+      className="sc-confirm-backdrop active"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
     >
       <div
-        className="pf-confirm-modal pf-ss-confirm-modal"
+        className="sc-confirm-modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="pf-ss-confirm-title"
+        aria-label={`${STAGE_LABELS[stageId]} ${STAGE_BOSSES[stageId]}を開始しますか？`}
       >
-        <h2 id="pf-ss-confirm-title" className="pf-confirm-title">
-          このステージで始めますか？
-        </h2>
-        <div className="pf-ss-confirm-preview">
-          <Piece stageId={stageId} />
-          <span className="pf-ss-confirm-labels">
-            <Stage stageId={stageId} />
-            <Boss stageId={stageId} />
-          </span>
+        <div className="sc-confirm-header">
+          <div className="sc-confirm-piece">
+            <img src={STAGE_PIECE_IMAGES[stageId]} alt="" draggable={false} />
+          </div>
+          <div className="sc-confirm-titles">
+            <span className="sc-confirm-stage">{STAGE_LABELS[stageId]}</span>
+            <span className="sc-confirm-boss" style={{ color: STAGE_COLORS[stageId] }}>
+              {STAGE_BOSSES[stageId]}
+            </span>
+          </div>
         </div>
-        <div className="pf-confirm-actions">
+        <p className="sc-confirm-body">
+          {STAGE_DESCRIPTIONS[stageId]}
+        </p>
+        <div className="sc-confirm-btns">
           <button
             type="button"
-            className="pf-confirm-btn cancel"
+            className="sc-confirm-btn sc-confirm-btn--cancel"
             onClick={onCancel}
           >
-            やめる
+            戻る
           </button>
           <button
             type="button"
-            className="pf-confirm-btn confirm"
+            className="sc-confirm-btn sc-confirm-btn--ok"
             onClick={onConfirm}
           >
             決定

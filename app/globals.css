@@ -3946,6 +3946,106 @@ body:has(.game-body)::before {
   line-height: 1.6;
 }
 
+/* ── SCENE SCREEN ── */
+.game-body .pf-scene-bg {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+}
+.game-body .pf-scene-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+.game-body .pf-scene-npc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.game-body .pf-scene-npc-avatar {
+  width: 80px; height: 80px;
+  image-rendering: pixelated;
+  border: 3px solid #000;
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.6);
+  background: rgba(255,255,255,0.9);
+}
+.game-body .pf-scene-npc-name {
+  font-size: 16px; font-weight: 900;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+.game-body .pf-scene-title-light {
+  color: #fff9df;
+}
+.game-body .pf-scene-next {
+  justify-self: center;
+  width: 60%; min-height: 48px; font-size: 18px;
+}
+.game-body .pf-scene-overlay .pf-mini-btn { color: #fff9df; }
+
+/* ── CHOICE SCENARIO SUMMARY ── */
+.game-body .pf-choice-scenario-summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.game-body .pf-choice-scenario-summary-text {
+  font-size: 13px; line-height: 1.45; font-weight: 900;
+}
+.game-body .pf-choice-scenario-toggle-icon {
+  font-size: 10px; flex-shrink: 0;
+}
+.game-body .pf-choice-scenario-full {
+  border: 3px solid #000;
+  box-shadow: 3px 3px 0 #000;
+  padding: 10px;
+  max-height: 120px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+.game-body .pf-choice-scenario-full p {
+  margin: 0 0 6px; font-size: 13px; line-height: 1.55; font-weight: 900;
+}
+
+/* ── PROGRESS METER ── */
+.game-body .pf-progress-meter {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 6px;
+}
+.game-body .pf-progress-track {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.game-body .pf-progress-fill {
+  height: 100%;
+  background: var(--pf-green);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.game-body .pf-progress-label {
+  font-size: 11px; font-weight: 900; white-space: nowrap;
+}
+.game-body .pf-scene-overlay .pf-progress-track { background: rgba(255,255,255,0.2); }
+.game-body .pf-scene-overlay .pf-progress-label { color: #fff9df; }
+
+/* ── STAGE ACCENT BAR ── */
+.game-body .pf-stage-accent { height: 4px; flex-shrink: 0; }
+
 .game-body .pf-prompt {
   display: flex;
   align-items: center;

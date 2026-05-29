@@ -34,6 +34,8 @@ function previewForSlug(slug: GameFlowEmbedSlug): {
       return { screen: "stage", clearedStages: [1] };
     case "stage-loop":
       return { screen: "stage", clearedStages: [1, 2, 3] };
+    case "scene":
+      return { screen: "scene" };
     case "choice":
       return { screen: "choice" };
     case "action":

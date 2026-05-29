@@ -29,6 +29,7 @@ const stages: Record<
     npc: string;
     npcTag: string;
     npcImg: string;
+    color: string;
     scenario: string;
     choices: {
       id: string;
@@ -57,6 +58,7 @@ const stages: Record<
     npc: "田中部長",
     npcTag: "論理派・責任者",
     npcImg: "/img/1.png",
+    color: "#FF007A",
     scenario:
       "あなたは社内プロジェクトのリーダー。来週金曜納期の成果物について、協力会社から納品遅延の連絡が入った。全体スケジュールは3日遅れる見込み。",
     choices: [
@@ -157,6 +159,7 @@ const stages: Record<
     npc: "佐藤さん",
     npcTag: "実行派・同僚",
     npcImg: "/img/7.png",
+    color: "#8A2BE2",
     scenario:
       "急ぎの資料作成で、同僚の佐藤さんにレビューをお願いしたい。ただし佐藤さんも別案件で忙しそう。相手の負担を増やしすぎず、協力してもらう必要がある。",
     choices: [
@@ -264,6 +267,7 @@ const stages: Record<
     npc: "山本さん",
     npcTag: "共感派・後輩",
     npcImg: "/img/10.png",
+    color: "#FF8C00",
     scenario:
       "後輩の山本さんが作った提案書に、良い点はあるものの、目的と結論がずれている。やる気を下げずに、修正してもらう必要がある。",
     choices: [
@@ -371,6 +375,7 @@ const stages: Record<
     npc: "鈴木様",
     npcTag: "慎重派・顧客",
     npcImg: "/img/5.png",
+    color: "#32CD32",
     scenario:
       "クライアントから「来週までに追加機能も入れられますよね?」と相談された。実装は可能だが、品質確認の時間が足りなくなるリスクがある。関係を壊さず期待調整したい。",
     choices: [
@@ -478,6 +483,7 @@ const stages: Record<
     npc: "高橋さん",
     npcTag: "慎重派・他部署",
     npcImg: "/img/12.png",
+    color: "#00BFFF",
     scenario:
       "新しい施策を進めるため、他部署の高橋さんに協力してもらう必要がある。ただ、高橋さんの部署には直接メリットが見えにくく、優先順位も高くなさそう。",
     choices: [
@@ -727,6 +733,29 @@ const RESULT_LESSON_TITLES = [
   "もっと知りたい人へ",
 ] as const;
 
+function getStageStep(screen: Screen): { current: number; total: number; label: string } {
+  switch (screen) {
+    case "scene": return { current: 1, total: 3, label: "状況" };
+    case "choice": return { current: 2, total: 3, label: "切り出し" };
+    case "action": return { current: 3, total: 3, label: "振る舞い" };
+    case "result": case "detail": return { current: 3, total: 3, label: "完了" };
+    default: return { current: 0, total: 3, label: "" };
+  }
+}
+
+function StageProgressMeter({ step }: { step: ReturnType<typeof getStageStep> }) {
+  if (step.current === 0) return null;
+  const pct = step.current >= step.total ? 100 : (step.current / step.total) * 100;
+  return (
+    <div className="pf-progress-meter">
+      <div className="pf-progress-track">
+        <div className="pf-progress-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="pf-progress-label">{step.label} {step.current}/{step.total}</span>
+    </div>
+  );
+}
+
 function ResultCtaBlock({ className }: { className?: string }) {
   return (
     <div className={["pf-result-cta", className].filter(Boolean).join(" ")}>
@@ -845,6 +874,8 @@ export function PiecefulGame({
   const [clearedStages, setClearedStages] = useState<Set<number>>(new Set());
   const [detailIndex, setDetailIndex] = useState(0);
   const [sceneParagraphs, setSceneParagraphs] = useState<string[]>([]);
+  const [sceneBgImg, setSceneBgImg] = useState("");
+  const [choiceScenarioOpen, setChoiceScenarioOpen] = useState(false);
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
   const [selectedChoiceText, setSelectedChoiceText] = useState("");
   const [selectedActionText, setSelectedActionText] = useState("");
@@ -923,6 +954,11 @@ export function PiecefulGame({
     const raw = csv?.situation || s?.scenario || "";
     return splitScenarioParagraphs(raw);
   }, [sceneParagraphs, stage, character]);
+
+  const choiceScenarioSummary = useMemo(() => {
+    const full = priorScenarioParagraphs.join("");
+    return full.length > 68 ? full.slice(0, 68) + "…" : full;
+  }, [priorScenarioParagraphs]);
 
   const measureActionLayout = useCallback(() => {
     const layout = actionFlowRef.current;
@@ -1423,11 +1459,12 @@ export function PiecefulGame({
       setSelectedActionText("");
       setPendingPick(null);
       setPriorChoiceOpen(false);
+      setChoiceScenarioOpen(false);
+      setSceneBgImg(`/img/stage/st${stageNo}.png`);
       loadStageContent();
-      renderChoices();
-      go("choice");
+      go("scene");
     },
-    [loadStageContent, renderChoices, go]
+    [loadStageContent, go]
   );
 
   /* ── resetGame ── */
@@ -1630,8 +1667,12 @@ export function PiecefulGame({
       trustRef.current = 72;
     }
 
-    if (previewScreen === "choice" || previewScreen === "action") {
+    if (previewScreen === "scene" || previewScreen === "choice" || previewScreen === "action") {
       loadStageContent();
+    }
+
+    if (previewScreen === "scene") {
+      setSceneBgImg("/img/stage/st1.png");
     }
 
     if (previewScreen === "action") {
@@ -1936,6 +1977,38 @@ export function PiecefulGame({
           </div>
         </section>
 
+        {/* ── SCENE ── */}
+        <section
+          id="screen-scene"
+          className={isActive("scene")}
+          aria-labelledby="scene-heading"
+        >
+          <div className="pf-screen pf-scene-bg" style={sceneBgImg ? { backgroundImage: `url(${sceneBgImg})` } : undefined}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe">
+                <StageProgressMeter step={getStageStep(currentScreen)} />
+                <div className="pf-topbar">
+                  <button type="button" className="pf-back-btn" onClick={() => go("stage")}>←</button>
+                  <div>
+                    <h2 id="scene-heading" className="pf-screen-title pf-scene-title-light">{stages[stage]?.title ?? ""}</h2>
+                  </div>
+                  <span className="pf-mini-btn">1/3</span>
+                </div>
+                <div className="pf-scene-npc">
+                  <img src={stages[stage]?.npcImg} className="pf-scene-npc-avatar" />
+                  <span className="pf-scene-npc-name">{stages[stage]?.npc ?? ""}</span>
+                </div>
+                <div className="pf-scene-card">
+                  {sceneParagraphs.map((p, i) => <p key={i}>{p}</p>)}
+                </div>
+                <button type="button" className="pf-yellow-pill pf-scene-next" onClick={() => { renderChoices(); go("choice"); }}>
+                  次へ
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── CHOICE ── */}
         <section
           id="screen-choice"
@@ -1944,6 +2017,8 @@ export function PiecefulGame({
         >
           <div className="pf-screen pf-paper pf-scene-plain">
             <div className="pf-safe">
+              <div className="pf-stage-accent" style={{ background: stages[stage]?.color }} />
+              <StageProgressMeter step={getStageStep(currentScreen)} />
               <div className="pf-scene-layout choice-flow">
                 <div className="pf-topbar">
                   <button
@@ -1951,9 +2026,9 @@ export function PiecefulGame({
                     className="pf-back-btn"
                     onClick={() => {
                       setPendingPick(null);
-                      go("stage");
+                      go("scene");
                     }}
-                    aria-label="ステージ選択へ戻る"
+                    aria-label="シチュエーションへ戻る"
                   >
                     ←
                   </button>
@@ -1962,16 +2037,30 @@ export function PiecefulGame({
                       {stages[stage]?.title ?? ""}
                     </h2>
                   </div>
-                  <span className="pf-mini-btn">1/2</span>
+                  <span className="pf-mini-btn">2/3</span>
                 </div>
                 <div className="pf-alert-label">
                   {stages[stage]?.kicker ?? ""}
                 </div>
-                <div className="pf-scene-recap pf-choice-scenario">
-                  {sceneParagraphs.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  className="pf-choice-scenario-summary"
+                  onClick={() => setChoiceScenarioOpen((v) => !v)}
+                >
+                  <span className="pf-choice-scenario-summary-text">
+                    {choiceScenarioSummary}
+                  </span>
+                  <span className="pf-choice-scenario-toggle-icon">
+                    {choiceScenarioOpen ? "▲" : "▼"} 全文を見る
+                  </span>
+                </button>
+                {choiceScenarioOpen && (
+                  <div className="pf-choice-scenario-full">
+                    {sceneParagraphs.map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                  </div>
+                )}
                 <h3 className="pf-prompt pf-prompt-compact">
                   <span className="pf-prompt-icon" aria-hidden>
                     💬
@@ -1996,6 +2085,8 @@ export function PiecefulGame({
         >
           <div className="pf-screen pf-paper pf-scene-plain">
             <div className="pf-safe">
+              <div className="pf-stage-accent" style={{ background: stages[stage]?.color }} />
+              <StageProgressMeter step={getStageStep(currentScreen)} />
               <div
                 ref={actionFlowRef}
                 className={[
@@ -2027,7 +2118,7 @@ export function PiecefulGame({
                       どう振る舞う?
                     </h2>
                   </div>
-                  <span className="pf-mini-btn">2/2</span>
+                  <span className="pf-mini-btn">3/3</span>
                 </div>
                 <div className="pf-action-context">
                 <section
@@ -2134,6 +2225,8 @@ export function PiecefulGame({
         >
           <div className="pf-screen pf-paper">
             <div className="pf-safe pf-result-safe">
+              <div className="pf-stage-accent" style={{ background: stages[stage]?.color }} />
+              <StageProgressMeter step={getStageStep(currentScreen)} />
               <div className="pf-result-scroll">
                 <div className="pf-result-layout">
                 <h2 id="result-heading" className="pf-result-title">

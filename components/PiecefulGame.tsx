@@ -1987,18 +1987,8 @@ export function PiecefulGame({
             <div className="pf-scene-overlay">
               <div className="pf-safe">
                 <StageProgressMeter step={getStageStep(currentScreen)} />
-                <div className="pf-topbar">
-                  <button type="button" className="pf-back-btn" onClick={() => go("stage")}>←</button>
-                  <div>
-                    <h2 id="scene-heading" className="pf-screen-title pf-scene-title-light">{stages[stage]?.title ?? ""}</h2>
-                  </div>
-                  <span className="pf-mini-btn">1/3</span>
-                </div>
-                <div className="pf-scene-npc">
-                  <img src={stages[stage]?.npcImg} className="pf-scene-npc-avatar" />
-                  <span className="pf-scene-npc-name">{stages[stage]?.npc ?? ""}</span>
-                </div>
-                <div className="pf-scene-card">
+                <span className="pf-scene-sender">{stages[stage]?.npc ?? ""}</span>
+                <div className="pf-scene-chat">
                   {sceneParagraphs.map((p, i) => <p key={i}>{p}</p>)}
                 </div>
                 <button type="button" className="pf-yellow-pill pf-scene-next" onClick={() => { renderChoices(); go("choice"); }}>

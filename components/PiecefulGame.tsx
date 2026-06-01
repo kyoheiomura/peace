@@ -850,7 +850,7 @@ function clamp(n: number, min: number, max: number): number {
 
 /* ── component ── */
 
-export function PiecefulGame({
+export default function PiecefulGame({
   embed = false,
   previewScreen,
   previewClearedStages,
@@ -880,6 +880,12 @@ export function PiecefulGame({
   const [selectedChoiceText, setSelectedChoiceText] = useState("");
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
+  const [sliderChoiceCharSize, setSliderChoiceCharSize] = useState(119);
+  const [sliderChoiceBubbleTextSize, setSliderChoiceBubbleTextSize] = useState(27);
+  const [sliderChoicePaddingY, setSliderChoicePaddingY] = useState(4);
+  const [sliderChoiceTextSize, setSliderChoiceTextSize] = useState(19);
+  const [sliderChoiceGap, setSliderChoiceGap] = useState(14);
+  const [sliderChoiceChoicesMarginTop, setSliderChoiceChoicesMarginTop] = useState(0);
   const [resultExpandedSection, setResultExpandedSection] = useState<number | null>(
     null
   );
@@ -1152,11 +1158,24 @@ export function PiecefulGame({
     id: string,
     text: string,
     dataAttr: "data-choice-id" | "data-action-id"
-  ) =>
-    `<button type="button" class="pf-choice" ${dataAttr}="${id}">
-      <span class="pf-choice-letter ${id.toLowerCase()}">${id}</span>
-      <span>${text}</span>
+  ) => {
+    const badgeColor =
+      id === "A" ? "#ff3333" :
+      id === "B" ? "#448aff" :
+      id === "C" ? "#4caf50" :
+      "#ffc107";
+    const textColor = id === "D" ? "#000" : "#fff";
+    
+    const paddingVal = dataAttr === "data-choice-id" ? `${sliderChoicePaddingY}px 16px` : "14px 16px";
+    const fontSizeVal = dataAttr === "data-choice-id" ? `${sliderChoiceTextSize}px` : "19px";
+    
+    return `<button type="button" class="w-full flex items-center bg-white retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px;">
+      <div class="w-12 h-12 retro-border flex items-center justify-center flex-shrink-0 mr-4 pf-choice-letter ${id.toLowerCase()}" style="background-color: ${badgeColor}; color: ${textColor}; font-family: var(--font); border-width: 3px; border-radius: 8px;">
+        <span class="text-2xl font-black">${id}</span>
+      </div>
+      <p class="leading-snug font-bold text-black" style="margin: 0; font-family: var(--font); font-size: ${fontSizeVal}; color: #000;">${text}</p>
     </button>`;
+  };
 
   const getChoiceLabel = useCallback((id: string): string => {
     const pickId = normalizePickId(id);
@@ -1200,7 +1219,13 @@ export function PiecefulGame({
         .map((c) => choiceButtonHtml(c.id, c.text, "data-choice-id"))
         .join("");
     }
-  }, [stage]);
+  }, [stage, sliderChoicePaddingY, sliderChoiceTextSize, choiceButtonHtml]);
+
+  useEffect(() => {
+    if (currentScreen === "choice") {
+      renderChoices();
+    }
+  }, [currentScreen, renderChoices, sliderChoicePaddingY, sliderChoiceTextSize]);
 
   const renderActions = useCallback(() => {
     const s = stages[stage];
@@ -1977,21 +2002,32 @@ export function PiecefulGame({
           </div>
         </section>
 
-        {/* ── SCENE ── */}
+        {/* ── SCENE (Stage Intro) ── */}
         <section
           id="screen-scene"
           className={isActive("scene")}
           aria-labelledby="scene-heading"
         >
-          <div className="pf-screen pf-scene-bg" style={sceneBgImg ? { backgroundImage: `url(${sceneBgImg})` } : undefined}>
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
-              <div className="pf-safe">
-                <StageProgressMeter step={getStageStep(currentScreen)} />
-                <span className="pf-scene-sender">{stages[stage]?.npc ?? ""}</span>
-                <div className="pf-scene-chat">
-                  {sceneParagraphs.map((p, i) => <p key={i}>{p}</p>)}
+              <div className="pf-safe pf-scene-intro">
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                  <button type="button" className="pf-back-btn" onClick={() => go("stage")} aria-label="ステージ選択へ戻る">←</button>
+                  <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
-                <button type="button" className="pf-yellow-pill pf-scene-next" onClick={() => { renderChoices(); go("choice"); }}>
+                <div className="pf-scene-banner" style={{ fontSize: "27px", padding: "8px 12px", marginTop: "10px", marginBottom: "2px" }}>{stages[stage]?.kicker ?? ""}</div>
+                <div className="pf-scene-char-row">
+                  {charImages[character] && (
+                    <img src={charImages[character]} alt={charNick[character] || character} className="pf-scene-char-img" style={{ width: "134px", height: "134px" }} />
+                  )}
+                  <div className="pf-scene-bubble" style={{ fontSize: "24px" }}>
+                    <span>スタート！</span>
+                  </div>
+                </div>
+                <div className="pf-scene-chat">
+                  {sceneParagraphs.map((p, i) => <p key={i} style={{ fontSize: "26px" }}>{p}</p>)}
+                </div>
+                <button type="button" className="pf-scene-next-btn" style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }} onClick={() => { renderChoices(); go("choice"); }}>
                   次へ
                 </button>
               </div>
@@ -2005,63 +2041,187 @@ export function PiecefulGame({
           className={isActive("choice")}
           aria-labelledby="choice-heading"
         >
-          <div className="pf-screen pf-paper pf-scene-plain">
-            <div className="pf-safe">
-              <div className="pf-stage-accent" style={{ background: stages[stage]?.color }} />
-              <StageProgressMeter step={getStageStep(currentScreen)} />
-              <div className="pf-scene-layout choice-flow">
-                <div className="pf-topbar">
-                  <button
-                    type="button"
-                    className="pf-back-btn"
-                    onClick={() => {
-                      setPendingPick(null);
-                      go("scene");
-                    }}
-                    aria-label="シチュエーションへ戻る"
-                  >
-                    ←
-                  </button>
-                  <div>
-                    <h2 id="choice-heading" className="pf-screen-title">
-                      {stages[stage]?.title ?? ""}
-                    </h2>
-                  </div>
-                  <span className="pf-mini-btn">2/3</span>
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe pf-scene-intro">
+                
+                {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                  <button type="button" className="pf-back-btn" onClick={() => { setPendingPick(null); go("scene"); }} aria-label="シチュエーションへ戻る">←</button>
+                  <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
-                <div className="pf-alert-label">
-                  {stages[stage]?.kicker ?? ""}
-                </div>
-                <button
-                  type="button"
-                  className="pf-choice-scenario-summary"
-                  onClick={() => setChoiceScenarioOpen((v) => !v)}
-                >
-                  <span className="pf-choice-scenario-summary-text">
-                    {choiceScenarioSummary}
-                  </span>
-                  <span className="pf-choice-scenario-toggle-icon">
-                    {choiceScenarioOpen ? "▲" : "▼"} 全文を見る
-                  </span>
-                </button>
-                {choiceScenarioOpen && (
-                  <div className="pf-choice-scenario-full">
-                    {sceneParagraphs.map((p, i) => (
-                      <p key={i}>{p}</p>
-                    ))}
+
+                {/* テーマ窓 (WarningBanner) */}
+                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "6px" }}>
+                  <div className="bg-[#ff5252]" style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "#ff5252",
+                    padding: "7px 16px",
+                    border: "3px solid #000",
+                    boxShadow: "3px 3px 0 #000",
+                    justifyContent: "center"
+                  }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                    </span>
                   </div>
-                )}
-                <h3 className="pf-prompt pf-prompt-compact">
-                  <span className="pf-prompt-icon" aria-hidden>
-                    💬
-                  </span>
-                  どう切り出す?
-                </h3>
+                </div>
+
+                {/* キャラクター ＋ 吹き出し */}
+                <div className="pf-choice-char-row" style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 16px",
+                  marginBottom: "20px",
+                  gap: "16px"
+                }}>
+                  {charImages[character] && (
+                    <img
+                      src={charImages[character]}
+                      alt={charNick[character] || character}
+                      style={{
+                        width: `${sliderChoiceCharSize}px`,
+                        height: `${sliderChoiceCharSize}px`,
+                        objectFit: "contain",
+                        flexShrink: 0
+                      }}
+                    />
+                  )}
+                  {/* 吹き出し */}
+                  <div className="pf-choice-speech-bubble" style={{
+                    position: "relative",
+                    backgroundColor: "#fff",
+                    border: "3px solid #000",
+                    borderRadius: "12px",
+                    padding: "8px 16px",
+                    boxShadow: "3px 3px 0 #000",
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "48px"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-11px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "6px 12px 6px 0",
+                      borderColor: "transparent #000 transparent transparent"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "5px 10px 5px 0",
+                      borderColor: "transparent #fff transparent transparent",
+                      zIndex: 1
+                    }} />
+                    <span style={{
+                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontWeight: "bold",
+                      color: "#000",
+                      fontFamily: "var(--font)"
+                    }}>どう切り出す？</span>
+                  </div>
+                </div>
+
+                {/* 選択肢ボタンリスト */}
                 <div
                   id="choices"
                   ref={choicesRef}
-                  className="pf-choice-grid pf-choice-grid-stitch"
+                  className="pf-choice-grid-stitch"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: `${sliderChoiceGap}px`,
+                    padding: "0 16px",
+                    marginTop: `${sliderChoiceChoicesMarginTop}px`,
+                    flexGrow: 1
+                  }}
                 />
+
+                {/* 次へボタン */}
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  onClick={() => {
+                    if (selectedChoiceId) {
+                      // 回答選択済み
+                    } else {
+                      toast("回答を選択してください！");
+                    }
+                  }}
+                >
+                  次へ
+                </button>
+
+                {/* スライダー調整パネル */}
+                <div className="pf-slider-panel" style={{
+                  position: "fixed",
+                  bottom: "10px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "90%",
+                  maxWidth: "400px",
+                  backgroundColor: "#ffffeb",
+                  border: "3px solid #000",
+                  boxShadow: "4px 4px 0 #000",
+                  padding: "12px",
+                  zIndex: 9999,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  fontFamily: "var(--font)",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  color: "#000"
+                }}>
+                  <div style={{ textAlign: "center", borderBottom: "2px solid #000", paddingBottom: "4px", marginBottom: "4px", fontSize: "14px" }}>
+                    📐 切り出し画面 リアルタイム調整
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ width: "120px" }}>キャラ画像サイズ:</span>
+                    <input type="range" min="50" max="200" value={sliderChoiceCharSize} onChange={(e) => setSliderChoiceCharSize(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
+                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceCharSize}px</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ width: "120px" }}>吹き出し文字:</span>
+                    <input type="range" min="12" max="40" value={sliderChoiceBubbleTextSize} onChange={(e) => setSliderChoiceBubbleTextSize(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
+                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceBubbleTextSize}px</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ width: "120px" }}>白窓上下パディング:</span>
+                    <input type="range" min="4" max="30" value={sliderChoicePaddingY} onChange={(e) => setSliderChoicePaddingY(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
+                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoicePaddingY}px</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ width: "120px" }}>白窓文字サイズ:</span>
+                    <input type="range" min="12" max="35" value={sliderChoiceTextSize} onChange={(e) => setSliderChoiceTextSize(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
+                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceTextSize}px</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ width: "120px" }}>白窓ごとの余白:</span>
+                    <input type="range" min="0" max="40" value={sliderChoiceGap} onChange={(e) => setSliderChoiceGap(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
+                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceGap}px</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ width: "120px" }}>白窓すべてとキャラ余白:</span>
+                    <input type="range" min="0" max="60" value={sliderChoiceChoicesMarginTop} onChange={(e) => setSliderChoiceChoicesMarginTop(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
+                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceChoicesMarginTop}px</span>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>

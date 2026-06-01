@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { CharPickerDesign } from "@/components/designs/CharPickerDesign";
 import { LpFlowPreview } from "@/components/designs/LpFlowPreview";
-import {
-  PiecefulGame,
+import PiecefulGame, {
   type PiecefulPreviewScreen,
 } from "@/components/PiecefulGame";
 import {

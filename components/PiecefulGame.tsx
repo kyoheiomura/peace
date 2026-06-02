@@ -601,7 +601,8 @@ export type PiecefulPreviewScreen =
   | "action"
   | "result"
   | "detail"
-  | "clear";
+  | "clear"
+  | "cta";
 
 type Screen = PiecefulPreviewScreen;
 
@@ -735,11 +736,11 @@ const RESULT_LESSON_TITLES = [
 
 function getStageStep(screen: Screen): { current: number; total: number; label: string } {
   switch (screen) {
-    case "scene": return { current: 1, total: 3, label: "状況" };
-    case "choice": return { current: 2, total: 3, label: "切り出し" };
-    case "action": return { current: 3, total: 3, label: "振る舞い" };
-    case "result": case "detail": return { current: 3, total: 3, label: "完了" };
-    default: return { current: 0, total: 3, label: "" };
+    case "scene": return { current: 1, total: 4, label: "状況" };
+    case "choice": return { current: 2, total: 4, label: "切り出し" };
+    case "action": return { current: 3, total: 4, label: "振る舞い" };
+    case "result": case "detail": case "cta": return { current: 4, total: 4, label: "完了" };
+    default: return { current: 0, total: 4, label: "" };
   }
 }
 
@@ -877,11 +878,12 @@ export default function PiecefulGame({
   const [sceneBgImg, setSceneBgImg] = useState("");
   const [choiceScenarioOpen, setChoiceScenarioOpen] = useState(false);
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
   const [selectedChoiceText, setSelectedChoiceText] = useState("");
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
-  const [sliderChoiceCharSize, setSliderChoiceCharSize] = useState(119);
-  const [sliderChoiceBubbleTextSize, setSliderChoiceBubbleTextSize] = useState(27);
+  const [sliderChoiceCharSize, setSliderChoiceCharSize] = useState(124);
+  const [sliderChoiceBubbleTextSize, setSliderChoiceBubbleTextSize] = useState(26);
   const [sliderChoicePaddingY, setSliderChoicePaddingY] = useState(4);
   const [sliderChoiceTextSize, setSliderChoiceTextSize] = useState(19);
   const [sliderChoiceGap, setSliderChoiceGap] = useState(14);
@@ -1168,8 +1170,17 @@ export default function PiecefulGame({
     
     const paddingVal = dataAttr === "data-choice-id" ? `${sliderChoicePaddingY}px 16px` : "14px 16px";
     const fontSizeVal = dataAttr === "data-choice-id" ? `${sliderChoiceTextSize}px` : "19px";
+
+    const isSelected =
+      dataAttr === "data-choice-id" ? selectedChoiceId === id : selectedActionId === id;
+    const bgColor = isSelected ? (
+      id === "A" ? "#ffebee" :
+      id === "B" ? "#e3f2fd" :
+      id === "C" ? "#e8f5e9" :
+      "#fffde7"
+    ) : "#ffffff";
     
-    return `<button type="button" class="w-full flex items-center bg-white retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px;">
+    return `<button type="button" class="w-full flex items-center retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px; background-color: ${bgColor};">
       <div class="w-12 h-12 retro-border flex items-center justify-center flex-shrink-0 mr-4 pf-choice-letter ${id.toLowerCase()}" style="background-color: ${badgeColor}; color: ${textColor}; font-family: var(--font); border-width: 3px; border-radius: 8px;">
         <span class="text-2xl font-black">${id}</span>
       </div>
@@ -1219,13 +1230,13 @@ export default function PiecefulGame({
         .map((c) => choiceButtonHtml(c.id, c.text, "data-choice-id"))
         .join("");
     }
-  }, [stage, sliderChoicePaddingY, sliderChoiceTextSize, choiceButtonHtml]);
+  }, [stage, sliderChoicePaddingY, sliderChoiceTextSize, choiceButtonHtml, selectedChoiceId]);
 
   useEffect(() => {
     if (currentScreen === "choice") {
       renderChoices();
     }
-  }, [currentScreen, renderChoices, sliderChoicePaddingY, sliderChoiceTextSize]);
+  }, [currentScreen, renderChoices, sliderChoicePaddingY, sliderChoiceTextSize, selectedChoiceId]);
 
   const renderActions = useCallback(() => {
     const s = stages[stage];
@@ -1243,7 +1254,13 @@ export default function PiecefulGame({
         .map((a) => choiceButtonHtml(a.id, a.text, "data-action-id"))
         .join("");
     }
-  }, [stage]);
+  }, [stage, choiceButtonHtml, selectedActionId]);
+
+  useEffect(() => {
+    if (currentScreen === "action") {
+      renderActions();
+    }
+  }, [currentScreen, renderActions, selectedActionId]);
 
   /* ── applyScore ── */
   const applyScore = useCallback((delta: number) => {
@@ -1303,6 +1320,8 @@ export default function PiecefulGame({
   /* ── selectAnswer ── */
   const selectAnswer = useCallback(
     (id: string) => {
+      setSelectedActionId(null);
+      setSelectedActionText("");
       const csv = mbtiScenarios[characterRef.current]?.[stage];
       if (csv) {
         const pickId = normalizePickId(id);
@@ -1339,7 +1358,7 @@ export default function PiecefulGame({
       renderFeedback(answer);
       go("action");
     },
-    [stage, applyScore, renderFeedback, go]
+    [stage, applyScore, renderFeedback, go, setSelectedActionId, setSelectedActionText]
   );
 
   /* ── renderResult ── */
@@ -1377,6 +1396,7 @@ export default function PiecefulGame({
   /* ── selectAction ── */
   const selectAction = useCallback(
     (id: string) => {
+      setSelectedActionId(id);
       const csv = mbtiScenarios[characterRef.current]?.[stage];
       lastActionRef.current = id;
       /* mark stage as cleared */
@@ -1412,7 +1432,7 @@ export default function PiecefulGame({
         go("result");
       }, 460);
     },
-    [stage, applyScore, toast, go, renderResult]
+    [stage, applyScore, toast, go, renderResult, setSelectedActionId, setSelectedActionText]
   );
 
   const handlePrimaryStart = useCallback(() => {
@@ -1480,6 +1500,7 @@ export default function PiecefulGame({
       lastChoiceRef.current = null;
       lastAnswerRef.current = null;
       setSelectedChoiceId(null);
+      setSelectedActionId(null);
       setSelectedChoiceText("");
       setSelectedActionText("");
       setPendingPick(null);
@@ -1489,7 +1510,7 @@ export default function PiecefulGame({
       loadStageContent();
       go("scene");
     },
-    [loadStageContent, go]
+    [loadStageContent, go, setSelectedActionId]
   );
 
   /* ── resetGame ── */
@@ -1512,11 +1533,12 @@ export default function PiecefulGame({
     lastChoiceRef.current = null;
     lastAnswerRef.current = null;
     setSelectedChoiceId(null);
+    setSelectedActionId(null);
     setSelectedChoiceText("");
     setSelectedActionText("");
     syncHud();
     go(opts?.screen ?? "stage");
-  }, [syncHud, go]);
+  }, [syncHud, go, setSelectedActionId]);
 
   const resetGameWithConfirm = useCallback(() => {
     const ok = window.confirm(
@@ -1621,7 +1643,13 @@ export default function PiecefulGame({
         | HTMLElement
         | null;
       if (choiceBtn) {
-        openPickConfirm("choice", choiceBtn);
+        const rawId = choiceBtn.dataset.choiceId;
+        if (rawId) {
+          const id = normalizePickId(rawId);
+          const label = readPickLabelFromButton(choiceBtn) || getChoiceLabel(id);
+          setSelectedChoiceId(id);
+          setSelectedChoiceText(label);
+        }
         return;
       }
 
@@ -1629,7 +1657,13 @@ export default function PiecefulGame({
         | HTMLElement
         | null;
       if (actionBtn) {
-        openPickConfirm("action", actionBtn);
+        const rawId = actionBtn.dataset.actionId;
+        if (rawId) {
+          const id = normalizePickId(rawId);
+          const label = readPickLabelFromButton(actionBtn) || getActionLabel(id);
+          setSelectedActionId(id);
+          setSelectedActionText(label);
+        }
         return;
       }
 
@@ -1646,7 +1680,7 @@ export default function PiecefulGame({
 
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
-  }, [openPickConfirm, go]);
+  }, [openPickConfirm, go, getChoiceLabel, getActionLabel, setSelectedChoiceId, setSelectedChoiceText, setSelectedActionId, setSelectedActionText]);
 
   /* ── keyboard: Escape closes guide / picker ── */
   useEffect(() => {
@@ -2074,7 +2108,7 @@ export default function PiecefulGame({
                   display: "flex",
                   alignItems: "center",
                   padding: "0 16px",
-                  marginBottom: "20px",
+                  marginBottom: "0px",
                   gap: "16px"
                 }}>
                   {charImages[character] && (
@@ -2157,7 +2191,8 @@ export default function PiecefulGame({
                   style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
                   onClick={() => {
                     if (selectedChoiceId) {
-                      // 回答選択済み
+                      setPriorChoiceOpen(false);
+                      selectAnswer(selectedChoiceId);
                     } else {
                       toast("回答を選択してください！");
                     }
@@ -2166,61 +2201,7 @@ export default function PiecefulGame({
                   次へ
                 </button>
 
-                {/* スライダー調整パネル */}
-                <div className="pf-slider-panel" style={{
-                  position: "fixed",
-                  bottom: "10px",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: "90%",
-                  maxWidth: "400px",
-                  backgroundColor: "#ffffeb",
-                  border: "3px solid #000",
-                  boxShadow: "4px 4px 0 #000",
-                  padding: "12px",
-                  zIndex: 9999,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  fontFamily: "var(--font)",
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  color: "#000"
-                }}>
-                  <div style={{ textAlign: "center", borderBottom: "2px solid #000", paddingBottom: "4px", marginBottom: "4px", fontSize: "14px" }}>
-                    📐 切り出し画面 リアルタイム調整
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ width: "120px" }}>キャラ画像サイズ:</span>
-                    <input type="range" min="50" max="200" value={sliderChoiceCharSize} onChange={(e) => setSliderChoiceCharSize(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
-                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceCharSize}px</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ width: "120px" }}>吹き出し文字:</span>
-                    <input type="range" min="12" max="40" value={sliderChoiceBubbleTextSize} onChange={(e) => setSliderChoiceBubbleTextSize(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
-                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceBubbleTextSize}px</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ width: "120px" }}>白窓上下パディング:</span>
-                    <input type="range" min="4" max="30" value={sliderChoicePaddingY} onChange={(e) => setSliderChoicePaddingY(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
-                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoicePaddingY}px</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ width: "120px" }}>白窓文字サイズ:</span>
-                    <input type="range" min="12" max="35" value={sliderChoiceTextSize} onChange={(e) => setSliderChoiceTextSize(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
-                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceTextSize}px</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ width: "120px" }}>白窓ごとの余白:</span>
-                    <input type="range" min="0" max="40" value={sliderChoiceGap} onChange={(e) => setSliderChoiceGap(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
-                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceGap}px</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ width: "120px" }}>白窓すべてとキャラ余白:</span>
-                    <input type="range" min="0" max="60" value={sliderChoiceChoicesMarginTop} onChange={(e) => setSliderChoiceChoicesMarginTop(Number(e.target.value))} style={{ flex: 1, margin: "0 8px" }} />
-                    <span style={{ width: "40px", textAlign: "right" }}>{sliderChoiceChoicesMarginTop}px</span>
-                  </div>
-                </div>
+
 
               </div>
             </div>
@@ -2233,25 +2214,12 @@ export default function PiecefulGame({
           className={isActive("action")}
           aria-labelledby="action-heading"
         >
-          <div className="pf-screen pf-paper pf-scene-plain">
-            <div className="pf-safe">
-              <div className="pf-stage-accent" style={{ background: stages[stage]?.color }} />
-              <StageProgressMeter step={getStageStep(currentScreen)} />
-              <div
-                ref={actionFlowRef}
-                className={[
-                  "pf-scene-layout action-flow",
-                  priorChoiceOverflows && !priorChoiceOpen
-                    ? "is-scenario-clamped"
-                    : "",
-                  priorChoiceOverflows && priorChoiceOpen
-                    ? "is-scenario-expanded"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                <div className="pf-topbar">
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div ref={actionFlowRef} className="pf-safe pf-scene-intro">
+                
+                {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
                   <button
                     type="button"
                     className="pf-back-btn"
@@ -2263,97 +2231,124 @@ export default function PiecefulGame({
                   >
                     ←
                   </button>
-                  <div>
-                    <h2 id="action-heading" className="pf-screen-title">
-                      どう振る舞う?
-                    </h2>
-                  </div>
-                  <span className="pf-mini-btn">3/3</span>
+                  <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
-                <div className="pf-action-context">
-                <section
-                  className="pf-action-scenario-block"
-                  aria-label="状況説明"
-                >
-                  <span className="pf-action-scenario-label">状況</span>
-                  <div
-                    id="prior-choice-panel"
-                    ref={priorScenarioBodyRef}
-                    className={[
-                      "pf-action-scenario-body",
-                      priorChoiceOverflows
-                        ? priorChoiceOpen
-                          ? "is-open"
-                          : "is-clamped"
-                        : "fits",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    style={
-                      priorChoiceOverflows &&
-                      !priorChoiceOpen &&
-                      scenarioClampPx
-                        ? { maxHeight: scenarioClampPx }
-                        : undefined
-                    }
-                  >
-                    {priorScenarioParagraphs.map((p, i) => (
-                      <p key={i} className="pf-action-scenario-text">
-                        {p}
-                      </p>
-                    ))}
-                  </div>
-                  {priorChoiceOverflows ? (
-                    <button
-                      type="button"
-                      className="pf-action-scenario-toggle pf-action-scenario-toggle--foot"
-                      aria-expanded={priorChoiceOpen}
-                      aria-controls="prior-choice-panel"
-                      onClick={() => setPriorChoiceOpen((open) => !open)}
-                    >
-                      <span aria-hidden>{priorChoiceOpen ? "▲" : "▼"}</span>
-                      <span className="pf-sr-only">
-                        {priorChoiceOpen
-                          ? "状況説明を閉じる"
-                          : "状況説明を続きまで表示"}
-                      </span>
-                    </button>
-                  ) : null}
-                </section>
-                <section
-                  ref={kiridashiRef}
-                  className="pf-action-kiridashi"
-                  aria-label="前の回答:どう切り出す"
-                >
-                  <p className="pf-action-kiridashi-kicker">
-                    <span className="pf-prompt-icon" aria-hidden>
-                      💬
+
+                {/* 警告バナー */}
+                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "6px" }}>
+                  <div className="bg-[#ff5252]" style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "#ff5252",
+                    padding: "7px 16px",
+                    border: "3px solid #000",
+                    boxShadow: "3px 3px 0 #000",
+                    justifyContent: "center"
+                  }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
                     </span>
-                    どう切り出す
-                  </p>
-                  <div className="pf-action-kiridashi-line">
-                    <span
-                      className={`pf-choice-letter ${(selectedChoiceId ?? "A").toLowerCase()}`}
-                    >
-                      {selectedChoiceId ?? "A"}
-                    </span>
-                    <p className="pf-action-kiridashi-text">
-                      {selectedChoiceText || "選択した言い方"}
-                    </p>
                   </div>
-                </section>
                 </div>
-                <h3 className="pf-prompt pf-prompt-action pf-prompt-compact">
-                  <span className="pf-prompt-icon" aria-hidden>
-                    💬
-                  </span>
-                  どう振る舞う?
-                </h3>
+
+                {/* キャラクター ＋ 吹き出し */}
+                <div className="pf-choice-char-row" style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 16px",
+                  marginBottom: "0px",
+                  gap: "16px"
+                }}>
+                  {charImages[character] && (
+                    <img
+                      src={charImages[character]}
+                      alt={charNick[character] || character}
+                      style={{
+                        width: `${sliderChoiceCharSize}px`,
+                        height: `${sliderChoiceCharSize}px`,
+                        objectFit: "contain",
+                        flexShrink: 0
+                      }}
+                    />
+                  )}
+                  {/* 吹き出し */}
+                  <div className="pf-choice-speech-bubble" style={{
+                    position: "relative",
+                    backgroundColor: "#fff",
+                    border: "3px solid #000",
+                    borderRadius: "12px",
+                    padding: "8px 16px",
+                    boxShadow: "3px 3px 0 #000",
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "48px"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-11px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "6px 12px 6px 0",
+                      borderColor: "transparent #000 transparent transparent"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "5px 10px 5px 0",
+                      borderColor: "transparent #fff transparent transparent",
+                      zIndex: 1
+                    }} />
+                    <span style={{
+                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontWeight: "bold",
+                      color: "#000",
+                      fontFamily: "var(--font)"
+                    }}>どう振る舞う？</span>
+                  </div>
+                </div>
+
+                {/* 選択肢ボタンリスト */}
                 <div
                   id="actions"
                   ref={actionsRef}
-                  className="pf-choice-grid pf-choice-grid-action"
+                  className="pf-choice-grid-stitch"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: `${sliderChoiceGap}px`,
+                    padding: "0 16px",
+                    marginTop: `${sliderChoiceChoicesMarginTop}px`,
+                    flexGrow: 1
+                  }}
                 />
+
+                {/* 次へボタン */}
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  onClick={() => {
+                    if (selectedActionId) {
+                      selectAction(selectedActionId);
+                    } else {
+                      toast("回答を選択してください！");
+                    }
+                  }}
+                >
+                  次へ
+                </button>
+
                 <div className="pf-hidden-feedback" aria-hidden>
                   <div ref={resultCardRef} />
                   <div ref={gradeRef} />
@@ -2373,68 +2368,525 @@ export default function PiecefulGame({
           className={isActive("result")}
           aria-labelledby="result-heading"
         >
-          <div className="pf-screen pf-paper">
-            <div className="pf-safe pf-result-safe">
-              <div className="pf-stage-accent" style={{ background: stages[stage]?.color }} />
-              <StageProgressMeter step={getStageStep(currentScreen)} />
-              <div className="pf-result-scroll">
-                <div className="pf-result-layout">
-                <h2 id="result-heading" className="pf-result-title">
-                  チャレンジ結果
-                </h2>
-                <div className="pf-trophies" aria-hidden>
-                  🏆 🏆
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+              
+              {/* BEGIN: Header */}
+              <header className="flex items-center gap-4 mb-8 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingTop: "16px" }}>
+                <button
+                  type="button"
+                  className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  onClick={() => go("stage")}
+                  style={{ width: "48px", height: "40px", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                >
+                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="square" strokeLinejoin="miter" strokeWidth="4" viewBox="0 0 24 24" width="24" style={{ display: "block" }}>
+                    <path d="M19 12H5M5 12L12 19M5 12L12 5"></path>
+                  </svg>
+                </button>
+                <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "24px", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
+                  <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
                 </div>
-                <p className="pf-clear-label">クリア</p>
-                <p id="result-sub" ref={resultSubRef} className="pf-small-note pf-sr-only" aria-hidden />
-                <div className="pf-result-answers">
-                  <div className="pf-selected-line">
-                    <span
-                      className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
-                    >
-                      {lastChoiceRef.current ?? "A"}
-                    </span>
-                    <p className="pf-selected-answer-text">
+              </header>
+              {/* END: Header */}
+
+              {/* BEGIN: Main Content */}
+              <main className="flex flex-col items-center flex-grow" style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, boxSizing: "border-box" }}>
+                
+                {/* Status Banner */}
+                <div className="w-full bg-[#FF6B6B] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-2 px-4 mb-10 flex justify-center items-center gap-2" style={{ width: "100%", backgroundColor: "#FF6B6B", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", paddingTop: "8px", paddingBottom: "8px", paddingLeft: "16px", paddingRight: "16px", marginBottom: "40px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
+                  <span className="text-yellow-400 text-2xl" style={{ fontSize: "24px", color: "#FBBF24" }}>⚠️</span>
+                  <span className="text-white font-bold text-xl tracking-wider" style={{
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: "20px",
+                    letterSpacing: "0.05em",
+                    fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                  }}>
+                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                  </span>
+                </div>
+
+                {/* Character and Speech Bubble */}
+                <div className="relative w-full flex items-center justify-center gap-2 mb-8" style={{ width: "100%", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "32px", boxSizing: "border-box" }}>
+                  {/* Left Trophy */}
+                  <div className="text-3xl" style={{ fontSize: "30px" }}>
+                    <img
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
+                      alt="Trophy"
+                      className="w-8 h-8 object-contain"
+                      style={{ width: "32px", height: "32px", objectFit: "contain" }}
+                    />
+                  </div>
+                  
+                  {/* Character Image */}
+                  <div className="relative w-32 h-32" style={{ width: "128px", height: "128px", position: "relative" }}>
+                    {charImages[character] && (
+                      <img
+                        src={charImages[character]}
+                        alt={charNick[character] || character}
+                        className="w-full h-full object-contain"
+                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Speech Bubble */}
+                  <div className="pixel-bubble p-3 ml-2 min-w-[140px] flex flex-col items-center justify-center" style={{
+                    position: "relative",
+                    backgroundColor: "white",
+                    border: "4px solid #000",
+                    boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)",
+                    padding: "12px",
+                    marginLeft: "8px",
+                    minWidth: "140px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxSizing: "border-box"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-20px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderTop: "10px solid transparent",
+                      borderBottom: "10px solid transparent",
+                      borderRight: "20px solid #000"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderTop: "7px solid transparent",
+                      borderBottom: "7px solid transparent",
+                      borderRight: "14px solid white",
+                      zIndex: 1
+                    }} />
+                    <span className="font-black text-lg block leading-tight text-black" style={{
+                      fontWeight: "900",
+                      fontSize: "18px",
+                      display: "block",
+                      lineHeight: "1.25",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>チャレンジ</span>
+                    <span className="font-black text-lg block leading-tight text-black" style={{
+                      fontWeight: "900",
+                      fontSize: "18px",
+                      display: "block",
+                      lineHeight: "1.25",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>クリア！</span>
+                  </div>
+                  
+                  {/* Right Trophy */}
+                  <div className="text-3xl" style={{ fontSize: "30px" }}>
+                    <img
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
+                      alt="Trophy"
+                      className="w-8 h-8 object-contain"
+                      style={{ width: "32px", height: "32px", objectFit: "contain" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Message Blocks Container */}
+                <div className="w-full flex flex-col items-center gap-4 px-2" style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "16px",
+                  paddingLeft: "8px",
+                  paddingRight: "8px",
+                  boxSizing: "border-box",
+                  flexGrow: 1,
+                  marginBottom: "24px"
+                }}>
+                  
+                  {/* Message Block 1 (Choice) */}
+                  <div className="w-full bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-4 flex items-start gap-3" style={{
+                    width: "100%",
+                    backgroundColor: "white",
+                    border: "4px solid #000",
+                    boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)",
+                    padding: "16px",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    boxSizing: "border-box"
+                  }}>
+                    <div className="w-10 h-10 flex-shrink-0 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center" style={{
+                      width: "40px",
+                      height: "40px",
+                      flexShrink: 0,
+                      backgroundColor: selectedChoiceId === "A" ? "#FF1A1A" : selectedChoiceId === "B" ? "#448aff" : selectedChoiceId === "C" ? "#4caf50" : "#ffc107",
+                      border: "4px solid #000",
+                      boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxSizing: "border-box"
+                    }}>
+                      <span className="text-white font-black text-xl" style={{
+                        color: selectedChoiceId === "D" ? "black" : "white",
+                        fontWeight: "900",
+                        fontSize: "20px",
+                        fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                      }}>{selectedChoiceId || "A"}</span>
+                    </div>
+                    <p className="font-bold text-[15px] leading-snug text-black" style={{
+                      margin: 0,
+                      fontWeight: "bold",
+                      fontSize: "15px",
+                      lineHeight: "1.4",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>
                       {selectedChoiceText || "選択した言い方"}
                     </p>
                   </div>
-                  <div className="pf-selected-line">
-                    <span
-                      className={`pf-choice-letter ${(lastActionRef.current ?? "a").toLowerCase()}`}
-                    >
-                      {lastActionRef.current ?? "A"}
-                    </span>
-                    <p className="pf-selected-answer-text">
+                  
+                  {/* Plus Sign */}
+                  <div className="relative py-1" style={{ position: "relative", paddingTop: "4px", paddingBottom: "4px" }}>
+                    <img
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuFqa5lWRUCQ1KEJ3o_n-T8pTVyEgOKdPLLO8JF5CM30CB419zpol7rzA26tPaHmAJGKNTXeoAiVHdXjPocx6ec3YO8UkSz9CO6yVsK3S94A9XuALbd_UjsCUxMo6jEbmuY6MndDwWk-Z4o2VRNw5BQrKLS_xuX_H9T19DoXSxwXkYZADa27J0DwSEeOQbk6m7ti1MkYIsfAlchCh74NMvWoDn9gEJqOiuVXUculmFL_cmRT3OBOc6FB2UdqJYpe8hx_qitrmmNTY"
+                      alt="Plus"
+                      className="w-10 h-10 object-contain"
+                      style={{ width: "40px", height: "40px", objectFit: "contain" }}
+                    />
+                  </div>
+                  
+                  {/* Message Block 2 (Action) */}
+                  <div className="w-full bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-4 flex items-start gap-3" style={{
+                    width: "100%",
+                    backgroundColor: "white",
+                    border: "4px solid #000",
+                    boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)",
+                    padding: "16px",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    boxSizing: "border-box"
+                  }}>
+                    <div className="w-10 h-10 flex-shrink-0 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center" style={{
+                      width: "40px",
+                      height: "40px",
+                      flexShrink: 0,
+                      backgroundColor: selectedActionId === "A" ? "#FF1A1A" : selectedActionId === "B" ? "#448aff" : selectedActionId === "C" ? "#4caf50" : "#ffc107",
+                      border: "4px solid #000",
+                      boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxSizing: "border-box"
+                    }}>
+                      <span className="text-white font-black text-xl" style={{
+                        color: selectedActionId === "D" ? "black" : "white",
+                        fontWeight: "900",
+                        fontSize: "20px",
+                        fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                      }}>{selectedActionId || "A"}</span>
+                    </div>
+                    <p className="font-bold text-[15px] leading-snug text-black" style={{
+                      margin: 0,
+                      fontWeight: "bold",
+                      fontSize: "15px",
+                      lineHeight: "1.4",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>
                       {selectedActionText || "選択した振る舞い"}
                     </p>
                   </div>
+
                 </div>
-                <ResultCtaBlock />
-                <div className="pf-result-accordion-list">
-                  {lessonCards.map((card, idx) => (
-                    <ResultAccordionItem
-                      key={card.title}
-                      index={idx}
-                      title={card.title}
-                      body={card.body}
-                      isOpen={resultExpandedSection === idx}
-                      onToggle={() =>
-                        setResultExpandedSection((current) =>
-                          current === idx ? null : idx
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-                <ResultCtaBlock className="pf-result-cta-bottom" />
+
+                {/* 次へボタン (他の画面と完全に同一のデザイン・余白・サイズ・DOM配置) */}
                 <button
                   type="button"
-                  className="pf-back-wide pf-result-back"
+                  className="pf-scene-next-btn"
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "32px", marginBottom: "45px", width: "100%" }}
+                  onClick={() => go("cta")}
+                >
+                  次へ
+                </button>
+
+              </main>
+              
+            </div>
+          </div>
+        </div>
+      </section>
+
+        {/* ── CTA (解説チェック画面) ── */}
+        <section
+          id="screen-cta"
+          className={isActive("cta")}
+          aria-labelledby="cta-heading"
+        >
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+                
+                {/* BEGIN: Header */}
+                <header className="flex items-center gap-4 mb-8 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingTop: "16px", width: "100%" }}>
+                  <button
+                    type="button"
+                    className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    onClick={() => go("result")}
+                    style={{ width: "48px", height: "40px", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                  >
+                    <span className="font-bold text-xl text-black" style={{ fontSize: "20px", fontWeight: "900", color: "black", fontFamily: "var(--font)" }}>←</span>
+                  </button>
+                  <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "24px", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
+                    <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
+                  </div>
+                </header>
+                {/* END: Header */}
+
+                {/* BEGIN: Alert Banner */}
+                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "24px", width: "100%" }}>
+                  <div className="bg-[#ff5a5a]" style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "#ff5a5a",
+                    padding: "7px 16px",
+                    border: "3px solid #000",
+                    boxShadow: "3px 3px 0 #000",
+                    justifyContent: "center"
+                  }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                    </span>
+                  </div>
+                </div>
+                {/* END: Alert Banner */}
+
+                {/* BEGIN: Character and Speech Bubble */}
+                <div className="pf-choice-char-row" style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 16px",
+                  marginBottom: "24px",
+                  gap: "16px",
+                  width: "100%"
+                }}>
+                  {charImages[character] && (
+                    <img
+                      src={charImages[character]}
+                      alt={charNick[character] || character}
+                      style={{
+                        width: `${sliderChoiceCharSize}px`,
+                        height: `${sliderChoiceCharSize}px`,
+                        objectFit: "contain",
+                        flexShrink: 0
+                      }}
+                    />
+                  )}
+                  {/* 吹き出し */}
+                  <div className="pf-choice-speech-bubble" style={{
+                    position: "relative",
+                    backgroundColor: "#fff",
+                    border: "3px solid #000",
+                    borderRadius: "12px",
+                    padding: "8px 16px",
+                    boxShadow: "3px 3px 0 #000",
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "48px"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-11px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "6px 12px 6px 0",
+                      borderColor: "transparent #000 transparent transparent"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "5px 10px 5px 0",
+                      borderColor: "transparent #fff transparent transparent",
+                      zIndex: 1
+                    }} />
+                    <span style={{
+                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontWeight: "bold",
+                      color: "#000",
+                      fontFamily: "var(--font)",
+                      lineHeight: "1.2"
+                    }}>
+                      解説を<br />チェックしよう！
+                    </span>
+                  </div>
+                </div>
+                {/* END: Character and Speech Bubble */}
+
+                {/* BEGIN: Main Result Card */}
+                <div className="bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6 flex flex-col" style={{
+                  backgroundColor: "white",
+                  border: "4px solid #000",
+                  boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)",
+                  padding: "24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  boxSizing: "border-box",
+                  flexGrow: 1,
+                  marginBottom: "32px",
+                  width: "100%"
+                }}>
+                  <h2 className="text-center font-black text-2xl text-black" style={{
+                    textAlign: "center",
+                    fontWeight: "900",
+                    fontSize: "24px",
+                    color: "black",
+                    marginBottom: "8px",
+                    fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                  }}>
+                    あなたのタイプに合わせた
+                  </h2>
+                  
+                  {/* 点線付き下線＆ピンク文字＆▼アイコン */}
+                  <div className="pb-3 mb-6 relative" style={{
+                    borderBottom: "3px dashed #ff0080",
+                    paddingBottom: "12px",
+                    marginBottom: "24px",
+                    position: "relative"
+                  }}>
+                    <p className="text-center text-[#ff0080] font-black text-2xl" style={{
+                      textAlign: "center",
+                      color: "#ff0080",
+                      fontWeight: "900",
+                      fontSize: "23px",
+                      lineHeight: "1.3",
+                      margin: 0,
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>
+                      コミュニケーションスキルを<br />より深く学べる！
+                    </p>
+                    {/* 下部中央 of ピンクの▼ */}
+                    <div style={{
+                      position: "absolute",
+                      bottom: "-14px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      color: "#ff0080",
+                      fontSize: "14px",
+                      zIndex: 2
+                    }}>▼</div>
+                  </div>
+
+                  <ul className="space-y-3 px-2 font-bold text-gray-900 mb-6" style={{
+                    listStyleType: "none",
+                    paddingLeft: "8px",
+                    margin: 0,
+                    marginBottom: "24px"
+                  }}>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>なぜこの組み合わせなの？
+                    </li>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>コミュニケーションスキル解説
+                    </li>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>あなたの落とし穴
+                    </li>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "0px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>明日から使えるフレーズ集
+                    </li>
+                  </ul>
+
+                  {/* CTA黄色ボタン (詳しい解説をチェック) */}
+                  <button
+                    className="w-full bg-[#ffcc00] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-3 transition-transform active:translate-y-[4px] active:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#ffcc00",
+                      border: "4px solid #000",
+                      boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "12px",
+                      paddingTop: "24px",
+                      paddingBottom: "24px",
+                      boxSizing: "border-box",
+                      cursor: "pointer",
+                      marginTop: "auto"
+                    }}
+                    onClick={() => {
+                      // 解説詳細(detail)画面を表示させる
+                      go("detail");
+                    }}
+                  >
+                    <span className="font-black text-2xl text-black" style={{
+                      fontWeight: "900",
+                      fontSize: "24px",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>詳しい解説をチェック</span>
+                    {/* 右三角 ▶ アイコン */}
+                    <div style={{
+                      backgroundColor: "#ff6b00",
+                      border: "2px solid #000",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      <svg style={{ width: "16px", height: "16px", fill: "white" }} viewBox="0 0 20 20">
+                        <path d="M5 3l12 7-12 7V3z"></path>
+                      </svg>
+                    </div>
+                  </button>
+                </div>
+                {/* END: Main Result Card */}
+
+                {/* BEGIN: Footer Navigation (ステージ選択画面に戻る) */}
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{
+                    fontSize: "20px",
+                    padding: "11px 16px",
+                    marginTop: "0px",
+                    marginBottom: "45px",
+                    width: "100%",
+                    backgroundColor: "white",
+                    color: "black",
+                    border: "4px solid #000",
+                    borderRadius: "9999px",
+                    boxShadow: "0px 6px 0px 0px rgba(0,0,0,1)"
+                  }}
                   onClick={() => go("stage")}
                 >
-                  ◀ ステージ選択画面に戻る
+                  <span style={{ fontSize: "14px", marginRight: "8px" }}>◀</span>
+                  ステージ選択画面に戻る
                 </button>
-                </div>
+                {/* END: Footer Navigation */}
+
               </div>
             </div>
           </div>

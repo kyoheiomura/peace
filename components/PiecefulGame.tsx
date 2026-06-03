@@ -2377,8 +2377,9 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                  onClick={() => go("stage")}
+                  onClick={() => go("action")}
                   style={{ width: "48px", height: "40px", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                  aria-label="振る舞い選択へ戻る"
                 >
                   <svg fill="none" height="24" stroke="currentColor" strokeLinecap="square" strokeLinejoin="miter" strokeWidth="4" viewBox="0 0 24 24" width="24" style={{ display: "block" }}>
                     <path d="M19 12H5M5 12L12 19M5 12L12 5"></path>

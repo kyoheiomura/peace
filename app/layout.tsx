@@ -1,10 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { AgentationDev } from "@/components/AgentationDev";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Pieceful - MBTI Communication Quest",
   description: "MBTIタイプ別キャラクターで、職場コミュニケーションを攻略するミニゲーム。",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

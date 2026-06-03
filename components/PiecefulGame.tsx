@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { charPickerScrollSubcopy } from "../lib/charPickerConfig";
-import { charImages, charNick, type CharacterType } from "../lib/characters";
+import { characters, charImages, charNick, charGroup, type CharacterType } from "../lib/characters";
 import { mbtiScenarios } from "../lib/mbtiScenarios";
 import { OnboardingScreens } from "./pieceful/OnboardingScreens";
 import { CharPicker2x8Scroll } from "./pieceful/CharPicker2x8Scroll";
@@ -29,6 +29,7 @@ const stages: Record<
     npc: string;
     npcTag: string;
     npcImg: string;
+    color: string;
     scenario: string;
     choices: {
       id: string;
@@ -51,12 +52,13 @@ const stages: Record<
   }
 > = {
   1: {
-    title: "ステージ1：先輩・上司",
+    title: "ステージ1:先輩・上司",
     sub: "遅延報告ミッション",
     kicker: "⚠️ 納期遅延 / 早期相談",
     npc: "田中部長",
     npcTag: "論理派・責任者",
     npcImg: "/img/1.png",
+    color: "#FF007A",
     scenario:
       "あなたは社内プロジェクトのリーダー。来週金曜納期の成果物について、協力会社から納品遅延の連絡が入った。全体スケジュールは3日遅れる見込み。",
     choices: [
@@ -66,7 +68,7 @@ const stages: Record<
         score: 25,
         grade: "S",
         title: "最高の切り出し",
-        text: "「納期に影響する遅延が判明しました。現状・影響・対応案を3分で共有して、判断をいただきたいです。」",
+        text: "「部長、今お時間よろしいでしょうか。〇〇プロジェクトについて、ご報告とご相談がございます。」",
         message:
           "事実、影響、相談事項が先に見えるので、責任者が判断しやすい伝え方です。",
         quote: "「いいね。まず全体影響から確認しよう。」",
@@ -77,7 +79,7 @@ const stages: Record<
         score: -10,
         grade: "C",
         title: "勢いはあるが危険",
-        text: "「ちょっと大変なことになりました！でも多分なんとかなると思います！」",
+        text: "「部長！〇〇プロジェクト、協力会社が遅れてます。俺、もう別の業者に当たってます！」",
         message:
           "緊急感は伝わりますが、根拠と判断材料が不足しています。上司の不安を増やしやすい切り出しです。",
         quote: "「多分では判断できない。事実を整理して。」",
@@ -88,10 +90,21 @@ const stages: Record<
         score: 5,
         grade: "B",
         title: "相談姿勢は良い",
-        text: "「協力会社の納品が遅れそうです。どうすればいいでしょうか……？」",
+        text: "「部長…お忙しいところ申し訳ないんですが…〇〇の件で、ちょっとご相談が…」",
         message:
           "相談はできていますが、丸投げに見えやすいです。最低限の状況整理と案を添えると信頼が上がります。",
-        quote: "「状況は分かった。あなたの案は？」",
+        quote: "「状況は分かった。あなたの案は?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -8,
+        grade: "C",
+        title: "軽すぎる報告",
+        text: "「部長、〇〇プロジェクトですけど、納期厳しいっすね。どうします？」",
+        message:
+          "事実は伝わりますが、判断を丸投げしており責任感が感じられません。報告には自分の見解を添えましょう。",
+        quote: "「どうするじゃなくて、お前はどう思ってるんだ?」",
       },
     ],
     actions: [
@@ -122,7 +135,7 @@ const stages: Record<
     ],
     lessons: [
       [
-        "なぜ正解なのか？",
+        "なぜ正解なのか?",
         "上司が知りたいのは「何が起きたか」「どれくらい危ないか」「何を決めればいいか」です。感情より判断材料を先に出すと信頼されます。",
       ],
       [
@@ -140,12 +153,13 @@ const stages: Record<
     ],
   },
   2: {
-    title: "ステージ2：同僚",
+    title: "ステージ2:同期",
     sub: "協力依頼ミッション",
     kicker: "🤝 巻き込み / 役割分担",
     npc: "佐藤さん",
     npcTag: "実行派・同僚",
     npcImg: "/img/7.png",
+    color: "#8A2BE2",
     scenario:
       "急ぎの資料作成で、同僚の佐藤さんにレビューをお願いしたい。ただし佐藤さんも別案件で忙しそう。相手の負担を増やしすぎず、協力してもらう必要がある。",
     choices: [
@@ -155,7 +169,7 @@ const stages: Record<
         score: 22,
         grade: "S",
         title: "協力しやすい依頼",
-        text: "「10分だけレビューをお願いできますか？見てほしいのは数字の整合性だけです。今日16時までだと助かります。」",
+        text: "「10分だけレビューをお願いできますか?見てほしいのは数字の整合性だけです。今日16時までだと助かります。」",
         message:
           "所要時間・範囲・期限が明確なので、相手が引き受けやすい依頼です。",
         quote: "「それなら見られるよ。数字だけ確認するね。」",
@@ -166,10 +180,10 @@ const stages: Record<
         score: -8,
         grade: "C",
         title: "重く見える依頼",
-        text: "「この資料、全体的に良い感じに見てもらえますか？」",
+        text: "「この資料、全体的に良い感じに見てもらえますか?」",
         message:
           "範囲が曖昧で、相手の負担が読めません。忙しい相手ほど断りたくなります。",
-        quote: "「全体的にって、どこまで見ればいい？」",
+        quote: "「全体的にって、どこまで見ればいい?」",
       },
       {
         id: "C",
@@ -177,10 +191,21 @@ const stages: Record<
         score: 6,
         grade: "B",
         title: "気遣いはある",
-        text: "「忙しいところすみません。もし無理なら大丈夫なんですが、少しだけ見てもらえませんか？」",
+        text: "「忙しいところすみません。もし無理なら大丈夫なんですが、少しだけ見てもらえませんか?」",
         message:
           "丁寧ですが、何をどれくらい見ればいいかが不足しています。",
-        quote: "「少しって何分くらい？」",
+        quote: "「少しって何分くらい?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -6,
+        grade: "C",
+        title: "押しが強すぎる",
+        text: "「これ、今日中にお願いできます?他にも手が回らなくて。明日の朝イチで必要で…」",
+        message:
+          "期限は明確ですが、相手の状況を無視した依頼は反感を買いやすいです。",
+        quote: "「こっちも締め切りがあるんだけど…」",
       },
     ],
     actions: [
@@ -207,6 +232,14 @@ const stages: Record<
         feedback:
           "悪くはありませんが、依頼内容が残る形にすると認識ズレを防げます。",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -4,
+        text: "チーム全員に一斉にチャットで依頼を流す。",
+        feedback:
+          "全員に振ると誰もやらない現象が起きやすいです。指名して依頼しましょう。",
+      },
     ],
     lessons: [
       [
@@ -228,12 +261,13 @@ const stages: Record<
     ],
   },
   3: {
-    title: "ステージ3：後輩",
+    title: "ステージ3:後輩",
     sub: "フィードバックミッション",
     kicker: "🌱 育成 / 伝え方",
     npc: "山本さん",
     npcTag: "共感派・後輩",
     npcImg: "/img/10.png",
+    color: "#FF8C00",
     scenario:
       "後輩の山本さんが作った提案書に、良い点はあるものの、目的と結論がずれている。やる気を下げずに、修正してもらう必要がある。",
     choices: [
@@ -246,7 +280,7 @@ const stages: Record<
         text: "「調査量はすごく良いです。さらに伝わる資料にするために、最初に結論を1行足してみよう。」",
         message:
           "良い点を認めてから、次の改善点を具体化できています。",
-        quote: "「ありがとうございます。結論から直してみます！」",
+        quote: "「ありがとうございます。結論から直してみます!」",
       },
       {
         id: "B",
@@ -257,7 +291,7 @@ const stages: Record<
         text: "「これだと何が言いたいのか分からない。最初からやり直して。」",
         message:
           "問題点は伝わりますが、改善方向が見えず、相手の意欲を下げやすいです。",
-        quote: "「すみません……どこから直せばいいですか？」",
+        quote: "「すみません......どこから直せばいいですか?」",
       },
       {
         id: "C",
@@ -268,7 +302,18 @@ const stages: Record<
         text: "「全体的にはいいと思うよ。もう少し分かりやすくしてみて。」",
         message:
           "優しさはありますが、何を直せばいいかが曖昧です。",
-        quote: "「分かりやすく……どのあたりでしょう？」",
+        quote: "「分かりやすく......どのあたりでしょう?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -10,
+        grade: "C",
+        title: "放置に近い",
+        text: "「あー、うん。まあこんなもんかな。出しといて。」",
+        message:
+          "確認していない印象を与え、後輩の成長機会を奪います。忙しくても最低限の指摘を。",
+        quote: "「見てくれたんですか…?」",
       },
     ],
     actions: [
@@ -295,6 +340,14 @@ const stages: Record<
         feedback:
           "情報量が多すぎると優先順位が分からなくなります。まず1〜2点に絞りましょう。",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -5,
+        text: "「あとでちゃんと見るね」と言ったまま、結局見ない。",
+        feedback:
+          "放置は信頼低下の原因です。時間が取れないならその旨を伝えましょう。",
+      },
     ],
     lessons: [
       [
@@ -316,14 +369,15 @@ const stages: Record<
     ],
   },
   4: {
-    title: "ステージ4：クライアント",
+    title: "ステージ4:クライアント",
     sub: "期待調整ミッション",
     kicker: "🧑‍💼 提案 / 合意形成",
     npc: "鈴木様",
     npcTag: "慎重派・顧客",
     npcImg: "/img/5.png",
+    color: "#32CD32",
     scenario:
-      "クライアントから「来週までに追加機能も入れられますよね？」と相談された。実装は可能だが、品質確認の時間が足りなくなるリスクがある。関係を壊さず期待調整したい。",
+      "クライアントから「来週までに追加機能も入れられますよね?」と相談された。実装は可能だが、品質確認の時間が足りなくなるリスクがある。関係を壊さず期待調整したい。",
     choices: [
       {
         id: "A",
@@ -342,7 +396,7 @@ const stages: Record<
         score: -10,
         grade: "C",
         title: "安請け合い",
-        text: "「はい、大丈夫だと思います！なんとかします！」",
+        text: "「はい、大丈夫だと思います!なんとかします!」",
         message:
           "一時的には安心されますが、後から品質・納期トラブルになりやすいです。",
         quote: "「ではそれでお願いします。」",
@@ -356,7 +410,18 @@ const stages: Record<
         text: "「それは無理です。今から追加はできません。」",
         message:
           "境界線は引けていますが、代替案がなく関係性が硬くなりやすいです。",
-        quote: "「そうですか……他に方法はないですか？」",
+        quote: "「そうですか......他に方法はないですか?」",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -12,
+        grade: "C",
+        title: "過剰な約束",
+        text: "「もちろんです！追加機能も全部入れますよ！安心してください！」",
+        message:
+          "その場は喜ばれますが、品質も納期も守れなくなる危険が高いです。",
+        quote: "「じゃあお願いします！期待してます！」",
       },
     ],
     actions: [
@@ -383,6 +448,14 @@ const stages: Record<
         feedback:
           "保留は有効ですが、いつ何を回答するかを明確にすると安心されます。",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -6,
+        text: "とりあえず「はい」と答えて、後から「やっぱり無理でした」と伝える。",
+        feedback:
+          "後出しの変更は信頼を大きく損ないます。最初に無理なものは無理と伝えましょう。",
+      },
     ],
     lessons: [
       [
@@ -404,12 +477,13 @@ const stages: Record<
     ],
   },
   5: {
-    title: "ステージ5：他部署",
+    title: "ステージ5:他部署",
     sub: "巻き込みミッション",
     kicker: "🌀 部署間連携 / 合意形成",
     npc: "高橋さん",
     npcTag: "慎重派・他部署",
     npcImg: "/img/12.png",
+    color: "#00BFFF",
     scenario:
       "新しい施策を進めるため、他部署の高橋さんに協力してもらう必要がある。ただ、高橋さんの部署には直接メリットが見えにくく、優先順位も高くなさそう。",
     choices: [
@@ -419,7 +493,7 @@ const stages: Record<
         score: 23,
         grade: "S",
         title: "相手目線の巻き込み",
-        text: "「この施策で御部署の問い合わせ対応が減る可能性があります。まず負担が少ない形で10分だけ相談できますか？」",
+        text: "「この施策で御部署の問い合わせ対応が減る可能性があります。まず負担が少ない形で10分だけ相談できますか?」",
         message:
           "相手部署のメリットと負担の小ささを先に伝えられています。",
         quote: "「問い合わせが減るなら、一度聞きたいです。」",
@@ -446,6 +520,17 @@ const stages: Record<
           "丁寧ですが、なぜ協力する価値があるのかが不足しています。",
         quote: "「内容次第ですね。」",
       },
+      {
+        id: "D",
+        risk: "危険",
+        score: -9,
+        grade: "C",
+        title: "上から目線",
+        text: "「全社のプロジェクトなんで、協力は当然ですよね。よろしくお願いします。」",
+        message:
+          "強制感が強く、相手の協力意欲を下げます。「当然」は禁句です。",
+        quote: "「当然って…こちらにも予定があるんですが。」",
+      },
     ],
     actions: [
       {
@@ -471,6 +556,14 @@ const stages: Record<
         text: "まず雑談で関係を作ってから、後日あらためて相談する。",
         feedback:
           "関係づくりは良いですが、目的とメリットの説明もセットにしましょう。",
+      },
+      {
+        id: "D",
+        risk: "危険",
+        score: -7,
+        text: "会議の場で他部署の出席者に突然振って、その場で決めようとする。",
+        feedback:
+          "不意打ちは相手の防衛本能を刺激します。事前の個別相談が基本です。",
       },
     ],
     lessons: [
@@ -508,7 +601,8 @@ export type PiecefulPreviewScreen =
   | "action"
   | "result"
   | "detail"
-  | "clear";
+  | "clear"
+  | "cta";
 
 type Screen = PiecefulPreviewScreen;
 
@@ -518,8 +612,6 @@ export type PiecefulGameProps = {
   /** 導線マップ用: 固定画面を表示 */
   previewScreen?: PiecefulPreviewScreen;
   previewClearedStages?: number[];
-  /** title プレビューで「続きから」を見せる */
-  previewHasSave?: boolean;
 };
 
 function hasCompletedOnboarding(): boolean {
@@ -543,7 +635,7 @@ const DETAIL_BADGES = ["話の目的を先に示す", "タイプ別の注意点"
 
 function splitScenarioParagraphs(text: string): string[] {
   const parts = text
-    .split(/(?<=[。！？])/)
+    .split(/(?<=[。!?])/)
     .map((s) => s.trim())
     .filter(Boolean);
   if (parts.length <= 3) return parts;
@@ -642,10 +734,33 @@ const RESULT_LESSON_TITLES = [
   "もっと知りたい人へ",
 ] as const;
 
+function getStageStep(screen: Screen): { current: number; total: number; label: string } {
+  switch (screen) {
+    case "scene": return { current: 1, total: 4, label: "状況" };
+    case "choice": return { current: 2, total: 4, label: "切り出し" };
+    case "action": return { current: 3, total: 4, label: "振る舞い" };
+    case "result": case "detail": case "cta": return { current: 4, total: 4, label: "完了" };
+    default: return { current: 0, total: 4, label: "" };
+  }
+}
+
+function StageProgressMeter({ step }: { step: ReturnType<typeof getStageStep> }) {
+  if (step.current === 0) return null;
+  const pct = step.current >= step.total ? 100 : (step.current / step.total) * 100;
+  return (
+    <div className="pf-progress-meter">
+      <div className="pf-progress-track">
+        <div className="pf-progress-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="pf-progress-label">{step.label} {step.current}/{step.total}</span>
+    </div>
+  );
+}
+
 function ResultCtaBlock({ className }: { className?: string }) {
   return (
     <div className={["pf-result-cta", className].filter(Boolean).join(" ")}>
-      <p className="pf-result-cta-kicker">＼あなたの強みを活かす！／</p>
+      <p className="pf-result-cta-kicker">\あなたの強みを活かす!/</p>
       <button type="button" className="pf-yellow-pill pf-result-cta-btn">
         詳しい解説と実践のコツを見る
       </button>
@@ -736,11 +851,10 @@ function clamp(n: number, min: number, max: number): number {
 
 /* ── component ── */
 
-export function PiecefulGame({
+export default function PiecefulGame({
   embed = false,
   previewScreen,
   previewClearedStages,
-  previewHasSave = false,
 }: PiecefulGameProps = {}) {
   const isPreview = Boolean(previewScreen);
 
@@ -757,14 +871,23 @@ export function PiecefulGame({
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [pendingChar, setPendingChar] = useState<CharacterType | null>(null);
   const [clearedStages, setClearedStages] = useState<Set<number>>(new Set());
-  const [hasSave, setHasSave] = useState(false);
   const [detailIndex, setDetailIndex] = useState(0);
   const [sceneParagraphs, setSceneParagraphs] = useState<string[]>([]);
+  const [sceneBgImg, setSceneBgImg] = useState("");
+  const [choiceScenarioOpen, setChoiceScenarioOpen] = useState(false);
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
   const [selectedChoiceText, setSelectedChoiceText] = useState("");
   const [selectedActionText, setSelectedActionText] = useState("");
   const [lessonCards, setLessonCards] = useState<LessonCard[]>([]);
+  const [sliderChoiceCharSize, setSliderChoiceCharSize] = useState(124);
+  const [sliderChoiceBubbleTextSize, setSliderChoiceBubbleTextSize] = useState(26);
+  const [sliderChoicePaddingY, setSliderChoicePaddingY] = useState(4);
+  const [sliderChoiceTextSize, setSliderChoiceTextSize] = useState(19);
+  const [sliderChoiceGap, setSliderChoiceGap] = useState(14);
+  const [sliderChoiceChoicesMarginTop, setSliderChoiceChoicesMarginTop] = useState(0);
   const [resultExpandedSection, setResultExpandedSection] = useState<number | null>(
     null
   );
@@ -839,6 +962,11 @@ export function PiecefulGame({
     const raw = csv?.situation || s?.scenario || "";
     return splitScenarioParagraphs(raw);
   }, [sceneParagraphs, stage, character]);
+
+  const choiceScenarioSummary = useMemo(() => {
+    const full = priorScenarioParagraphs.join("");
+    return full.length > 68 ? full.slice(0, 68) + "…" : full;
+  }, [priorScenarioParagraphs]);
 
   const measureActionLayout = useCallback(() => {
     const layout = actionFlowRef.current;
@@ -1018,7 +1146,7 @@ export function PiecefulGame({
       setCharacter(type);
       characterRef.current = type;
       if (!options?.fromPicker) {
-        toast(`${type}：${charNick[type]} を選択！`);
+        toast(`${type}:${charNick[type]} を選択!`);
       }
       syncHud();
       if (!options?.fromPicker) {
@@ -1032,11 +1160,33 @@ export function PiecefulGame({
     id: string,
     text: string,
     dataAttr: "data-choice-id" | "data-action-id"
-  ) =>
-    `<button type="button" class="pf-choice" ${dataAttr}="${id}">
-      <span class="pf-choice-letter ${id.toLowerCase()}">${id}</span>
-      <span>${text}</span>
+  ) => {
+    const badgeColor =
+      id === "A" ? "#ff3333" :
+      id === "B" ? "#448aff" :
+      id === "C" ? "#4caf50" :
+      "#ffc107";
+    const textColor = id === "D" ? "#000" : "#fff";
+    
+    const paddingVal = dataAttr === "data-choice-id" ? `${sliderChoicePaddingY}px 16px` : "14px 16px";
+    const fontSizeVal = dataAttr === "data-choice-id" ? `${sliderChoiceTextSize}px` : "19px";
+
+    const isSelected =
+      dataAttr === "data-choice-id" ? selectedChoiceId === id : selectedActionId === id;
+    const bgColor = isSelected ? (
+      id === "A" ? "#ffebee" :
+      id === "B" ? "#e3f2fd" :
+      id === "C" ? "#e8f5e9" :
+      "#fffde7"
+    ) : "#ffffff";
+    
+    return `<button type="button" class="w-full flex items-center retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px; background-color: ${bgColor};">
+      <div class="w-12 h-12 retro-border flex items-center justify-center flex-shrink-0 mr-4 pf-choice-letter ${id.toLowerCase()}" style="background-color: ${badgeColor}; color: ${textColor}; font-family: var(--font); border-width: 3px; border-radius: 8px;">
+        <span class="text-2xl font-black">${id}</span>
+      </div>
+      <p class="leading-snug font-bold text-black" style="margin: 0; font-family: var(--font); font-size: ${fontSizeVal}; color: #000;">${text}</p>
     </button>`;
+  };
 
   const getChoiceLabel = useCallback((id: string): string => {
     const pickId = normalizePickId(id);
@@ -1080,7 +1230,13 @@ export function PiecefulGame({
         .map((c) => choiceButtonHtml(c.id, c.text, "data-choice-id"))
         .join("");
     }
-  }, [stage]);
+  }, [stage, sliderChoicePaddingY, sliderChoiceTextSize, choiceButtonHtml, selectedChoiceId]);
+
+  useEffect(() => {
+    if (currentScreen === "choice") {
+      renderChoices();
+    }
+  }, [currentScreen, renderChoices, sliderChoicePaddingY, sliderChoiceTextSize, selectedChoiceId]);
 
   const renderActions = useCallback(() => {
     const s = stages[stage];
@@ -1098,7 +1254,13 @@ export function PiecefulGame({
         .map((a) => choiceButtonHtml(a.id, a.text, "data-action-id"))
         .join("");
     }
-  }, [stage]);
+  }, [stage, choiceButtonHtml, selectedActionId]);
+
+  useEffect(() => {
+    if (currentScreen === "action") {
+      renderActions();
+    }
+  }, [currentScreen, renderActions, selectedActionId]);
 
   /* ── applyScore ── */
   const applyScore = useCallback((delta: number) => {
@@ -1133,7 +1295,7 @@ export function PiecefulGame({
         gradeRef.current.textContent = answer.isCsv ? (isCorrect ? "S" : "C") : answer.grade;
       if (feedbackHeadingRef.current)
         feedbackHeadingRef.current.textContent = answer.isCsv
-          ? (isCorrect ? "素晴らしい選択！" : "もう少し工夫できるかも")
+          ? (isCorrect ? "素晴らしい選択!" : "もう少し工夫できるかも")
           : answer.title;
       if (feedbackMessageRef.current)
         feedbackMessageRef.current.textContent = answer.isCsv
@@ -1146,8 +1308,8 @@ export function PiecefulGame({
       if (coachBubbleRef.current) {
         coachBubbleRef.current.textContent =
           isCorrect
-            ? "いい選択！相手が判断しやすい順番で伝えられています。"
-            : "惜しい！相手の不安や負担が増えるポイントを減らそう。";
+            ? "いい選択!相手が判断しやすい順番で伝えられています。"
+            : "惜しい!相手の不安や負担が増えるポイントを減らそう。";
       }
       renderActions();
       syncHud();
@@ -1158,6 +1320,8 @@ export function PiecefulGame({
   /* ── selectAnswer ── */
   const selectAnswer = useCallback(
     (id: string) => {
+      setSelectedActionId(null);
+      setSelectedActionText("");
       const csv = mbtiScenarios[characterRef.current]?.[stage];
       if (csv) {
         const pickId = normalizePickId(id);
@@ -1194,7 +1358,7 @@ export function PiecefulGame({
       renderFeedback(answer);
       go("action");
     },
-    [stage, applyScore, renderFeedback, go]
+    [stage, applyScore, renderFeedback, go, setSelectedActionId, setSelectedActionText]
   );
 
   /* ── renderResult ── */
@@ -1232,6 +1396,7 @@ export function PiecefulGame({
   /* ── selectAction ── */
   const selectAction = useCallback(
     (id: string) => {
+      setSelectedActionId(id);
       const csv = mbtiScenarios[characterRef.current]?.[stage];
       lastActionRef.current = id;
       /* mark stage as cleared */
@@ -1267,7 +1432,7 @@ export function PiecefulGame({
         go("result");
       }, 460);
     },
-    [stage, applyScore, toast, go, renderResult]
+    [stage, applyScore, toast, go, renderResult, setSelectedActionId, setSelectedActionText]
   );
 
   const handlePrimaryStart = useCallback(() => {
@@ -1335,15 +1500,17 @@ export function PiecefulGame({
       lastChoiceRef.current = null;
       lastAnswerRef.current = null;
       setSelectedChoiceId(null);
+      setSelectedActionId(null);
       setSelectedChoiceText("");
       setSelectedActionText("");
       setPendingPick(null);
       setPriorChoiceOpen(false);
+      setChoiceScenarioOpen(false);
+      setSceneBgImg(`/img/stage/st${stageNo}.png`);
       loadStageContent();
-      renderChoices();
-      go("choice");
+      go("scene");
     },
-    [loadStageContent, renderChoices, go]
+    [loadStageContent, go, setSelectedActionId]
   );
 
   /* ── resetGame ── */
@@ -1353,7 +1520,6 @@ export function PiecefulGame({
     } catch {
       /* ignore */
     }
-    setHasSave(false);
     setStage(1);
     setTrust(35);
     setScore(0);
@@ -1367,15 +1533,16 @@ export function PiecefulGame({
     lastChoiceRef.current = null;
     lastAnswerRef.current = null;
     setSelectedChoiceId(null);
+    setSelectedActionId(null);
     setSelectedChoiceText("");
     setSelectedActionText("");
     syncHud();
     go(opts?.screen ?? "stage");
-  }, [syncHud, go]);
+  }, [syncHud, go, setSelectedActionId]);
 
   const resetGameWithConfirm = useCallback(() => {
     const ok = window.confirm(
-      "スコア・コンボ・信頼度・クリア状況を消して、最初からやり直しますか？"
+      "スコア・コンボ・信頼度・クリア状況を消して、最初からやり直しますか?"
     );
     if (!ok) return;
     resetGame();
@@ -1383,7 +1550,7 @@ export function PiecefulGame({
 
   const discardSaveAndNew = useCallback(() => {
     const ok = window.confirm(
-      "保存された進捗を消して、新しく始めますか？"
+      "保存された進捗を消して、新しく始めますか?"
     );
     if (!ok) return;
     resetGame({ screen: "title" });
@@ -1476,7 +1643,13 @@ export function PiecefulGame({
         | HTMLElement
         | null;
       if (choiceBtn) {
-        openPickConfirm("choice", choiceBtn);
+        const rawId = choiceBtn.dataset.choiceId;
+        if (rawId) {
+          const id = normalizePickId(rawId);
+          const label = readPickLabelFromButton(choiceBtn) || getChoiceLabel(id);
+          setSelectedChoiceId(id);
+          setSelectedChoiceText(label);
+        }
         return;
       }
 
@@ -1484,7 +1657,13 @@ export function PiecefulGame({
         | HTMLElement
         | null;
       if (actionBtn) {
-        openPickConfirm("action", actionBtn);
+        const rawId = actionBtn.dataset.actionId;
+        if (rawId) {
+          const id = normalizePickId(rawId);
+          const label = readPickLabelFromButton(actionBtn) || getActionLabel(id);
+          setSelectedActionId(id);
+          setSelectedActionText(label);
+        }
         return;
       }
 
@@ -1501,7 +1680,7 @@ export function PiecefulGame({
 
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
-  }, [openPickConfirm, go]);
+  }, [openPickConfirm, go, getChoiceLabel, getActionLabel, setSelectedChoiceId, setSelectedChoiceText, setSelectedActionId, setSelectedActionText]);
 
   /* ── keyboard: Escape closes guide / picker ── */
   useEffect(() => {
@@ -1536,10 +1715,6 @@ export function PiecefulGame({
       clearedRef.current = cleared;
     }
 
-    if (previewScreen === "title" && previewHasSave) {
-      setHasSave(true);
-    }
-
     if (previewScreen === "clear") {
       const all = new Set(ALL_STAGE_IDS);
       setClearedStages(all);
@@ -1551,8 +1726,12 @@ export function PiecefulGame({
       trustRef.current = 72;
     }
 
-    if (previewScreen === "choice" || previewScreen === "action") {
+    if (previewScreen === "scene" || previewScreen === "choice" || previewScreen === "action") {
       loadStageContent();
+    }
+
+    if (previewScreen === "scene") {
+      setSceneBgImg("/img/stage/st1.png");
     }
 
     if (previewScreen === "action") {
@@ -1589,7 +1768,6 @@ export function PiecefulGame({
   }, [
     previewScreen,
     previewClearedStages,
-    previewHasSave,
     loadStageContent,
     renderResult,
     syncHud,
@@ -1629,7 +1807,6 @@ export function PiecefulGame({
         updatedAt: new Date().toISOString(),
       };
       localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-      setHasSave(true);
     } catch {
       /* ignore */
     }
@@ -1653,7 +1830,7 @@ export function PiecefulGame({
       const raw = localStorage.getItem(PROGRESS_KEY);
       if (raw) {
         const data = JSON.parse(raw) as PiecefulProgressV1;
-        if (data?.version === 1 && data.selectedType) setHasSave(true);
+        if (data?.version === 1 && data.selectedType) { /* save data exists */ }
       }
     } catch {
       /* ignore */
@@ -1692,7 +1869,7 @@ export function PiecefulGame({
 
   const shareText = useMemo(
     () =>
-      `Piecefulをクリア！\nMBTI: ${character}（${charNick[character]}）\nScore: ${score}\nMaxCombo: ${maxCombo}\nTrust: ${trust}%`,
+      `Piecefulをクリア!\nMBTI: ${character}(${charNick[character]})\nScore: ${score}\nMaxCombo: ${maxCombo}\nTrust: ${trust}%`,
     [character, score, maxCombo, trust]
   );
 
@@ -1701,7 +1878,7 @@ export function PiecefulGame({
       await navigator.clipboard.writeText(shareText);
       toast("結果をコピーしました");
     } catch {
-      toast("コピーできませんでした（ブラウザの許可を確認してください）");
+      toast("コピーできませんでした(ブラウザの許可を確認してください)");
     }
   }, [shareText, toast]);
 
@@ -1723,14 +1900,20 @@ export function PiecefulGame({
           aria-labelledby="title-heading"
         >
           <div className="pf-screen pf-paper is-title">
+            <div className="pf-window-header">
+              <div className="pf-window-buttons">
+                <span className="pf-win-btn pf-win-close">×</span>
+                <span className="pf-win-btn pf-win-minimize">-</span>
+                <span className="pf-win-btn pf-win-maximize">▢</span>
+              </div>
+            </div>
             <div className="pf-safe">
               <div className="pf-home-layout">
                 <div className="pf-red-banner">
                   <p className="pf-red-banner-text">
-                    <span className="pf-piece-icon" aria-hidden />
-                    個性を活かした伝え方で
+                    🧩 個性を活かしたコミュニケーションで
                     <br />
-                    仕事をもっと快適に!
+                    職場をもっと快適に!
                   </p>
                 </div>
                 <div>
@@ -1740,31 +1923,20 @@ export function PiecefulGame({
                   <p className="pf-home-subtitle">- ピースフル -</p>
                 </div>
                 <div className="pf-home-actions">
-                  {hasSave && (
-                    <button
-                      type="button"
-                      className="pf-big-btn"
-                      onClick={restoreProgress}
-                    >
-                      続きから ▶
-                    </button>
-                  )}
                   <button
                     type="button"
-                    className="pf-big-btn"
-                    onClick={handlePrimaryStart}
+                    className="pf-big-btn yellow"
+                    onClick={handleQuickStart}
                   >
-                    {onboardingDone ? "ゲーム開始 ▶" : "30秒でわかる ▶"}
+                    ゲーム開始 ▶
                   </button>
-                  {!onboardingDone && (
-                    <button
-                      type="button"
-                      className="pf-big-btn pink"
-                      onClick={handleQuickStart}
-                    >
-                      すぐゲーム開始
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="pf-big-btn pink"
+                    onClick={openGuide}
+                  >
+                    遊び方を見る 📖
+                  </button>
                 </div>
                 <div className="pf-character-callout">
                   <img
@@ -1772,28 +1944,16 @@ export function PiecefulGame({
                     src={charImages[character]}
                     alt=""
                   />
-                  <div className="pf-speech">
-                    {onboardingDone ? (
-                      <>
-                        タイプを選んで
-                        <br />
-                        ステージに挑戦!
-                      </>
-                    ) : (
-                      <>
-                        まずは3画面で
-                        <br />
-                        遊び方を確認。
-                        <br />
-                        そのあと練習!
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="pf-pager" aria-hidden>
-                  <span className="on" />
-                  <span />
-                  <span />
+                  <img
+                    className="pf-callout-flag"
+                    src="/img/flag.png"
+                    alt=""
+                  />
+                  <img
+                    className="pf-callout-cloud"
+                    src="/img/cloud.png"
+                    alt=""
+                  />
                 </div>
               </div>
             </div>
@@ -1813,47 +1973,41 @@ export function PiecefulGame({
           className={isActive("type")}
           aria-labelledby="type-heading"
         >
-          <div className="pf-screen pf-paper">
+          <div className="pf-screen pf-type-screen-bg">
             <div className="pf-safe">
-              <div className="pf-type-layout pf-type-layout--picker-2x8">
-                <div className="pf-topbar">
-                  <button
-                    type="button"
-                    className="pf-back-btn"
-                    onClick={() => go("title")}
-                    aria-label="タイトルへ戻る"
-                  >
-                    ←
-                  </button>
-                  <div>
-                    <h2 id="type-heading" className="pf-screen-title">
-                      キャラを選ぼう!
-                    </h2>
-                    <p className="pf-screen-sub">{charPickerScrollSubcopy()}</p>
-                  </div>
-                  <span className="pf-mini-btn">ALL</span>
-                </div>
-                <div className="pf-selected-type pf-selected-type--hero">
-                  <img src={charImages[character]} alt="" />
-                  <div>
-                    <h3>{character}</h3>
-                    <p className="pf-selected-type-nick">{charNick[character]}</p>
-                    <p className="pf-selected-type-note">
-                      選ぶとステージ内容が少し変わります。迷ったらESTPで開始。
-                    </p>
-                  </div>
-                </div>
-                <CharPicker2x8Scroll
-                  selected={character as CharacterType}
-                  onSelect={(type) => selectCharacter(type, { fromPicker: true })}
-                />
+              <div className="pf-type-layout-stitch">
                 <button
                   type="button"
-                  className="pf-big-btn"
-                  onClick={() => go("stage")}
+                  className="pf-type-back-btn"
+                  onClick={() => go("title")}
+                  aria-label="タイトルへ戻る"
                 >
-                  このタイプで開始 ▶
+                  ←
                 </button>
+                <div className="pf-type-heading">
+                  <h2 id="type-heading" className="pf-type-heading-title">
+                    あなたのキャラクターを選ぼう！
+                  </h2>
+                  <p className="pf-type-heading-sub">
+                    タイプによって学習内容が変わるよ！
+                  </p>
+                </div>
+                <div className="pf-type-grid-2col">
+                  {characters.map(([type, nick, , cls]) => (
+                    <button
+                      key={type}
+                      type="button"
+                      className={`pf-type-tile ${cls.replace("group-", "")} ${
+                        character === type ? "selected" : ""
+                      }`}
+                      aria-pressed={character === type}
+                      aria-label={`${type} ${nick}`}
+                      onClick={() => setPendingChar(type as CharacterType)}
+                    >
+                      <img src={charImages[type as CharacterType]} alt={type} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1865,18 +2019,52 @@ export function PiecefulGame({
           className={isActive("stage")}
           aria-labelledby="stage-heading"
         >
-          <div className="pf-screen pf-stage-bg">
+          <div className="pf-screen pf-stage-screen-bg">
             <div className="pf-safe">
               <h2 id="stage-heading" className="pf-sr-only">
                 ステージ選択
               </h2>
               <StageSelectionScreen
                 character={character}
+                group={charGroup[character as CharacterType] ?? "analyst"}
                 clearedStages={clearedStages}
                 nextUnclearedStage={nextUnclearedStage}
                 onBack={() => go("type")}
                 onSelectStage={selectStage}
               />
+            </div>
+          </div>
+        </section>
+
+        {/* ── SCENE (Stage Intro) ── */}
+        <section
+          id="screen-scene"
+          className={isActive("scene")}
+          aria-labelledby="scene-heading"
+        >
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe pf-scene-intro">
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                  <button type="button" className="pf-back-btn" onClick={() => go("stage")} aria-label="ステージ選択へ戻る">←</button>
+                  <StageProgressMeter step={getStageStep(currentScreen)} />
+                </div>
+                <div className="pf-scene-banner" style={{ fontSize: "27px", padding: "8px 12px", marginTop: "10px", marginBottom: "2px" }}>{stages[stage]?.kicker ?? ""}</div>
+                <div className="pf-scene-char-row">
+                  {charImages[character] && (
+                    <img src={charImages[character]} alt={charNick[character] || character} className="pf-scene-char-img" style={{ width: "134px", height: "134px" }} />
+                  )}
+                  <div className="pf-scene-bubble" style={{ fontSize: "24px" }}>
+                    <span>スタート！</span>
+                  </div>
+                </div>
+                <div className="pf-scene-chat">
+                  {sceneParagraphs.map((p, i) => <p key={i} style={{ fontSize: "26px" }}>{p}</p>)}
+                </div>
+                <button type="button" className="pf-scene-next-btn" style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }} onClick={() => { renderChoices(); go("choice"); }}>
+                  次へ
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -1887,47 +2075,134 @@ export function PiecefulGame({
           className={isActive("choice")}
           aria-labelledby="choice-heading"
         >
-          <div className="pf-screen pf-paper pf-scene-plain">
-            <div className="pf-safe">
-              <div className="pf-scene-layout choice-flow">
-                <div className="pf-topbar">
-                  <button
-                    type="button"
-                    className="pf-back-btn"
-                    onClick={() => {
-                      setPendingPick(null);
-                      go("stage");
-                    }}
-                    aria-label="ステージ選択へ戻る"
-                  >
-                    ←
-                  </button>
-                  <div>
-                    <h2 id="choice-heading" className="pf-screen-title">
-                      {stages[stage]?.title ?? ""}
-                    </h2>
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe pf-scene-intro">
+                
+                {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                  <button type="button" className="pf-back-btn" onClick={() => { setPendingPick(null); go("scene"); }} aria-label="シチュエーションへ戻る">←</button>
+                  <StageProgressMeter step={getStageStep(currentScreen)} />
+                </div>
+
+                {/* テーマ窓 (WarningBanner) */}
+                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "6px" }}>
+                  <div className="bg-[#ff5252]" style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "#ff5252",
+                    padding: "7px 16px",
+                    border: "3px solid #000",
+                    boxShadow: "3px 3px 0 #000",
+                    justifyContent: "center"
+                  }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                    </span>
                   </div>
-                  <span className="pf-mini-btn">1/2</span>
                 </div>
-                <div className="pf-alert-label">
-                  {stages[stage]?.kicker ?? ""}
+
+                {/* キャラクター ＋ 吹き出し */}
+                <div className="pf-choice-char-row" style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 16px",
+                  marginBottom: "0px",
+                  gap: "16px"
+                }}>
+                  {charImages[character] && (
+                    <img
+                      src={charImages[character]}
+                      alt={charNick[character] || character}
+                      style={{
+                        width: `${sliderChoiceCharSize}px`,
+                        height: `${sliderChoiceCharSize}px`,
+                        objectFit: "contain",
+                        flexShrink: 0
+                      }}
+                    />
+                  )}
+                  {/* 吹き出し */}
+                  <div className="pf-choice-speech-bubble" style={{
+                    position: "relative",
+                    backgroundColor: "#fff",
+                    border: "3px solid #000",
+                    borderRadius: "12px",
+                    padding: "8px 16px",
+                    boxShadow: "3px 3px 0 #000",
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "48px"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-11px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "6px 12px 6px 0",
+                      borderColor: "transparent #000 transparent transparent"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "5px 10px 5px 0",
+                      borderColor: "transparent #fff transparent transparent",
+                      zIndex: 1
+                    }} />
+                    <span style={{
+                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontWeight: "bold",
+                      color: "#000",
+                      fontFamily: "var(--font)"
+                    }}>どう切り出す？</span>
+                  </div>
                 </div>
-                <div className="pf-scene-recap pf-choice-scenario">
-                  {sceneParagraphs.map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
-                <h3 className="pf-prompt pf-prompt-compact">
-                  <span className="pf-prompt-icon" aria-hidden>
-                    💬
-                  </span>
-                  どう切り出す？
-                </h3>
+
+                {/* 選択肢ボタンリスト */}
                 <div
                   id="choices"
                   ref={choicesRef}
-                  className="pf-choice-grid"
+                  className="pf-choice-grid-stitch"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: `${sliderChoiceGap}px`,
+                    padding: "0 16px",
+                    marginTop: `${sliderChoiceChoicesMarginTop}px`,
+                    flexGrow: 1
+                  }}
                 />
+
+                {/* 次へボタン */}
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  onClick={() => {
+                    if (selectedChoiceId) {
+                      setPriorChoiceOpen(false);
+                      selectAnswer(selectedChoiceId);
+                    } else {
+                      toast("回答を選択してください！");
+                    }
+                  }}
+                >
+                  次へ
+                </button>
+
+
+
               </div>
             </div>
           </div>
@@ -1939,23 +2214,12 @@ export function PiecefulGame({
           className={isActive("action")}
           aria-labelledby="action-heading"
         >
-          <div className="pf-screen pf-paper pf-scene-plain">
-            <div className="pf-safe">
-              <div
-                ref={actionFlowRef}
-                className={[
-                  "pf-scene-layout action-flow",
-                  priorChoiceOverflows && !priorChoiceOpen
-                    ? "is-scenario-clamped"
-                    : "",
-                  priorChoiceOverflows && priorChoiceOpen
-                    ? "is-scenario-expanded"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                <div className="pf-topbar">
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div ref={actionFlowRef} className="pf-safe pf-scene-intro">
+                
+                {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
                   <button
                     type="button"
                     className="pf-back-btn"
@@ -1967,97 +2231,124 @@ export function PiecefulGame({
                   >
                     ←
                   </button>
-                  <div>
-                    <h2 id="action-heading" className="pf-screen-title">
-                      どう振る舞う?
-                    </h2>
-                  </div>
-                  <span className="pf-mini-btn">2/2</span>
+                  <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
-                <div className="pf-action-context">
-                <section
-                  className="pf-action-scenario-block"
-                  aria-label="状況説明"
-                >
-                  <span className="pf-action-scenario-label">状況</span>
-                  <div
-                    id="prior-choice-panel"
-                    ref={priorScenarioBodyRef}
-                    className={[
-                      "pf-action-scenario-body",
-                      priorChoiceOverflows
-                        ? priorChoiceOpen
-                          ? "is-open"
-                          : "is-clamped"
-                        : "fits",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    style={
-                      priorChoiceOverflows &&
-                      !priorChoiceOpen &&
-                      scenarioClampPx
-                        ? { maxHeight: scenarioClampPx }
-                        : undefined
-                    }
-                  >
-                    {priorScenarioParagraphs.map((p, i) => (
-                      <p key={i} className="pf-action-scenario-text">
-                        {p}
-                      </p>
-                    ))}
-                  </div>
-                  {priorChoiceOverflows ? (
-                    <button
-                      type="button"
-                      className="pf-action-scenario-toggle pf-action-scenario-toggle--foot"
-                      aria-expanded={priorChoiceOpen}
-                      aria-controls="prior-choice-panel"
-                      onClick={() => setPriorChoiceOpen((open) => !open)}
-                    >
-                      <span aria-hidden>{priorChoiceOpen ? "▲" : "▼"}</span>
-                      <span className="pf-sr-only">
-                        {priorChoiceOpen
-                          ? "状況説明を閉じる"
-                          : "状況説明を続きまで表示"}
-                      </span>
-                    </button>
-                  ) : null}
-                </section>
-                <section
-                  ref={kiridashiRef}
-                  className="pf-action-kiridashi"
-                  aria-label="前の回答：どう切り出す"
-                >
-                  <p className="pf-action-kiridashi-kicker">
-                    <span className="pf-prompt-icon" aria-hidden>
-                      💬
+
+                {/* 警告バナー */}
+                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "6px" }}>
+                  <div className="bg-[#ff5252]" style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "#ff5252",
+                    padding: "7px 16px",
+                    border: "3px solid #000",
+                    boxShadow: "3px 3px 0 #000",
+                    justifyContent: "center"
+                  }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
                     </span>
-                    どう切り出す
-                  </p>
-                  <div className="pf-action-kiridashi-line">
-                    <span
-                      className={`pf-choice-letter ${(selectedChoiceId ?? "A").toLowerCase()}`}
-                    >
-                      {selectedChoiceId ?? "A"}
-                    </span>
-                    <p className="pf-action-kiridashi-text">
-                      {selectedChoiceText || "選択した言い方"}
-                    </p>
                   </div>
-                </section>
                 </div>
-                <h3 className="pf-prompt pf-prompt-action pf-prompt-compact">
-                  <span className="pf-prompt-icon" aria-hidden>
-                    💬
-                  </span>
-                  どう振る舞う？
-                </h3>
+
+                {/* キャラクター ＋ 吹き出し */}
+                <div className="pf-choice-char-row" style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 16px",
+                  marginBottom: "0px",
+                  gap: "16px"
+                }}>
+                  {charImages[character] && (
+                    <img
+                      src={charImages[character]}
+                      alt={charNick[character] || character}
+                      style={{
+                        width: `${sliderChoiceCharSize}px`,
+                        height: `${sliderChoiceCharSize}px`,
+                        objectFit: "contain",
+                        flexShrink: 0
+                      }}
+                    />
+                  )}
+                  {/* 吹き出し */}
+                  <div className="pf-choice-speech-bubble" style={{
+                    position: "relative",
+                    backgroundColor: "#fff",
+                    border: "3px solid #000",
+                    borderRadius: "12px",
+                    padding: "8px 16px",
+                    boxShadow: "3px 3px 0 #000",
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "48px"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-11px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "6px 12px 6px 0",
+                      borderColor: "transparent #000 transparent transparent"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "5px 10px 5px 0",
+                      borderColor: "transparent #fff transparent transparent",
+                      zIndex: 1
+                    }} />
+                    <span style={{
+                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontWeight: "bold",
+                      color: "#000",
+                      fontFamily: "var(--font)"
+                    }}>どう振る舞う？</span>
+                  </div>
+                </div>
+
+                {/* 選択肢ボタンリスト */}
                 <div
                   id="actions"
                   ref={actionsRef}
-                  className="pf-choice-grid pf-choice-grid-action"
+                  className="pf-choice-grid-stitch"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: `${sliderChoiceGap}px`,
+                    padding: "0 16px",
+                    marginTop: `${sliderChoiceChoicesMarginTop}px`,
+                    flexGrow: 1
+                  }}
                 />
+
+                {/* 次へボタン */}
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  onClick={() => {
+                    if (selectedActionId) {
+                      selectAction(selectedActionId);
+                    } else {
+                      toast("回答を選択してください！");
+                    }
+                  }}
+                >
+                  次へ
+                </button>
+
                 <div className="pf-hidden-feedback" aria-hidden>
                   <div ref={resultCardRef} />
                   <div ref={gradeRef} />
@@ -2077,66 +2368,526 @@ export function PiecefulGame({
           className={isActive("result")}
           aria-labelledby="result-heading"
         >
-          <div className="pf-screen pf-paper">
-            <div className="pf-safe pf-result-safe">
-              <div className="pf-result-scroll">
-                <div className="pf-result-layout">
-                <h2 id="result-heading" className="pf-result-title">
-                  チャレンジ結果
-                </h2>
-                <div className="pf-trophies" aria-hidden>
-                  🏆 🏆
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+              
+              {/* BEGIN: Header */}
+              <header className="flex items-center gap-4 mb-8 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingTop: "16px" }}>
+                <button
+                  type="button"
+                  className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  onClick={() => go("action")}
+                  style={{ width: "48px", height: "40px", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                  aria-label="振る舞い選択へ戻る"
+                >
+                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="square" strokeLinejoin="miter" strokeWidth="4" viewBox="0 0 24 24" width="24" style={{ display: "block" }}>
+                    <path d="M19 12H5M5 12L12 19M5 12L12 5"></path>
+                  </svg>
+                </button>
+                <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "24px", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
+                  <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
                 </div>
-                <p className="pf-clear-label">クリア</p>
-                <p id="result-sub" ref={resultSubRef} className="pf-small-note pf-sr-only" aria-hidden />
-                <div className="pf-result-answers">
-                  <div className="pf-selected-line">
-                    <span
-                      className={`pf-choice-letter ${(lastChoiceRef.current ?? "a").toLowerCase()}`}
-                    >
-                      {lastChoiceRef.current ?? "A"}
-                    </span>
-                    <p className="pf-selected-answer-text">
+              </header>
+              {/* END: Header */}
+
+              {/* BEGIN: Main Content */}
+              <main className="flex flex-col items-center flex-grow" style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, boxSizing: "border-box" }}>
+                
+                {/* Status Banner */}
+                <div className="w-full bg-[#FF6B6B] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-2 px-4 mb-10 flex justify-center items-center gap-2" style={{ width: "100%", backgroundColor: "#FF6B6B", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", paddingTop: "8px", paddingBottom: "8px", paddingLeft: "16px", paddingRight: "16px", marginBottom: "40px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
+                  <span className="text-yellow-400 text-2xl" style={{ fontSize: "24px", color: "#FBBF24" }}>⚠️</span>
+                  <span className="text-white font-bold text-xl tracking-wider" style={{
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: "20px",
+                    letterSpacing: "0.05em",
+                    fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                  }}>
+                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                  </span>
+                </div>
+
+                {/* Character and Speech Bubble */}
+                <div className="relative w-full flex items-center justify-center gap-2 mb-8" style={{ width: "100%", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "32px", boxSizing: "border-box" }}>
+                  {/* Left Trophy */}
+                  <div className="text-3xl" style={{ fontSize: "30px" }}>
+                    <img
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
+                      alt="Trophy"
+                      className="w-8 h-8 object-contain"
+                      style={{ width: "32px", height: "32px", objectFit: "contain" }}
+                    />
+                  </div>
+                  
+                  {/* Character Image */}
+                  <div className="relative w-32 h-32" style={{ width: "128px", height: "128px", position: "relative" }}>
+                    {charImages[character] && (
+                      <img
+                        src={charImages[character]}
+                        alt={charNick[character] || character}
+                        className="w-full h-full object-contain"
+                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Speech Bubble */}
+                  <div className="pixel-bubble p-3 ml-2 min-w-[140px] flex flex-col items-center justify-center" style={{
+                    position: "relative",
+                    backgroundColor: "white",
+                    border: "4px solid #000",
+                    boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)",
+                    padding: "12px",
+                    marginLeft: "8px",
+                    minWidth: "140px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxSizing: "border-box"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-20px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderTop: "10px solid transparent",
+                      borderBottom: "10px solid transparent",
+                      borderRight: "20px solid #000"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-12px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderTop: "7px solid transparent",
+                      borderBottom: "7px solid transparent",
+                      borderRight: "14px solid white",
+                      zIndex: 1
+                    }} />
+                    <span className="font-black text-lg block leading-tight text-black" style={{
+                      fontWeight: "900",
+                      fontSize: "18px",
+                      display: "block",
+                      lineHeight: "1.25",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>チャレンジ</span>
+                    <span className="font-black text-lg block leading-tight text-black" style={{
+                      fontWeight: "900",
+                      fontSize: "18px",
+                      display: "block",
+                      lineHeight: "1.25",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>クリア！</span>
+                  </div>
+                  
+                  {/* Right Trophy */}
+                  <div className="text-3xl" style={{ fontSize: "30px" }}>
+                    <img
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
+                      alt="Trophy"
+                      className="w-8 h-8 object-contain"
+                      style={{ width: "32px", height: "32px", objectFit: "contain" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Message Blocks Container */}
+                <div className="w-full flex flex-col items-center gap-4 px-2" style={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "16px",
+                  paddingLeft: "8px",
+                  paddingRight: "8px",
+                  boxSizing: "border-box",
+                  flexGrow: 1,
+                  marginBottom: "24px"
+                }}>
+                  
+                  {/* Message Block 1 (Choice) */}
+                  <div className="w-full bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-4 flex items-start gap-3" style={{
+                    width: "100%",
+                    backgroundColor: "white",
+                    border: "4px solid #000",
+                    boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)",
+                    padding: "16px",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    boxSizing: "border-box"
+                  }}>
+                    <div className="w-10 h-10 flex-shrink-0 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center" style={{
+                      width: "40px",
+                      height: "40px",
+                      flexShrink: 0,
+                      backgroundColor: selectedChoiceId === "A" ? "#FF1A1A" : selectedChoiceId === "B" ? "#448aff" : selectedChoiceId === "C" ? "#4caf50" : "#ffc107",
+                      border: "4px solid #000",
+                      boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxSizing: "border-box"
+                    }}>
+                      <span className="text-white font-black text-xl" style={{
+                        color: selectedChoiceId === "D" ? "black" : "white",
+                        fontWeight: "900",
+                        fontSize: "20px",
+                        fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                      }}>{selectedChoiceId || "A"}</span>
+                    </div>
+                    <p className="font-bold text-[15px] leading-snug text-black" style={{
+                      margin: 0,
+                      fontWeight: "bold",
+                      fontSize: "15px",
+                      lineHeight: "1.4",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>
                       {selectedChoiceText || "選択した言い方"}
                     </p>
                   </div>
-                  <div className="pf-selected-line">
-                    <span
-                      className={`pf-choice-letter ${(lastActionRef.current ?? "a").toLowerCase()}`}
-                    >
-                      {lastActionRef.current ?? "A"}
-                    </span>
-                    <p className="pf-selected-answer-text">
+                  
+                  {/* Plus Sign */}
+                  <div className="relative py-1" style={{ position: "relative", paddingTop: "4px", paddingBottom: "4px" }}>
+                    <img
+                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuFqa5lWRUCQ1KEJ3o_n-T8pTVyEgOKdPLLO8JF5CM30CB419zpol7rzA26tPaHmAJGKNTXeoAiVHdXjPocx6ec3YO8UkSz9CO6yVsK3S94A9XuALbd_UjsCUxMo6jEbmuY6MndDwWk-Z4o2VRNw5BQrKLS_xuX_H9T19DoXSxwXkYZADa27J0DwSEeOQbk6m7ti1MkYIsfAlchCh74NMvWoDn9gEJqOiuVXUculmFL_cmRT3OBOc6FB2UdqJYpe8hx_qitrmmNTY"
+                      alt="Plus"
+                      className="w-10 h-10 object-contain"
+                      style={{ width: "40px", height: "40px", objectFit: "contain" }}
+                    />
+                  </div>
+                  
+                  {/* Message Block 2 (Action) */}
+                  <div className="w-full bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-4 flex items-start gap-3" style={{
+                    width: "100%",
+                    backgroundColor: "white",
+                    border: "4px solid #000",
+                    boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)",
+                    padding: "16px",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    boxSizing: "border-box"
+                  }}>
+                    <div className="w-10 h-10 flex-shrink-0 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center" style={{
+                      width: "40px",
+                      height: "40px",
+                      flexShrink: 0,
+                      backgroundColor: selectedActionId === "A" ? "#FF1A1A" : selectedActionId === "B" ? "#448aff" : selectedActionId === "C" ? "#4caf50" : "#ffc107",
+                      border: "4px solid #000",
+                      boxShadow: "2px 2px 0px 0px rgba(0,0,0,1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxSizing: "border-box"
+                    }}>
+                      <span className="text-white font-black text-xl" style={{
+                        color: selectedActionId === "D" ? "black" : "white",
+                        fontWeight: "900",
+                        fontSize: "20px",
+                        fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                      }}>{selectedActionId || "A"}</span>
+                    </div>
+                    <p className="font-bold text-[15px] leading-snug text-black" style={{
+                      margin: 0,
+                      fontWeight: "bold",
+                      fontSize: "15px",
+                      lineHeight: "1.4",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>
                       {selectedActionText || "選択した振る舞い"}
                     </p>
                   </div>
+
                 </div>
-                <ResultCtaBlock />
-                <div className="pf-result-accordion-list">
-                  {lessonCards.map((card, idx) => (
-                    <ResultAccordionItem
-                      key={card.title}
-                      index={idx}
-                      title={card.title}
-                      body={card.body}
-                      isOpen={resultExpandedSection === idx}
-                      onToggle={() =>
-                        setResultExpandedSection((current) =>
-                          current === idx ? null : idx
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-                <ResultCtaBlock className="pf-result-cta-bottom" />
+
+                {/* 次へボタン (他の画面と完全に同一のデザイン・余白・サイズ・DOM配置) */}
                 <button
                   type="button"
-                  className="pf-back-wide pf-result-back"
+                  className="pf-scene-next-btn"
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "32px", marginBottom: "45px", width: "100%" }}
+                  onClick={() => go("cta")}
+                >
+                  次へ
+                </button>
+
+              </main>
+              
+            </div>
+          </div>
+        </div>
+      </section>
+
+        {/* ── CTA (解説チェック画面) ── */}
+        <section
+          id="screen-cta"
+          className={isActive("cta")}
+          aria-labelledby="cta-heading"
+        >
+          <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
+            <div className="pf-scene-overlay">
+              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+                
+                {/* BEGIN: Header */}
+                <header className="flex items-center gap-4 mb-8 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingTop: "16px", width: "100%" }}>
+                  <button
+                    type="button"
+                    className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    onClick={() => go("result")}
+                    style={{ width: "48px", height: "40px", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                  >
+                    <span className="font-bold text-xl text-black" style={{ fontSize: "20px", fontWeight: "900", color: "black", fontFamily: "var(--font)" }}>←</span>
+                  </button>
+                  <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "24px", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
+                    <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
+                  </div>
+                </header>
+                {/* END: Header */}
+
+                {/* BEGIN: Alert Banner */}
+                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "24px", width: "100%" }}>
+                  <div className="bg-[#ff5a5a]" style={{
+                    display: "flex",
+                    alignItems: "center",
+                    backgroundColor: "#ff5a5a",
+                    padding: "7px 16px",
+                    border: "3px solid #000",
+                    boxShadow: "3px 3px 0 #000",
+                    justifyContent: "center"
+                  }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                    </span>
+                  </div>
+                </div>
+                {/* END: Alert Banner */}
+
+                {/* BEGIN: Character and Speech Bubble */}
+                <div className="pf-choice-char-row" style={{
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 16px",
+                  marginBottom: "24px",
+                  gap: "16px",
+                  width: "100%"
+                }}>
+                  {charImages[character] && (
+                    <img
+                      src={charImages[character]}
+                      alt={charNick[character] || character}
+                      style={{
+                        width: `${sliderChoiceCharSize}px`,
+                        height: `${sliderChoiceCharSize}px`,
+                        objectFit: "contain",
+                        flexShrink: 0
+                      }}
+                    />
+                  )}
+                  {/* 吹き出し */}
+                  <div className="pf-choice-speech-bubble" style={{
+                    position: "relative",
+                    backgroundColor: "#fff",
+                    border: "3px solid #000",
+                    borderRadius: "12px",
+                    padding: "8px 16px",
+                    boxShadow: "3px 3px 0 #000",
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "48px"
+                  }}>
+                    {/* 吹き出しの突起 */}
+                    <div style={{
+                      position: "absolute",
+                      left: "-11px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "6px 12px 6px 0",
+                      borderColor: "transparent #000 transparent transparent"
+                    }} />
+                    <div style={{
+                      position: "absolute",
+                      left: "-8px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 0,
+                      height: 0,
+                      borderStyle: "solid",
+                      borderWidth: "5px 10px 5px 0",
+                      borderColor: "transparent #fff transparent transparent",
+                      zIndex: 1
+                    }} />
+                    <span style={{
+                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontWeight: "bold",
+                      color: "#000",
+                      fontFamily: "var(--font)",
+                      lineHeight: "1.2"
+                    }}>
+                      解説を<br />チェックしよう！
+                    </span>
+                  </div>
+                </div>
+                {/* END: Character and Speech Bubble */}
+
+                {/* BEGIN: Main Result Card */}
+                <div className="bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6 flex flex-col" style={{
+                  backgroundColor: "white",
+                  border: "4px solid #000",
+                  boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)",
+                  padding: "24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  boxSizing: "border-box",
+                  flexGrow: 1,
+                  marginBottom: "32px",
+                  width: "100%"
+                }}>
+                  <h2 className="text-center font-black text-2xl text-black" style={{
+                    textAlign: "center",
+                    fontWeight: "900",
+                    fontSize: "24px",
+                    color: "black",
+                    marginBottom: "8px",
+                    fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                  }}>
+                    あなたのタイプに合わせた
+                  </h2>
+                  
+                  {/* 点線付き下線＆ピンク文字＆▼アイコン */}
+                  <div className="pb-3 mb-6 relative" style={{
+                    borderBottom: "3px dashed #ff0080",
+                    paddingBottom: "12px",
+                    marginBottom: "24px",
+                    position: "relative"
+                  }}>
+                    <p className="text-center text-[#ff0080] font-black text-2xl" style={{
+                      textAlign: "center",
+                      color: "#ff0080",
+                      fontWeight: "900",
+                      fontSize: "23px",
+                      lineHeight: "1.3",
+                      margin: 0,
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>
+                      コミュニケーションスキルを<br />より深く学べる！
+                    </p>
+                    {/* 下部中央 of ピンクの▼ */}
+                    <div style={{
+                      position: "absolute",
+                      bottom: "-14px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      color: "#ff0080",
+                      fontSize: "14px",
+                      zIndex: 2
+                    }}>▼</div>
+                  </div>
+
+                  <ul className="space-y-3 px-2 font-bold text-gray-900 mb-6" style={{
+                    listStyleType: "none",
+                    paddingLeft: "8px",
+                    margin: 0,
+                    marginBottom: "24px"
+                  }}>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>なぜこの組み合わせなの？
+                    </li>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>コミュニケーションスキル解説
+                    </li>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>あなたの落とし穴
+                    </li>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "0px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                      <span style={{ marginRight: "8px" }}>・</span>明日から使えるフレーズ集
+                    </li>
+                  </ul>
+
+                  {/* CTA黄色ボタン (詳しい解説をチェック) */}
+                  <button
+                    className="w-full bg-[#ffcc00] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-3 transition-transform active:translate-y-[4px] active:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#ffcc00",
+                      border: "4px solid #000",
+                      boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "12px",
+                      paddingTop: "24px",
+                      paddingBottom: "24px",
+                      boxSizing: "border-box",
+                      cursor: "pointer",
+                      marginTop: "auto"
+                    }}
+                    onClick={() => {
+                      // 解説詳細(detail)画面を表示させる
+                      go("detail");
+                    }}
+                  >
+                    <span className="font-black text-2xl text-black" style={{
+                      fontWeight: "900",
+                      fontSize: "24px",
+                      color: "black",
+                      fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
+                    }}>詳しい解説をチェック</span>
+                    {/* 右三角 ▶ アイコン */}
+                    <div style={{
+                      backgroundColor: "#ff6b00",
+                      border: "2px solid #000",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      <svg style={{ width: "16px", height: "16px", fill: "white" }} viewBox="0 0 20 20">
+                        <path d="M5 3l12 7-12 7V3z"></path>
+                      </svg>
+                    </div>
+                  </button>
+                </div>
+                {/* END: Main Result Card */}
+
+                {/* BEGIN: Footer Navigation (ステージ選択画面に戻る) */}
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{
+                    fontSize: "20px",
+                    padding: "11px 16px",
+                    marginTop: "0px",
+                    marginBottom: "45px",
+                    width: "100%",
+                    backgroundColor: "white",
+                    color: "black",
+                    border: "4px solid #000",
+                    borderRadius: "9999px",
+                    boxShadow: "0px 6px 0px 0px rgba(0,0,0,1)"
+                  }}
                   onClick={() => go("stage")}
                 >
-                  ◀ ステージ選択画面に戻る
+                  <span style={{ fontSize: "14px", marginRight: "8px" }}>◀</span>
+                  ステージ選択画面に戻る
                 </button>
-                </div>
+                {/* END: Footer Navigation */}
+
               </div>
             </div>
           </div>
@@ -2230,7 +2981,7 @@ export function PiecefulGame({
                   <div>
                     <dt>MBTI</dt>
                     <dd>
-                      {character}（{charNick[character]}）
+                      {character}({charNick[character]})
                     </dd>
                   </div>
                   <div>
@@ -2278,6 +3029,48 @@ export function PiecefulGame({
             </div>
           </div>
         </section>
+      {/* ── CHARACTER CONFIRM MODAL ── */}
+      <div
+        className={`char-confirm-backdrop${pendingChar ? " active" : ""}`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setPendingChar(null);
+        }}
+      >
+        <div
+          className="char-confirm-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${pendingChar ?? ""}で決定しますか？`}
+        >
+          <div className="char-confirm-name">
+            {pendingChar}
+          </div>
+          <div className="char-confirm-img">
+            {pendingChar && <img src={charImages[pendingChar]} alt={pendingChar} />}
+          </div>
+          <div className="char-confirm-btns">
+            <button
+              type="button"
+              className="char-confirm-btn char-confirm-btn--back"
+              onClick={() => setPendingChar(null)}
+            >
+              戻る
+            </button>
+            <button
+              type="button"
+              className="char-confirm-btn char-confirm-btn--ok"
+              onClick={() => {
+                if (!pendingChar) return;
+                selectCharacter(pendingChar, { fromPicker: true });
+                setPendingChar(null);
+                setTimeout(() => go("stage"), 200);
+              }}
+            >
+              決定
+            </button>
+          </div>
+        </div>
+      </div>
       </main>
   );
 
@@ -2300,8 +3093,8 @@ export function PiecefulGame({
         >
           <h2 id="pf-confirm-title" className="pf-confirm-title">
             {pendingPick?.kind === "choice"
-              ? "この切り出しで決定しますか？"
-              : "この振る舞いで決定しますか？"}
+              ? "この切り出しで決定しますか?"
+              : "この振る舞いで決定しますか?"}
           </h2>
           <div className="pf-confirm-preview">
             {pendingPick ? (
@@ -2338,42 +3131,55 @@ export function PiecefulGame({
       {/* ── GUIDE MODAL ── */}
       <div
         id="guide-modal"
-        className={`modal-backdrop${guideOpen ? " active" : ""}`}
+        className={`guide-backdrop${guideOpen ? " active" : ""}`}
         onClick={(e) => closeGuide(e)}
       >
         <div
-          className="modal"
+          className="guide-modal"
           role="dialog"
           aria-modal="true"
           aria-labelledby="guide-title"
         >
-          <h2 id="guide-title">📖 Pieceful 攻略ガイド</h2>
-          <p>
-            このゲームは「正論を言う」よりも、「相手のタイプに合わせて、受け取りやすい順番で伝える」ことが大切です。
+          <h2 id="guide-title" className="guide-title">★遊び方★</h2>
+          <p className="guide-desc">
+            あなたのMBTIタイプに合わせた問題に挑戦。
+            <br />
+            シチュエーションごとに
+            <br />
+            「どう話すか」と「どう振る舞うか」を選び、
+            <br />
+            タイプ別の解説を確認しよう！
           </p>
-          <ul>
-            <li>
-              <strong>論理派</strong>
-              には、結論・根拠・選択肢を短く。
-            </li>
-            <li>
-              <strong>共感派</strong>
-              には、背景・気持ち・協力の姿勢を先に。
-            </li>
-            <li>
-              <strong>実行派</strong>
-              には、今やること・期限・担当を明確に。
-            </li>
-            <li>
-              <strong>慎重派</strong>
-              には、リスク・代替案・確認ポイントを添える。
-            </li>
-          </ul>
-          <div className="actions">
-            <button className="btn primary" type="button" onClick={() => closeGuide()} aria-label="ガイドを閉じる">
-              閉じる
-            </button>
+          <div className="guide-steps">
+            <div className="guide-step">
+              <span className="guide-step-num">①</span>
+              <span>🧩 タイプを選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">②</span>
+              <span>🎯 ステージを選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">③</span>
+              <span>💬 会話を選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">④</span>
+              <span>👀 行動を選択</span>
+            </div>
+            <div className="guide-step">
+              <span className="guide-step-num">⑤</span>
+              <span>✨ タイプ別解説を確認</span>
+            </div>
           </div>
+          <button
+            type="button"
+            className="guide-btn"
+            onClick={() => closeGuide()}
+            aria-label="ガイドを閉じる"
+          >
+            戻る
+          </button>
         </div>
       </div>
 

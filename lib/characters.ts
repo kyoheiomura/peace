@@ -27,6 +27,10 @@ export const charNick = Object.fromEntries(
   characters.map((c) => [c[0], c[1]])
 ) as Record<CharacterType, string>;
 
+export const charGroup = Object.fromEntries(
+  characters.map((c) => [c[0], c[3].replace("group-", "")])
+) as Record<CharacterType, "analyst" | "sentinel" | "diplomat" | "explorer">;
+
 export const charGroupLabels = [
   "Analyst（分析家）",
   "Sentinel（番人）",

@@ -8,6 +8,7 @@ import { StageSelectItem } from "./StageSelectItem";
 
 type StageSelectionScreenProps = {
   character: string;
+  group: "analyst" | "sentinel" | "diplomat" | "explorer";
   clearedStages: Set<number>;
   nextUnclearedStage: number | null;
   onBack: () => void;
@@ -16,6 +17,7 @@ type StageSelectionScreenProps = {
 
 export function StageSelectionScreen({
   character,
+  group,
   clearedStages,
   nextUnclearedStage,
   onBack,
@@ -35,35 +37,29 @@ export function StageSelectionScreen({
 
   return (
     <>
-      <div className="pf-stage-layout pf-ss-layout">
-        <div className="pf-topbar pf-ss-topbar">
-          <button
-            type="button"
-            className="pf-back-btn"
-            onClick={onBack}
-            aria-label="タイプ選択へ戻る"
-          >
-            ←
-          </button>
-        </div>
+      <div className="pf-stage-layout pf-ss-layout-stitch">
+        <button
+          type="button"
+          className="pf-type-back-btn"
+          onClick={onBack}
+          aria-label="タイプ選択へ戻る"
+        >
+          ←
+        </button>
 
-        <header className="pf-ss-hero">
-          <div className="pf-ss-hero-shell">
-            <img
-              className="pf-ss-hero-char"
-              src={charImages[character]}
-              alt=""
-            />
-            <div className="pf-ss-hero-body">
-              <div className="pf-ss-name-plate">
-                <span className="pf-ss-name-plate-inner">{character}</span>
-              </div>
-              <p className="pf-ss-hero-copy">ステージを選択しよう！</p>
-            </div>
+        <section className={`pf-ss-profile-stitch pf-ss-profile--${group}`}>
+          <div className="pf-ss-profile-char">
+            <img src={charImages[character]} alt="" />
           </div>
-        </header>
+          <div className="pf-ss-profile-body">
+            <div className="pf-ss-profile-name">
+              <span>{character}</span>
+            </div>
+            <p className="pf-ss-profile-copy">ステージを選択しよう！</p>
+          </div>
+        </section>
 
-        <div className="pf-ss-list" role="list">
+        <div className="pf-ss-list-stitch" role="list">
           {ALL_STAGE_IDS.map((id) => (
             <StageSelectItem
               key={id}
@@ -74,8 +70,6 @@ export function StageSelectionScreen({
             />
           ))}
         </div>
-
-        <div className="pf-ss-floor" aria-hidden />
       </div>
 
       <StageConfirmModal

@@ -8,6 +8,7 @@ export type GameFlowEmbedSlug =
   | "type"
   | "stage"
   | "stage-loop"
+  | "scene"
   | "choice"
   | "action"
   | "result"
@@ -23,6 +24,7 @@ export const GAME_FLOW_EMBED_SLUGS: GameFlowEmbedSlug[] = [
   "type",
   "stage",
   "stage-loop",
+  "scene",
   "choice",
   "action",
   "result",

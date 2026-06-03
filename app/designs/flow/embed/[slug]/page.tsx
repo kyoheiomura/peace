@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { CharPickerDesign } from "@/components/designs/CharPickerDesign";
 import { LpFlowPreview } from "@/components/designs/LpFlowPreview";
-import {
-  PiecefulGame,
+import PiecefulGame, {
   type PiecefulPreviewScreen,
 } from "@/components/PiecefulGame";
 import {
@@ -34,6 +33,8 @@ function previewForSlug(slug: GameFlowEmbedSlug): {
       return { screen: "stage", clearedStages: [1] };
     case "stage-loop":
       return { screen: "stage", clearedStages: [1, 2, 3] };
+    case "scene":
+      return { screen: "scene" };
     case "choice":
       return { screen: "choice" };
     case "action":
@@ -76,7 +77,6 @@ export default async function GameFlowEmbedPage({ params }: Props) {
       embed
       previewScreen={preview.screen}
       previewClearedStages={preview.clearedStages}
-      previewHasSave={slug === "title"}
     />
   );
 }

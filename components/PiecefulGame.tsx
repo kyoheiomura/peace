@@ -2080,7 +2080,7 @@ export default function PiecefulGame({
               <div className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "16px", marginBottom: "1px" }}>
                   <button type="button" className="pf-back-btn" onClick={() => { setPendingPick(null); go("scene"); }} aria-label="シチュエーションへ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
@@ -2180,7 +2180,9 @@ export default function PiecefulGame({
                     gap: `${sliderChoiceGap}px`,
                     padding: "0 16px",
                     marginTop: `${sliderChoiceChoicesMarginTop}px`,
-                    flexGrow: 1
+                    flexGrow: 1,
+                    overflowY: "auto",
+                    minHeight: 0
                   }}
                 />
 
@@ -2188,7 +2190,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px" }}
                   onClick={() => {
                     if (selectedChoiceId) {
                       setPriorChoiceOpen(false);
@@ -2219,7 +2221,7 @@ export default function PiecefulGame({
               <div ref={actionFlowRef} className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "16px", marginBottom: "1px" }}>
                   <button
                     type="button"
                     className="pf-back-btn"
@@ -2329,7 +2331,9 @@ export default function PiecefulGame({
                     gap: `${sliderChoiceGap}px`,
                     padding: "0 16px",
                     marginTop: `${sliderChoiceChoicesMarginTop}px`,
-                    flexGrow: 1
+                    flexGrow: 1,
+                    overflowY: "auto",
+                    minHeight: 0
                   }}
                 />
 
@@ -2337,7 +2341,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px" }}
                   onClick={() => {
                     if (selectedActionId) {
                       selectAction(selectedActionId);
@@ -2370,10 +2374,10 @@ export default function PiecefulGame({
         >
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
-              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+              <div className="pf-safe pf-scene-intro">
               
               {/* BEGIN: Header */}
-              <header className="flex items-center gap-4 mb-8 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingTop: "16px" }}>
+              <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
                 <button
                   type="button"
                   className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
@@ -2392,10 +2396,10 @@ export default function PiecefulGame({
               {/* END: Header */}
 
               {/* BEGIN: Main Content */}
-              <main className="flex flex-col items-center flex-grow" style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, boxSizing: "border-box" }}>
+              <main className="flex flex-col items-center flex-grow" style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, boxSizing: "border-box", overflowY: "auto", minHeight: 0, width: "100%" }}>
                 
                 {/* Status Banner */}
-                <div className="w-full bg-[#FF6B6B] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-2 px-4 mb-10 flex justify-center items-center gap-2" style={{ width: "100%", backgroundColor: "#FF6B6B", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", paddingTop: "8px", paddingBottom: "8px", paddingLeft: "16px", paddingRight: "16px", marginBottom: "40px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
+                <div className="w-full bg-[#FF6B6B] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-2 px-4 mb-10 flex justify-center items-center gap-2" style={{ width: "100%", backgroundColor: "#FF6B6B", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", paddingTop: "8px", paddingBottom: "8px", paddingLeft: "16px", paddingRight: "16px", marginBottom: "16px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
                   <span className="text-yellow-400 text-2xl" style={{ fontSize: "24px", color: "#FBBF24" }}>⚠️</span>
                   <span className="text-white font-bold text-xl tracking-wider" style={{
                     color: "white",
@@ -2409,7 +2413,7 @@ export default function PiecefulGame({
                 </div>
 
                 {/* Character and Speech Bubble */}
-                <div className="relative w-full flex items-center justify-center gap-2 mb-8" style={{ width: "100%", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "32px", boxSizing: "border-box" }}>
+                <div className="relative w-full flex items-center justify-center gap-2 mb-8" style={{ width: "100%", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "16px", boxSizing: "border-box" }}>
                   {/* Left Trophy */}
                   <div className="text-3xl" style={{ fontSize: "30px" }}>
                     <img
@@ -2612,17 +2616,17 @@ export default function PiecefulGame({
 
                 </div>
 
-                {/* 次へボタン (他の画面と完全に同一のデザイン・余白・サイズ・DOM配置) */}
-                <button
-                  type="button"
-                  className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "32px", marginBottom: "45px", width: "100%" }}
-                  onClick={() => go("cta")}
-                >
-                  次へ
-                </button>
-
               </main>
+
+              {/* 次へボタン (他の画面と完全に同一のデザイン・余白・サイズ・DOM配置) */}
+              <button
+                type="button"
+                className="pf-scene-next-btn"
+                style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px", width: "100%" }}
+                onClick={() => go("cta")}
+              >
+                次へ
+              </button>
               
             </div>
           </div>
@@ -2637,10 +2641,10 @@ export default function PiecefulGame({
         >
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
-              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+              <div className="pf-safe pf-scene-intro">
                 
                 {/* BEGIN: Header */}
-                <header className="flex items-center gap-4 mb-8 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "32px", paddingTop: "16px", width: "100%" }}>
+                <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
                   <button
                     type="button"
                     className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
@@ -2654,6 +2658,9 @@ export default function PiecefulGame({
                   </div>
                 </header>
                 {/* END: Header */}
+
+                {/* BEGIN: Scrollable Content Container */}
+                <div className="flex-grow w-full" style={{ display: "flex", flexDirection: "column", flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
 
                 {/* BEGIN: Alert Banner */}
                 <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "24px", width: "100%" }}>
@@ -2821,7 +2828,7 @@ export default function PiecefulGame({
 
                   {/* CTA黄色ボタン (詳しい解説をチェック) */}
                   <button
-                    className="w-full bg-[#ffcc00] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-3 transition-transform active:translate-y-[4px] active:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                    className="w-full bg-[#ffcc00] pf-cta-btn-shimmer border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-3 transition-transform active:translate-y-[4px] active:shadow-[0px_0px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
                     style={{
                       width: "100%",
                       backgroundColor: "#ffcc00",
@@ -2838,8 +2845,7 @@ export default function PiecefulGame({
                       marginTop: "auto"
                     }}
                     onClick={() => {
-                      // 解説詳細(detail)画面を表示させる
-                      go("detail");
+                      window.open("https://example.com/explanation", "_blank");
                     }}
                   >
                     <span className="font-black text-2xl text-black" style={{
@@ -2865,6 +2871,9 @@ export default function PiecefulGame({
                 </div>
                 {/* END: Main Result Card */}
 
+                </div>
+                {/* END: Scrollable Content Container */}
+
                 {/* BEGIN: Footer Navigation (ステージ選択画面に戻る) */}
                 <button
                   type="button"
@@ -2872,8 +2881,8 @@ export default function PiecefulGame({
                   style={{
                     fontSize: "20px",
                     padding: "11px 16px",
-                    marginTop: "0px",
-                    marginBottom: "45px",
+                    marginTop: "8px",
+                    marginBottom: "16px",
                     width: "100%",
                     backgroundColor: "white",
                     color: "black",

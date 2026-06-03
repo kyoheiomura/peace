@@ -7,7 +7,6 @@ import {
   useCallback,
   useMemo,
   type ReactNode,
-  type CSSProperties,
 } from "react";
 import { charPickerScrollSubcopy } from "../lib/charPickerConfig";
 import { characters, charImages, charNick, charGroup, type CharacterType } from "../lib/characters";
@@ -956,16 +955,6 @@ export default function PiecefulGame({
     clearedRef.current = clearedStages;
   }, [clearedStages]);
 
-  useEffect(() => {
-    const setVH = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-    setVH();
-    window.addEventListener('resize', setVH);
-    return () => window.removeEventListener('resize', setVH);
-  }, []);
-
   const priorScenarioParagraphs = useMemo(() => {
     if (sceneParagraphs.length > 0) return sceneParagraphs;
     const s = stages[stage];
@@ -1191,7 +1180,7 @@ export default function PiecefulGame({
       "#fffde7"
     ) : "#ffffff";
     
-    return `<button type="button" class="w-full flex items-center retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px; background-color: ${bgColor}; touch-action: manipulation;">
+    return `<button type="button" class="w-full flex items-center retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px; background-color: ${bgColor};">
       <div class="w-12 h-12 retro-border flex items-center justify-center flex-shrink-0 mr-4 pf-choice-letter ${id.toLowerCase()}" style="background-color: ${badgeColor}; color: ${textColor}; font-family: var(--font); border-width: 3px; border-radius: 8px;">
         <span class="text-2xl font-black">${id}</span>
       </div>
@@ -1893,37 +1882,12 @@ export default function PiecefulGame({
     }
   }, [shareText, toast]);
 
-  const viewportShellStyle: CSSProperties = {
-    height: "calc(var(--vh, 1vh) * 100)",
-    maxHeight: "100dvh",
-    minHeight: 0,
-    overflow: "hidden",
-    position: "relative",
-    touchAction: "manipulation",
-  };
-
-  const appViewportStyle: CSSProperties = embed
-    ? viewportShellStyle
-    : {
-        ...viewportShellStyle,
-        height: "100%",
-        maxHeight: "100%",
-      };
-
-  const innerScrollStyle: CSSProperties = {
-    minHeight: 0,
-    overflowY: "auto",
-    WebkitOverflowScrolling: "touch",
-    touchAction: "manipulation",
-  };
-
   const appMain = (
       <main
         className={["app pf-app", embed ? "pf-embed-preview" : ""]
           .filter(Boolean)
           .join(" ")}
         ref={appRef}
-        style={appViewportStyle}
       >
       <span className="bg-chip chip-1">🌙</span>
       <span className="bg-chip chip-2">☀️</span>
@@ -2081,23 +2045,23 @@ export default function PiecefulGame({
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
               <div className="pf-safe pf-scene-intro">
-                <div className="pf-scene-topbar" style={{ marginTop: "clamp(12px, 7vh, 60px)", marginBottom: "1px", flexShrink: 0 }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
                   <button type="button" className="pf-back-btn" onClick={() => go("stage")} aria-label="ステージ選択へ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
-                <div className="pf-scene-banner" style={{ fontSize: "clamp(20px, 3.2vh, 27px)", padding: "8px 12px", marginTop: "clamp(4px, 1.2vh, 10px)", marginBottom: "2px", flexShrink: 0 }}>{stages[stage]?.kicker ?? ""}</div>
+                <div className="pf-scene-banner" style={{ fontSize: "27px", padding: "8px 12px", marginTop: "10px", marginBottom: "2px" }}>{stages[stage]?.kicker ?? ""}</div>
                 <div className="pf-scene-char-row">
                   {charImages[character] && (
-                    <img src={charImages[character]} alt={charNick[character] || character} className="pf-scene-char-img" style={{ width: "clamp(92px, 18vh, 134px)", height: "clamp(92px, 18vh, 134px)" }} />
+                    <img src={charImages[character]} alt={charNick[character] || character} className="pf-scene-char-img" style={{ width: "134px", height: "134px" }} />
                   )}
                   <div className="pf-scene-bubble" style={{ fontSize: "24px" }}>
                     <span>スタート！</span>
                   </div>
                 </div>
-                <div className="pf-scene-chat" style={innerScrollStyle}>
-                  {sceneParagraphs.map((p, i) => <p key={i} style={{ fontSize: "clamp(18px, 3.1vh, 26px)" }}>{p}</p>)}
+                <div className="pf-scene-chat">
+                  {sceneParagraphs.map((p, i) => <p key={i} style={{ fontSize: "26px" }}>{p}</p>)}
                 </div>
-                <button type="button" className="pf-scene-next-btn" style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "max(12px, env(safe-area-inset-bottom, 0px))" }} onClick={() => { renderChoices(); go("choice"); }}>
+                <button type="button" className="pf-scene-next-btn" style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }} onClick={() => { renderChoices(); go("choice"); }}>
                   次へ
                 </button>
               </div>
@@ -2116,7 +2080,7 @@ export default function PiecefulGame({
               <div className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "clamp(12px, 7vh, 60px)", marginBottom: "1px", flexShrink: 0 }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
                   <button type="button" className="pf-back-btn" onClick={() => { setPendingPick(null); go("scene"); }} aria-label="シチュエーションへ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
@@ -2216,11 +2180,7 @@ export default function PiecefulGame({
                     gap: `${sliderChoiceGap}px`,
                     padding: "0 16px",
                     marginTop: `${sliderChoiceChoicesMarginTop}px`,
-                    flexGrow: 1,
-                    minHeight: 0,
-                    overflowY: "auto",
-                    WebkitOverflowScrolling: "touch",
-                    touchAction: "manipulation"
+                    flexGrow: 1
                   }}
                 />
 
@@ -2228,7 +2188,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "max(12px, env(safe-area-inset-bottom, 0px))" }}
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
                   onClick={() => {
                     if (selectedChoiceId) {
                       setPriorChoiceOpen(false);
@@ -2259,7 +2219,7 @@ export default function PiecefulGame({
               <div ref={actionFlowRef} className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "clamp(12px, 7vh, 60px)", marginBottom: "1px", flexShrink: 0 }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
                   <button
                     type="button"
                     className="pf-back-btn"
@@ -2369,11 +2329,7 @@ export default function PiecefulGame({
                     gap: `${sliderChoiceGap}px`,
                     padding: "0 16px",
                     marginTop: `${sliderChoiceChoicesMarginTop}px`,
-                    flexGrow: 1,
-                    minHeight: 0,
-                    overflowY: "auto",
-                    WebkitOverflowScrolling: "touch",
-                    touchAction: "manipulation"
+                    flexGrow: 1
                   }}
                 />
 
@@ -2381,7 +2337,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "max(12px, env(safe-area-inset-bottom, 0px))" }}
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
                   onClick={() => {
                     if (selectedActionId) {
                       selectAction(selectedActionId);
@@ -2414,7 +2370,7 @@ export default function PiecefulGame({
         >
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
-              <div className="pf-safe pf-scene-intro" style={innerScrollStyle}>
+              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
               
               {/* BEGIN: Header */}
               <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
@@ -2660,7 +2616,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "32px", marginBottom: "max(12px, env(safe-area-inset-bottom, 0px))", width: "100%" }}
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "32px", marginBottom: "45px", width: "100%" }}
                   onClick={() => go("cta")}
                 >
                   次へ
@@ -2691,7 +2647,7 @@ export default function PiecefulGame({
         >
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
-              <div className="pf-safe pf-scene-intro" style={innerScrollStyle}>
+              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
                 
                 {/* BEGIN: Header */}
                 <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
@@ -2932,7 +2888,7 @@ export default function PiecefulGame({
                     fontSize: "20px",
                     padding: "11px 16px",
                     marginTop: "0px",
-                    marginBottom: "max(12px, env(safe-area-inset-bottom, 0px))",
+                    marginBottom: "45px",
                     width: "100%",
                     backgroundColor: "white",
                     color: "black",
@@ -2959,7 +2915,7 @@ export default function PiecefulGame({
           aria-labelledby="detail-heading"
         >
           <div className="pf-screen pf-paper">
-            <div className="pf-safe" style={innerScrollStyle}>
+            <div className="pf-safe">
               <div className="pf-detail-layout">
                 <div className="pf-topbar">
                   <button
@@ -3027,7 +2983,7 @@ export default function PiecefulGame({
           aria-labelledby="clear-heading"
         >
           <div className="pf-screen pf-paper">
-            <div className="pf-safe" style={innerScrollStyle}>
+            <div className="pf-safe">
               <div className="pf-result-layout">
                 <h2 id="clear-heading" className="pf-result-title">
                   クリア証
@@ -3135,7 +3091,7 @@ export default function PiecefulGame({
 
   return (
     <>
-      {embed ? appMain : <div className="phone-mockup" style={viewportShellStyle}>{appMain}</div>}
+      {embed ? appMain : <div className="phone-mockup">{appMain}</div>}
 
       {/* ── PICK CONFIRM MODAL ── */}
       <div

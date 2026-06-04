@@ -4077,7 +4077,9 @@ body:has(.game-body)::before {
 /* Scene intro chat text */
 .game-body .pf-scene-chat {
   padding: 0;
-  flex: 1;
+  flex: 0 1 auto;
+  overflow-y: auto;
+  min-height: 0;
 }
 .game-body .pf-scene-chat p {
   margin: 0 0 24px;
@@ -4098,6 +4100,7 @@ body:has(.game-body)::before {
   width: 100%;
   padding: 16px;
   margin-top: auto;
+  flex-shrink: 0;
   background: #ffff5c;
   color: #000;
   border: 3px solid #000;

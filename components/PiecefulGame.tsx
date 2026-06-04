@@ -2648,17 +2648,17 @@ export default function PiecefulGame({
 
                 </div>
 
-              </main>
+                {/* 次へボタン */}
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "32px", marginBottom: "45px", width: "100%" }}
+                  onClick={() => go("cta")}
+                >
+                  次へ
+                </button>
 
-              {/* 次へボタン (他の画面と完全に同一のデザイン・余白・サイズ・DOM配置) */}
-              <button
-                type="button"
-                className="pf-scene-next-btn"
-                style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px", width: "100%" }}
-                onClick={() => go("cta")}
-              >
-                次へ
-              </button>
+              </main>
               
             </div>
           </div>

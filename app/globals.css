@@ -2609,6 +2609,8 @@ body:has(.game-body)::before {
   padding: 0;
   max-width: none;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-body .screen {

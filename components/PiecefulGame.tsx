@@ -672,6 +672,7 @@ type PiecefulProgressV1 = {
   maxCombo: number;
   trust: number;
   clearedStages: number[];
+  clearedStagesMap?: Record<string, number[]>;
   updatedAt: string;
 };
 
@@ -873,6 +874,7 @@ export default function PiecefulGame({
   const [guideOpen, setGuideOpen] = useState(false);
   const [pendingChar, setPendingChar] = useState<CharacterType | null>(null);
   const [clearedStages, setClearedStages] = useState<Set<number>>(new Set());
+  const [clearedStagesMap, setClearedStagesMap] = useState<Record<string, number[]>>({});
   const [detailIndex, setDetailIndex] = useState(0);
   const [sceneParagraphs, setSceneParagraphs] = useState<string[]>([]);
   const [sceneBgImg, setSceneBgImg] = useState("");
@@ -931,6 +933,7 @@ export default function PiecefulGame({
   const lastAnswerRef = useRef<Record<string, unknown> | null>(null);
   const lastChoiceRef = useRef<string | null>(null);
   const lastActionRef = useRef<string | null>(null);
+  const prevScreenRef = useRef<Screen | null>(null);
 
   /* local copy of trust for syncHud (avoids stale closure) */
   const trustRef = useRef(trust);
@@ -1074,6 +1077,7 @@ export default function PiecefulGame({
   /* ── go: reset scroll in .app and window (PC phone mock + iframe) ── */
   const go = useCallback(
     (screen: Screen) => {
+      prevScreenRef.current = currentScreen;
       setCurrentScreen(screen);
       requestAnimationFrame(() => {
         window.scrollTo(0, 0);
@@ -1084,7 +1088,7 @@ export default function PiecefulGame({
       });
       setTimeout(syncHud, 0);
     },
-    [syncHud]
+    [syncHud, currentScreen]
   );
 
   /* ── toast ── */
@@ -1145,6 +1149,15 @@ export default function PiecefulGame({
     (type: string, options?: { fromPicker?: boolean }) => {
       setCharacter(type);
       characterRef.current = type;
+
+      const clearedList = clearedStagesMap[type] ?? [];
+      const cleared = new Set(clearedList);
+      setClearedStages(cleared);
+      clearedRef.current = cleared;
+
+      const next = getNextUnclearedStage(cleared);
+      setStage(next ?? 1);
+
       if (!options?.fromPicker) {
         toast(`${type}:${charNick[type]} を選択!`);
       }
@@ -1153,7 +1166,7 @@ export default function PiecefulGame({
         setTimeout(() => go("type"), 180);
       }
     },
-    [toast, syncHud, go]
+    [toast, syncHud, go, clearedStagesMap]
   );
 
   const choiceButtonHtml = (
@@ -1404,6 +1417,12 @@ export default function PiecefulGame({
         const next = new Set(prev);
         next.add(stage);
         clearedRef.current = next;
+
+        setClearedStagesMap((prevMap) => ({
+          ...prevMap,
+          [characterRef.current]: Array.from(next),
+        }));
+
         return next;
       });
 
@@ -1415,7 +1434,6 @@ export default function PiecefulGame({
           csv.furumai[pickId as keyof typeof csv.furumai] as string
         );
         applyScore(scoreDelta);
-        toast(isCorrect ? csv.result : "相手の立場に立って行動を選び直してみましょう。");
         setTimeout(() => {
           renderResult({ feedback: isCorrect ? csv.result : "" });
           go("result");
@@ -1426,13 +1444,12 @@ export default function PiecefulGame({
       if (!action) return;
       setSelectedActionText(action.text);
       applyScore(action.score);
-      toast(action.feedback);
       setTimeout(() => {
         renderResult(action);
         go("result");
       }, 460);
     },
-    [stage, applyScore, toast, go, renderResult, setSelectedActionId, setSelectedActionText]
+    [stage, applyScore, toast, go, renderResult, setSelectedActionId, setSelectedActionText, setClearedStagesMap]
   );
 
   const handlePrimaryStart = useCallback(() => {
@@ -1515,17 +1532,18 @@ export default function PiecefulGame({
 
   /* ── resetGame ── */
   const resetGame = useCallback((opts?: { screen?: Screen }) => {
-    try {
-      localStorage.removeItem(PROGRESS_KEY);
-    } catch {
-      /* ignore */
-    }
     setStage(1);
     setTrust(35);
     setScore(0);
     setCombo(0);
     setMaxCombo(0);
     setClearedStages(new Set());
+    
+    setClearedStagesMap((prevMap) => ({
+      ...prevMap,
+      [characterRef.current]: [],
+    }));
+
     trustRef.current = 35;
     scoreRef.current = 0;
     comboRef.current = 0;
@@ -1581,9 +1599,15 @@ export default function PiecefulGame({
     setCombo(data.combo ?? 0);
     comboRef.current = data.combo ?? 0;
     setMaxCombo(data.maxCombo ?? data.combo ?? 0);
-    const cleared = new Set(data.clearedStages ?? []);
+    
+    const map = data.clearedStagesMap ?? {};
+    setClearedStagesMap(map);
+    
+    const clearedList = map[data.selectedType] ?? data.clearedStages ?? [];
+    const cleared = new Set(clearedList);
     setClearedStages(cleared);
     clearedRef.current = cleared;
+
     if (typeof data.currentStage === "number") {
       setStage(data.currentStage);
     }
@@ -1804,6 +1828,7 @@ export default function PiecefulGame({
         maxCombo,
         trust,
         clearedStages: Array.from(clearedStages),
+        clearedStagesMap,
         updatedAt: new Date().toISOString(),
       };
       localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
@@ -1819,6 +1844,7 @@ export default function PiecefulGame({
     maxCombo,
     trust,
     clearedStages,
+    clearedStagesMap,
   ]);
 
   /* ── mount: sync HUD + detect save + onboarding ── */
@@ -1979,8 +2005,14 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-type-back-btn"
-                  onClick={() => go("title")}
-                  aria-label="タイトルへ戻る"
+                  onClick={() => {
+                    if (prevScreenRef.current === "stage") {
+                      go("stage");
+                    } else {
+                      go("title");
+                    }
+                  }}
+                  aria-label="戻る"
                 >
                   ←
                 </button>
@@ -2080,7 +2112,7 @@ export default function PiecefulGame({
               <div className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "16px", marginBottom: "1px" }}>
                   <button type="button" className="pf-back-btn" onClick={() => { setPendingPick(null); go("scene"); }} aria-label="シチュエーションへ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
@@ -2180,7 +2212,9 @@ export default function PiecefulGame({
                     gap: `${sliderChoiceGap}px`,
                     padding: "0 16px",
                     marginTop: `${sliderChoiceChoicesMarginTop}px`,
-                    flexGrow: 1
+                    flexGrow: 1,
+                    overflowY: "auto",
+                    minHeight: 0
                   }}
                 />
 
@@ -2188,7 +2222,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px" }}
                   onClick={() => {
                     if (selectedChoiceId) {
                       setPriorChoiceOpen(false);
@@ -2219,7 +2253,7 @@ export default function PiecefulGame({
               <div ref={actionFlowRef} className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "16px", marginBottom: "1px" }}>
                   <button
                     type="button"
                     className="pf-back-btn"
@@ -2329,7 +2363,9 @@ export default function PiecefulGame({
                     gap: `${sliderChoiceGap}px`,
                     padding: "0 16px",
                     marginTop: `${sliderChoiceChoicesMarginTop}px`,
-                    flexGrow: 1
+                    flexGrow: 1,
+                    overflowY: "auto",
+                    minHeight: 0
                   }}
                 />
 
@@ -2337,7 +2373,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }}
+                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px" }}
                   onClick={() => {
                     if (selectedActionId) {
                       selectAction(selectedActionId);
@@ -2370,7 +2406,7 @@ export default function PiecefulGame({
         >
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
-              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+              <div className="pf-safe pf-scene-intro">
               
               {/* BEGIN: Header */}
               <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
@@ -2637,7 +2673,7 @@ export default function PiecefulGame({
         >
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
-              <div className="pf-safe pf-scene-intro" style={{ overflowY: "auto" }}>
+              <div className="pf-safe pf-scene-intro">
                 
                 {/* BEGIN: Header */}
                 <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
@@ -2877,8 +2913,8 @@ export default function PiecefulGame({
                   style={{
                     fontSize: "20px",
                     padding: "11px 16px",
-                    marginTop: "0px",
-                    marginBottom: "45px",
+                    marginTop: "8px",
+                    marginBottom: "16px",
                     width: "100%",
                     backgroundColor: "white",
                     color: "black",

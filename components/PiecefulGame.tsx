@@ -2045,23 +2045,23 @@ export default function PiecefulGame({
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
               <div className="pf-safe pf-scene-intro">
-                <div className="pf-scene-topbar" style={{ marginTop: "60px", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar">
                   <button type="button" className="pf-back-btn" onClick={() => go("stage")} aria-label="ステージ選択へ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
-                <div className="pf-scene-banner" style={{ fontSize: "27px", padding: "8px 12px", marginTop: "10px", marginBottom: "2px" }}>{stages[stage]?.kicker ?? ""}</div>
+                <div className="pf-scene-banner">{stages[stage]?.kicker ?? ""}</div>
                 <div className="pf-scene-char-row">
                   {charImages[character] && (
-                    <img src={charImages[character]} alt={charNick[character] || character} className="pf-scene-char-img" style={{ width: "134px", height: "134px" }} />
+                    <img src={charImages[character]} alt={charNick[character] || character} className="pf-scene-char-img" />
                   )}
-                  <div className="pf-scene-bubble" style={{ fontSize: "24px" }}>
+                  <div className="pf-scene-bubble">
                     <span>スタート！</span>
                   </div>
                 </div>
                 <div className="pf-scene-chat">
-                  {sceneParagraphs.map((p, i) => <p key={i} style={{ fontSize: "26px" }}>{p}</p>)}
+                  {sceneParagraphs.map((p, i) => <p key={i}>{p}</p>)}
                 </div>
-                <button type="button" className="pf-scene-next-btn" style={{ fontSize: "20px", padding: "11px 16px", marginTop: "0px", marginBottom: "45px" }} onClick={() => { renderChoices(); go("choice"); }}>
+                <button type="button" className="pf-scene-next-btn" onClick={() => { renderChoices(); go("choice"); }}>
                   次へ
                 </button>
               </div>

@@ -2096,12 +2096,7 @@ export default function PiecefulGame({
                 </div>
 
                 {/* テーマ窓 (WarningBanner) */}
-                <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
-                  <span>
-                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                  </span>
-                </div>
+                <div className="pf-scene-banner">{stages[stage]?.kicker ?? ""}</div>
 
                 {/* キャラクター ＋ 吹き出し */}
                 <div className="pf-choice-char-row" style={{
@@ -2242,12 +2237,7 @@ export default function PiecefulGame({
                 </div>
 
                 {/* 警告バナー */}
-                <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
-                  <span>
-                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                  </span>
-                </div>
+                <div className="pf-scene-banner">{stages[stage]?.kicker ?? ""}</div>
 
                 {/* キャラクター ＋ 吹き出し */}
                 <div className="pf-choice-char-row" style={{
@@ -2390,12 +2380,7 @@ export default function PiecefulGame({
               </div>
 
               {/* Status Banner */}
-              <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
-                <span>
-                  {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                </span>
-              </div>
+              <div className="pf-scene-banner">{stages[stage]?.kicker ?? ""}</div>
 
               {/* BEGIN: Main Content */}
               <main className="flex flex-col items-center flex-grow" style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, boxSizing: "border-box", overflowY: "auto", minHeight: 0, width: "100%" }}>
@@ -2650,12 +2635,7 @@ export default function PiecefulGame({
                 </div>
 
                 {/* BEGIN: Alert Banner */}
-                <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
-                  <span>
-                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                  </span>
-                </div>
+                <div className="pf-scene-banner">{stages[stage]?.kicker ?? ""}</div>
 
                 {/* BEGIN: Scrollable Content Container */}
                 <div className="flex-grow w-full" style={{ display: "flex", flexDirection: "column", flexGrow: 1, overflowY: "auto", minHeight: 0 }}>

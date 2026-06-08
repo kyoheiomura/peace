@@ -1168,8 +1168,8 @@ export default function PiecefulGame({
       "#ffc107";
     const textColor = id === "D" ? "#000" : "#fff";
     
-    const paddingVal = dataAttr === "data-choice-id" ? `clamp(6px, 1.5vw, 12px) 16px` : "14px 16px";
-    const fontSizeVal = dataAttr === "data-choice-id" ? `clamp(14px, 4vw, 19px)` : "19px";
+    const paddingVal = `clamp(6px, 1.5vw, 12px) 16px`;
+    const fontSizeVal = `clamp(14px, 4vw, 19px)`;
 
     const isSelected =
       dataAttr === "data-choice-id" ? selectedChoiceId === id : selectedActionId === id;
@@ -1180,7 +1180,7 @@ export default function PiecefulGame({
       "#fffde7"
     ) : "#ffffff";
     
-    return `<button type="button" class="w-full flex items-center retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px; background-color: ${bgColor};">
+    return `<button type="button" class="w-full flex items-center retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px; background-color: ${bgColor}; flex-shrink: 0;">
       <div class="flex items-center justify-center flex-shrink-0 pf-choice-letter ${id.toLowerCase()}" style="background-color: ${badgeColor}; color: ${textColor}; font-family: var(--font); border-width: 3px; border-radius: 8px; width: clamp(36px, 10vw, 48px); height: clamp(36px, 10vw, 48px); margin-right: clamp(8px, 3vw, 16px);">
         <span class="font-black" style="font-size: clamp(16px, 4vw, 24px);">${id}</span>
       </div>
@@ -2045,7 +2045,7 @@ export default function PiecefulGame({
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
               <div className="pf-safe pf-scene-intro">
-                <div className="pf-scene-topbar">
+                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "8px" }}>
                   <button type="button" className="pf-back-btn" onClick={() => go("stage")} aria-label="ステージ選択へ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
@@ -2061,7 +2061,17 @@ export default function PiecefulGame({
                 <div className="pf-scene-chat">
                   {sceneParagraphs.map((p, i) => <p key={i}>{p}</p>)}
                 </div>
-                <button type="button" className="pf-scene-next-btn" onClick={() => { renderChoices(); go("choice"); }}>
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  style={{
+                    marginTop: "8px",
+                    marginBottom: "16px",
+                    width: "100%",
+                    whiteSpace: "nowrap"
+                  }}
+                  onClick={() => { renderChoices(); go("choice"); }}
+                >
                   次へ
                 </button>
               </div>
@@ -2080,27 +2090,17 @@ export default function PiecefulGame({
               <div className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "8px" }}>
                   <button type="button" className="pf-back-btn" onClick={() => { setPendingPick(null); go("scene"); }} aria-label="シチュエーションへ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
 
                 {/* テーマ窓 (WarningBanner) */}
-                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "6px" }}>
-                  <div className="bg-[#ff5252]" style={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "#ff5252",
-                    padding: "7px 16px",
-                    border: "3px solid #000",
-                    boxShadow: "3px 3px 0 #000",
-                    justifyContent: "center"
-                  }}>
-                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "clamp(18px, 7vw, 25px)" }}>⚠️</span>
-                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "clamp(18px, 7vw, 25px)", fontFamily: "var(--font)" }}>
-                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                    </span>
-                  </div>
+                <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
+                  <span>
+                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                  </span>
                 </div>
 
                 {/* キャラクター ＋ 吹き出し */}
@@ -2190,7 +2190,12 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ marginTop: "8px", marginBottom: "16px" }}
+                  style={{
+                    marginTop: "8px",
+                    marginBottom: "16px",
+                    width: "100%",
+                    whiteSpace: "nowrap"
+                  }}
                   onClick={() => {
                     if (selectedChoiceId) {
                       setPriorChoiceOpen(false);
@@ -2221,7 +2226,7 @@ export default function PiecefulGame({
               <div ref={actionFlowRef} className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "8px" }}>
                   <button
                     type="button"
                     className="pf-back-btn"
@@ -2237,21 +2242,11 @@ export default function PiecefulGame({
                 </div>
 
                 {/* 警告バナー */}
-                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "6px" }}>
-                  <div className="bg-[#ff5252]" style={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "#ff5252",
-                    padding: "7px 16px",
-                    border: "3px solid #000",
-                    boxShadow: "3px 3px 0 #000",
-                    justifyContent: "center"
-                  }}>
-                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "clamp(18px, 7vw, 25px)" }}>⚠️</span>
-                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "clamp(18px, 7vw, 25px)", fontFamily: "var(--font)" }}>
-                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                    </span>
-                  </div>
+                <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
+                  <span>
+                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                  </span>
                 </div>
 
                 {/* キャラクター ＋ 吹き出し */}
@@ -2341,7 +2336,12 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ marginTop: "8px", marginBottom: "16px" }}
+                  style={{
+                    marginTop: "8px",
+                    marginBottom: "16px",
+                    width: "100%",
+                    whiteSpace: "nowrap"
+                  }}
                   onClick={() => {
                     if (selectedActionId) {
                       selectAction(selectedActionId);
@@ -2376,41 +2376,29 @@ export default function PiecefulGame({
             <div className="pf-scene-overlay">
               <div className="pf-safe pf-scene-intro">
               
-              {/* BEGIN: Header */}
-              <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "clamp(8px, 2vh, 16px)", paddingTop: "clamp(8px, 2vh, 16px)", flexShrink: 0, width: "100%" }}>
+              {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
+              <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "8px" }}>
                 <button
                   type="button"
-                  className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  className="pf-back-btn"
                   onClick={() => go("action")}
-                  style={{ width: "clamp(36px, 10vw, 48px)", height: "clamp(32px, 9vw, 40px)", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
                   aria-label="振る舞い選択へ戻る"
                 >
-                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="square" strokeLinejoin="miter" strokeWidth="4" viewBox="0 0 24 24" width="24" style={{ display: "block" }}>
-                    <path d="M19 12H5M5 12L12 19M5 12L12 5"></path>
-                  </svg>
+                  ←
                 </button>
-                <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "clamp(20px, 5vw, 24px)", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
-                  <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
-                </div>
-              </header>
-              {/* END: Header */}
+                <StageProgressMeter step={getStageStep(currentScreen)} />
+              </div>
+
+              {/* Status Banner */}
+              <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
+                <span>
+                  {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                </span>
+              </div>
 
               {/* BEGIN: Main Content */}
               <main className="flex flex-col items-center flex-grow" style={{ display: "flex", flexDirection: "column", alignItems: "center", flexGrow: 1, boxSizing: "border-box", overflowY: "auto", minHeight: 0, width: "100%" }}>
-                
-                {/* Status Banner */}
-                <div className="w-full bg-[#FF6B6B] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-2 px-4 mb-10 flex justify-center items-center gap-2" style={{ width: "100%", backgroundColor: "#FF6B6B", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", paddingTop: "8px", paddingBottom: "8px", paddingLeft: "16px", paddingRight: "16px", marginBottom: "16px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
-                  <span className="text-yellow-400 text-2xl" style={{ fontSize: "clamp(18px, 5vw, 24px)", color: "#FBBF24" }}>⚠️</span>
-                  <span className="text-white font-bold text-xl tracking-wider" style={{
-                    color: "white",
-                    fontWeight: "bold",
-                    fontSize: "clamp(15px, 4.5vw, 20px)",
-                    letterSpacing: "0.05em",
-                    fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
-                  }}>
-                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                  </span>
-                </div>
 
                 {/* Character and Speech Bubble */}
                 <div className="relative w-full flex items-center justify-center gap-2 mb-8" style={{ width: "100%", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "16px", boxSizing: "border-box" }}>
@@ -2622,7 +2610,12 @@ export default function PiecefulGame({
               <button
                 type="button"
                 className="pf-scene-next-btn"
-                style={{ marginTop: "8px", marginBottom: "16px", width: "100%" }}
+                style={{
+                  marginTop: "8px",
+                  marginBottom: "16px",
+                  width: "100%",
+                  whiteSpace: "nowrap"
+                }}
                 onClick={() => go("cta")}
               >
                 次へ
@@ -2643,43 +2636,29 @@ export default function PiecefulGame({
             <div className="pf-scene-overlay">
               <div className="pf-safe pf-scene-intro">
                 
-                {/* BEGIN: Header */}
-                <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "clamp(8px, 2vh, 16px)", paddingTop: "clamp(8px, 2vh, 16px)", flexShrink: 0, width: "100%" }}>
+                {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
+                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "8px" }}>
                   <button
                     type="button"
-                    className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    className="pf-back-btn"
                     onClick={() => go("result")}
-                    style={{ width: "clamp(36px, 10vw, 48px)", height: "clamp(32px, 9vw, 40px)", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                    aria-label="結果へ戻る"
                   >
-                    <span className="font-bold text-xl text-black" style={{ fontSize: "clamp(15px, 4.5vw, 20px)", fontWeight: "900", color: "black", fontFamily: "var(--font)" }}>←</span>
+                    ←
                   </button>
-                  <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "clamp(20px, 5vw, 24px)", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
-                    <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
-                  </div>
-                </header>
-                {/* END: Header */}
+                  <StageProgressMeter step={getStageStep(currentScreen)} />
+                </div>
+
+                {/* BEGIN: Alert Banner */}
+                <div className="pf-scene-banner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ display: "inline-flex", marginRight: "8px" }}>⚠️</span>
+                  <span>
+                    {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
+                  </span>
+                </div>
 
                 {/* BEGIN: Scrollable Content Container */}
                 <div className="flex-grow w-full" style={{ display: "flex", flexDirection: "column", flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
-
-                {/* BEGIN: Alert Banner */}
-                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "clamp(8px, 3vw, 24px)", width: "100%" }}>
-                  <div className="bg-[#ff5a5a]" style={{
-                    display: "flex",
-                    alignItems: "center",
-                    backgroundColor: "#ff5a5a",
-                    padding: "7px 16px",
-                    border: "3px solid #000",
-                    boxShadow: "3px 3px 0 #000",
-                    justifyContent: "center"
-                  }}>
-                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "clamp(18px, 7vw, 25px)" }}>⚠️</span>
-                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "clamp(18px, 7vw, 25px)", fontFamily: "var(--font)" }}>
-                      {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
-                    </span>
-                  </div>
-                </div>
-                {/* END: Alert Banner */}
 
                 {/* BEGIN: Character and Speech Bubble */}
                 <div className="pf-choice-char-row" style={{
@@ -2877,21 +2856,16 @@ export default function PiecefulGame({
                 {/* BEGIN: Footer Navigation (ステージ選択画面に戻る) */}
                 <button
                   type="button"
-                  className="pf-scene-next-btn"
+                  className="pf-scene-next-btn white"
                   style={{
                     marginTop: "8px",
                     marginBottom: "16px",
                     width: "100%",
-                    backgroundColor: "white",
-                    color: "black",
-                    border: "4px solid #000",
-                    borderRadius: "9999px",
-                    boxShadow: "0px 6px 0px 0px rgba(0,0,0,1)"
+                    whiteSpace: "nowrap"
                   }}
                   onClick={() => go("stage")}
                 >
-                  <span style={{ fontSize: "14px", marginRight: "8px" }}>◀</span>
-                  ステージ選択画面に戻る
+                  ◀ステージ選択画面に戻る
                 </button>
                 {/* END: Footer Navigation */}
 

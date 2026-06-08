@@ -1168,8 +1168,8 @@ export default function PiecefulGame({
       "#ffc107";
     const textColor = id === "D" ? "#000" : "#fff";
     
-    const paddingVal = dataAttr === "data-choice-id" ? `${sliderChoicePaddingY}px 16px` : "14px 16px";
-    const fontSizeVal = dataAttr === "data-choice-id" ? `${sliderChoiceTextSize}px` : "19px";
+    const paddingVal = dataAttr === "data-choice-id" ? `clamp(6px, 1.5vw, 12px) 16px` : "14px 16px";
+    const fontSizeVal = dataAttr === "data-choice-id" ? `clamp(14px, 4vw, 19px)` : "19px";
 
     const isSelected =
       dataAttr === "data-choice-id" ? selectedChoiceId === id : selectedActionId === id;
@@ -1181,8 +1181,8 @@ export default function PiecefulGame({
     ) : "#ffffff";
     
     return `<button type="button" class="w-full flex items-center retro-border retro-shadow text-left retro-button group pf-choice" ${dataAttr}="${id}" style="padding: ${paddingVal}; box-shadow: 4px 4px 0 #000; margin-bottom: 0px; background-color: ${bgColor};">
-      <div class="w-12 h-12 retro-border flex items-center justify-center flex-shrink-0 mr-4 pf-choice-letter ${id.toLowerCase()}" style="background-color: ${badgeColor}; color: ${textColor}; font-family: var(--font); border-width: 3px; border-radius: 8px;">
-        <span class="text-2xl font-black">${id}</span>
+      <div class="flex items-center justify-center flex-shrink-0 pf-choice-letter ${id.toLowerCase()}" style="background-color: ${badgeColor}; color: ${textColor}; font-family: var(--font); border-width: 3px; border-radius: 8px; width: clamp(36px, 10vw, 48px); height: clamp(36px, 10vw, 48px); margin-right: clamp(8px, 3vw, 16px);">
+        <span class="font-black" style="font-size: clamp(16px, 4vw, 24px);">${id}</span>
       </div>
       <p class="leading-snug font-bold text-black" style="margin: 0; font-family: var(--font); font-size: ${fontSizeVal}; color: #000;">${text}</p>
     </button>`;
@@ -2080,7 +2080,7 @@ export default function PiecefulGame({
               <div className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "16px", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "1px" }}>
                   <button type="button" className="pf-back-btn" onClick={() => { setPendingPick(null); go("scene"); }} aria-label="シチュエーションへ戻る">←</button>
                   <StageProgressMeter step={getStageStep(currentScreen)} />
                 </div>
@@ -2096,8 +2096,8 @@ export default function PiecefulGame({
                     boxShadow: "3px 3px 0 #000",
                     justifyContent: "center"
                   }}>
-                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
-                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "clamp(18px, 7vw, 25px)" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "clamp(18px, 7vw, 25px)", fontFamily: "var(--font)" }}>
                       {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
                     </span>
                   </div>
@@ -2116,8 +2116,8 @@ export default function PiecefulGame({
                       src={charImages[character]}
                       alt={charNick[character] || character}
                       style={{
-                        width: `${sliderChoiceCharSize}px`,
-                        height: `${sliderChoiceCharSize}px`,
+                        width: "clamp(72px, 24vw, 124px)",
+                        height: "clamp(72px, 24vw, 124px)",
                         objectFit: "contain",
                         flexShrink: 0
                       }}
@@ -2161,7 +2161,7 @@ export default function PiecefulGame({
                       zIndex: 1
                     }} />
                     <span style={{
-                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontSize: "clamp(16px, 5vw, 26px)",
                       fontWeight: "bold",
                       color: "#000",
                       fontFamily: "var(--font)"
@@ -2177,9 +2177,9 @@ export default function PiecefulGame({
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: `${sliderChoiceGap}px`,
+                    gap: "clamp(8px, 2.5vw, 14px)",
                     padding: "0 16px",
-                    marginTop: `${sliderChoiceChoicesMarginTop}px`,
+                    marginTop: "clamp(4px, 1vw, 8px)",
                     flexGrow: 1,
                     overflowY: "auto",
                     minHeight: 0
@@ -2190,7 +2190,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px" }}
+                  style={{ marginTop: "8px", marginBottom: "16px" }}
                   onClick={() => {
                     if (selectedChoiceId) {
                       setPriorChoiceOpen(false);
@@ -2221,7 +2221,7 @@ export default function PiecefulGame({
               <div ref={actionFlowRef} className="pf-safe pf-scene-intro">
                 
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
-                <div className="pf-scene-topbar" style={{ marginTop: "16px", marginBottom: "1px" }}>
+                <div className="pf-scene-topbar" style={{ marginTop: "clamp(8px, 2vh, 16px)", marginBottom: "1px" }}>
                   <button
                     type="button"
                     className="pf-back-btn"
@@ -2247,8 +2247,8 @@ export default function PiecefulGame({
                     boxShadow: "3px 3px 0 #000",
                     justifyContent: "center"
                   }}>
-                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
-                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "clamp(18px, 7vw, 25px)" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "clamp(18px, 7vw, 25px)", fontFamily: "var(--font)" }}>
                       {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
                     </span>
                   </div>
@@ -2267,8 +2267,8 @@ export default function PiecefulGame({
                       src={charImages[character]}
                       alt={charNick[character] || character}
                       style={{
-                        width: `${sliderChoiceCharSize}px`,
-                        height: `${sliderChoiceCharSize}px`,
+                        width: "clamp(72px, 24vw, 124px)",
+                        height: "clamp(72px, 24vw, 124px)",
                         objectFit: "contain",
                         flexShrink: 0
                       }}
@@ -2312,7 +2312,7 @@ export default function PiecefulGame({
                       zIndex: 1
                     }} />
                     <span style={{
-                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontSize: "clamp(16px, 5vw, 26px)",
                       fontWeight: "bold",
                       color: "#000",
                       fontFamily: "var(--font)"
@@ -2328,9 +2328,9 @@ export default function PiecefulGame({
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: `${sliderChoiceGap}px`,
+                    gap: "clamp(8px, 2.5vw, 14px)",
                     padding: "0 16px",
-                    marginTop: `${sliderChoiceChoicesMarginTop}px`,
+                    marginTop: "clamp(4px, 1vw, 8px)",
                     flexGrow: 1,
                     overflowY: "auto",
                     minHeight: 0
@@ -2341,7 +2341,7 @@ export default function PiecefulGame({
                 <button
                   type="button"
                   className="pf-scene-next-btn"
-                  style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px" }}
+                  style={{ marginTop: "8px", marginBottom: "16px" }}
                   onClick={() => {
                     if (selectedActionId) {
                       selectAction(selectedActionId);
@@ -2377,19 +2377,19 @@ export default function PiecefulGame({
               <div className="pf-safe pf-scene-intro">
               
               {/* BEGIN: Header */}
-              <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
+              <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "clamp(8px, 2vh, 16px)", paddingTop: "clamp(8px, 2vh, 16px)", flexShrink: 0, width: "100%" }}>
                 <button
                   type="button"
                   className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                   onClick={() => go("action")}
-                  style={{ width: "48px", height: "40px", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                  style={{ width: "clamp(36px, 10vw, 48px)", height: "clamp(32px, 9vw, 40px)", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
                   aria-label="振る舞い選択へ戻る"
                 >
                   <svg fill="none" height="24" stroke="currentColor" strokeLinecap="square" strokeLinejoin="miter" strokeWidth="4" viewBox="0 0 24 24" width="24" style={{ display: "block" }}>
                     <path d="M19 12H5M5 12L12 19M5 12L12 5"></path>
                   </svg>
                 </button>
-                <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "24px", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
+                <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "clamp(20px, 5vw, 24px)", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
                   <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
                 </div>
               </header>
@@ -2400,11 +2400,11 @@ export default function PiecefulGame({
                 
                 {/* Status Banner */}
                 <div className="w-full bg-[#FF6B6B] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-2 px-4 mb-10 flex justify-center items-center gap-2" style={{ width: "100%", backgroundColor: "#FF6B6B", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", paddingTop: "8px", paddingBottom: "8px", paddingLeft: "16px", paddingRight: "16px", marginBottom: "16px", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxSizing: "border-box" }}>
-                  <span className="text-yellow-400 text-2xl" style={{ fontSize: "24px", color: "#FBBF24" }}>⚠️</span>
+                  <span className="text-yellow-400 text-2xl" style={{ fontSize: "clamp(18px, 5vw, 24px)", color: "#FBBF24" }}>⚠️</span>
                   <span className="text-white font-bold text-xl tracking-wider" style={{
                     color: "white",
                     fontWeight: "bold",
-                    fontSize: "20px",
+                    fontSize: "clamp(15px, 4.5vw, 20px)",
                     letterSpacing: "0.05em",
                     fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
                   }}>
@@ -2415,7 +2415,7 @@ export default function PiecefulGame({
                 {/* Character and Speech Bubble */}
                 <div className="relative w-full flex items-center justify-center gap-2 mb-8" style={{ width: "100%", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "16px", boxSizing: "border-box" }}>
                   {/* Left Trophy */}
-                  <div className="text-3xl" style={{ fontSize: "30px" }}>
+                  <div className="text-3xl" style={{ fontSize: "clamp(22px, 7vw, 30px)" }}>
                     <img
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
                       alt="Trophy"
@@ -2425,7 +2425,7 @@ export default function PiecefulGame({
                   </div>
                   
                   {/* Character Image */}
-                  <div className="relative w-32 h-32" style={{ width: "128px", height: "128px", position: "relative" }}>
+                  <div className="relative w-32 h-32" style={{ width: "clamp(96px, 28vw, 128px)", height: "clamp(96px, 28vw, 128px)", position: "relative" }}>
                     {charImages[character] && (
                       <img
                         src={charImages[character]}
@@ -2444,7 +2444,7 @@ export default function PiecefulGame({
                     boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)",
                     padding: "12px",
                     marginLeft: "8px",
-                    minWidth: "140px",
+                    minWidth: "clamp(100px, 30vw, 140px)",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
@@ -2477,7 +2477,7 @@ export default function PiecefulGame({
                     }} />
                     <span className="font-black text-lg block leading-tight text-black" style={{
                       fontWeight: "900",
-                      fontSize: "18px",
+                      fontSize: "clamp(14px, 4vw, 18px)",
                       display: "block",
                       lineHeight: "1.25",
                       color: "black",
@@ -2485,7 +2485,7 @@ export default function PiecefulGame({
                     }}>チャレンジ</span>
                     <span className="font-black text-lg block leading-tight text-black" style={{
                       fontWeight: "900",
-                      fontSize: "18px",
+                      fontSize: "clamp(14px, 4vw, 18px)",
                       display: "block",
                       lineHeight: "1.25",
                       color: "black",
@@ -2494,7 +2494,7 @@ export default function PiecefulGame({
                   </div>
                   
                   {/* Right Trophy */}
-                  <div className="text-3xl" style={{ fontSize: "30px" }}>
+                  <div className="text-3xl" style={{ fontSize: "clamp(22px, 7vw, 30px)" }}>
                     <img
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
                       alt="Trophy"
@@ -2515,7 +2515,7 @@ export default function PiecefulGame({
                   paddingRight: "8px",
                   boxSizing: "border-box",
                   flexGrow: 1,
-                  marginBottom: "24px"
+                  marginBottom: "clamp(12px, 4vh, 24px)"
                 }}>
                   
                   {/* Message Block 1 (Choice) */}
@@ -2531,8 +2531,8 @@ export default function PiecefulGame({
                     boxSizing: "border-box"
                   }}>
                     <div className="w-10 h-10 flex-shrink-0 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center" style={{
-                      width: "40px",
-                      height: "40px",
+                      width: "clamp(32px, 9vw, 40px)",
+                      height: "clamp(32px, 9vw, 40px)",
                       flexShrink: 0,
                       backgroundColor: selectedChoiceId === "A" ? "#FF1A1A" : selectedChoiceId === "B" ? "#448aff" : selectedChoiceId === "C" ? "#4caf50" : "#ffc107",
                       border: "4px solid #000",
@@ -2545,14 +2545,14 @@ export default function PiecefulGame({
                       <span className="text-white font-black text-xl" style={{
                         color: selectedChoiceId === "D" ? "black" : "white",
                         fontWeight: "900",
-                        fontSize: "20px",
+                        fontSize: "clamp(15px, 4.5vw, 20px)",
                         fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
                       }}>{selectedChoiceId || "A"}</span>
                     </div>
                     <p className="font-bold text-[15px] leading-snug text-black" style={{
                       margin: 0,
                       fontWeight: "bold",
-                      fontSize: "15px",
+                      fontSize: "clamp(13px, 3.5vw, 15px)",
                       lineHeight: "1.4",
                       color: "black",
                       fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
@@ -2567,7 +2567,7 @@ export default function PiecefulGame({
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuFqa5lWRUCQ1KEJ3o_n-T8pTVyEgOKdPLLO8JF5CM30CB419zpol7rzA26tPaHmAJGKNTXeoAiVHdXjPocx6ec3YO8UkSz9CO6yVsK3S94A9XuALbd_UjsCUxMo6jEbmuY6MndDwWk-Z4o2VRNw5BQrKLS_xuX_H9T19DoXSxwXkYZADa27J0DwSEeOQbk6m7ti1MkYIsfAlchCh74NMvWoDn9gEJqOiuVXUculmFL_cmRT3OBOc6FB2UdqJYpe8hx_qitrmmNTY"
                       alt="Plus"
                       className="w-10 h-10 object-contain"
-                      style={{ width: "40px", height: "40px", objectFit: "contain" }}
+                      style={{ width: "clamp(32px, 9vw, 40px)", height: "clamp(32px, 9vw, 40px)", objectFit: "contain" }}
                     />
                   </div>
                   
@@ -2584,8 +2584,8 @@ export default function PiecefulGame({
                     boxSizing: "border-box"
                   }}>
                     <div className="w-10 h-10 flex-shrink-0 border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center" style={{
-                      width: "40px",
-                      height: "40px",
+                      width: "clamp(32px, 9vw, 40px)",
+                      height: "clamp(32px, 9vw, 40px)",
                       flexShrink: 0,
                       backgroundColor: selectedActionId === "A" ? "#FF1A1A" : selectedActionId === "B" ? "#448aff" : selectedActionId === "C" ? "#4caf50" : "#ffc107",
                       border: "4px solid #000",
@@ -2598,14 +2598,14 @@ export default function PiecefulGame({
                       <span className="text-white font-black text-xl" style={{
                         color: selectedActionId === "D" ? "black" : "white",
                         fontWeight: "900",
-                        fontSize: "20px",
+                        fontSize: "clamp(15px, 4.5vw, 20px)",
                         fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
                       }}>{selectedActionId || "A"}</span>
                     </div>
                     <p className="font-bold text-[15px] leading-snug text-black" style={{
                       margin: 0,
                       fontWeight: "bold",
-                      fontSize: "15px",
+                      fontSize: "clamp(13px, 3.5vw, 15px)",
                       lineHeight: "1.4",
                       color: "black",
                       fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
@@ -2622,7 +2622,7 @@ export default function PiecefulGame({
               <button
                 type="button"
                 className="pf-scene-next-btn"
-                style={{ fontSize: "20px", padding: "11px 16px", marginTop: "8px", marginBottom: "16px", width: "100%" }}
+                style={{ marginTop: "8px", marginBottom: "16px", width: "100%" }}
                 onClick={() => go("cta")}
               >
                 次へ
@@ -2644,16 +2644,16 @@ export default function PiecefulGame({
               <div className="pf-safe pf-scene-intro">
                 
                 {/* BEGIN: Header */}
-                <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", paddingTop: "16px", flexShrink: 0, width: "100%" }}>
+                <header className="flex items-center gap-4 mb-4 pt-4" style={{ boxSizing: "border-box", display: "flex", alignItems: "center", gap: "16px", marginBottom: "clamp(8px, 2vh, 16px)", paddingTop: "clamp(8px, 2vh, 16px)", flexShrink: 0, width: "100%" }}>
                   <button
                     type="button"
                     className="w-12 h-10 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center cursor-pointer active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                     onClick={() => go("result")}
-                    style={{ width: "48px", height: "40px", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
+                    style={{ width: "clamp(36px, 10vw, 48px)", height: "clamp(32px, 9vw, 40px)", backgroundColor: "white", border: "4px solid #000", boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)", display: "flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box", cursor: "pointer" }}
                   >
-                    <span className="font-bold text-xl text-black" style={{ fontSize: "20px", fontWeight: "900", color: "black", fontFamily: "var(--font)" }}>←</span>
+                    <span className="font-bold text-xl text-black" style={{ fontSize: "clamp(15px, 4.5vw, 20px)", fontWeight: "900", color: "black", fontFamily: "var(--font)" }}>←</span>
                   </button>
-                  <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "24px", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
+                  <div className="flex-grow h-6 bg-white border-4 border-black rounded-full overflow-hidden" style={{ flexGrow: 1, height: "clamp(20px, 5vw, 24px)", backgroundColor: "white", border: "4px solid #000", borderRadius: "9999px", overflow: "hidden", boxSizing: "border-box" }}>
                     <div className="h-full w-full bg-[#FF0080]" style={{ height: "100%", width: "100%", backgroundColor: "#FF0080" }}></div>
                   </div>
                 </header>
@@ -2663,7 +2663,7 @@ export default function PiecefulGame({
                 <div className="flex-grow w-full" style={{ display: "flex", flexDirection: "column", flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
 
                 {/* BEGIN: Alert Banner */}
-                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "24px", width: "100%" }}>
+                <div className="pf-choice-banner-wrap" style={{ padding: "0 16px", marginTop: "0px", marginBottom: "clamp(8px, 3vw, 24px)", width: "100%" }}>
                   <div className="bg-[#ff5a5a]" style={{
                     display: "flex",
                     alignItems: "center",
@@ -2673,8 +2673,8 @@ export default function PiecefulGame({
                     boxShadow: "3px 3px 0 #000",
                     justifyContent: "center"
                   }}>
-                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "25px" }}>⚠️</span>
-                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "25px", fontFamily: "var(--font)" }}>
+                    <span className="text-white" style={{ display: "inline-flex", marginRight: "8px", color: "#fff", fontSize: "clamp(18px, 7vw, 25px)" }}>⚠️</span>
+                    <span className="text-white font-bold tracking-wider" style={{ color: "#fff", fontWeight: "bold", fontSize: "clamp(18px, 7vw, 25px)", fontFamily: "var(--font)" }}>
                       {stages[stage]?.kicker ? stages[stage].kicker.replace(/^[^\s]+\s+/, "") : "納期遅延 ／ 早期相談"}
                     </span>
                   </div>
@@ -2686,7 +2686,7 @@ export default function PiecefulGame({
                   display: "flex",
                   alignItems: "center",
                   padding: "0 16px",
-                  marginBottom: "24px",
+                  marginBottom: "clamp(12px, 4vh, 24px)",
                   gap: "16px",
                   width: "100%"
                 }}>
@@ -2695,8 +2695,8 @@ export default function PiecefulGame({
                       src={charImages[character]}
                       alt={charNick[character] || character}
                       style={{
-                        width: `${sliderChoiceCharSize}px`,
-                        height: `${sliderChoiceCharSize}px`,
+                        width: "clamp(72px, 24vw, 124px)",
+                        height: "clamp(72px, 24vw, 124px)",
                         objectFit: "contain",
                         flexShrink: 0
                       }}
@@ -2740,7 +2740,7 @@ export default function PiecefulGame({
                       zIndex: 1
                     }} />
                     <span style={{
-                      fontSize: `${sliderChoiceBubbleTextSize}px`,
+                      fontSize: "clamp(16px, 5vw, 26px)",
                       fontWeight: "bold",
                       color: "#000",
                       fontFamily: "var(--font)",
@@ -2757,18 +2757,18 @@ export default function PiecefulGame({
                   backgroundColor: "white",
                   border: "4px solid #000",
                   boxShadow: "6px 6px 0px 0px rgba(0,0,0,1)",
-                  padding: "24px",
+                  padding: "clamp(14px, 4vw, 24px)",
                   display: "flex",
                   flexDirection: "column",
                   boxSizing: "border-box",
                   flexGrow: 1,
-                  marginBottom: "32px",
+                  marginBottom: "clamp(16px, 4vh, 32px)",
                   width: "100%"
                 }}>
                   <h2 className="text-center font-black text-2xl text-black" style={{
                     textAlign: "center",
                     fontWeight: "900",
-                    fontSize: "24px",
+                    fontSize: "clamp(18px, 5vw, 24px)",
                     color: "black",
                     marginBottom: "8px",
                     fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
@@ -2780,14 +2780,14 @@ export default function PiecefulGame({
                   <div className="pb-3 mb-6 relative" style={{
                     borderBottom: "3px dashed #ff0080",
                     paddingBottom: "12px",
-                    marginBottom: "24px",
+                    marginBottom: "clamp(12px, 4vh, 24px)",
                     position: "relative"
                   }}>
                     <p className="text-center text-[#ff0080] font-black text-2xl" style={{
                       textAlign: "center",
                       color: "#ff0080",
                       fontWeight: "900",
-                      fontSize: "23px",
+                      fontSize: "clamp(16px, 5vw, 23px)",
                       lineHeight: "1.3",
                       margin: 0,
                       fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
@@ -2810,18 +2810,18 @@ export default function PiecefulGame({
                     listStyleType: "none",
                     paddingLeft: "8px",
                     margin: 0,
-                    marginBottom: "24px"
+                    marginBottom: "clamp(12px, 4vh, 24px)"
                   }}>
-                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "clamp(15px, 4.5vw, 20px)", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
                       <span style={{ marginRight: "8px" }}>・</span>なぜこの組み合わせなの？
                     </li>
-                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "clamp(15px, 4.5vw, 20px)", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
                       <span style={{ marginRight: "8px" }}>・</span>コミュニケーションスキル解説
                     </li>
-                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "clamp(15px, 4.5vw, 20px)", color: "black", marginBottom: "12px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
                       <span style={{ marginRight: "8px" }}>・</span>あなたの落とし穴
                     </li>
-                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "20px", color: "black", marginBottom: "0px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
+                    <li className="flex items-start font-black text-2xl text-black" style={{ display: "flex", alignItems: "flex-start", fontWeight: "900", fontSize: "clamp(15px, 4.5vw, 20px)", color: "black", marginBottom: "0px", fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif' }}>
                       <span style={{ marginRight: "8px" }}>・</span>明日から使えるフレーズ集
                     </li>
                   </ul>
@@ -2838,8 +2838,8 @@ export default function PiecefulGame({
                       alignItems: "center",
                       justifyContent: "center",
                       gap: "12px",
-                      paddingTop: "24px",
-                      paddingBottom: "24px",
+                      paddingTop: "clamp(14px, 3.5vh, 24px)",
+                      paddingBottom: "clamp(14px, 3.5vh, 24px)",
                       boxSizing: "border-box",
                       cursor: "pointer",
                       marginTop: "auto"
@@ -2850,7 +2850,7 @@ export default function PiecefulGame({
                   >
                     <span className="font-black text-2xl text-black" style={{
                       fontWeight: "900",
-                      fontSize: "24px",
+                      fontSize: "clamp(18px, 5vw, 24px)",
                       color: "black",
                       fontFamily: '"Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif'
                     }}>詳しい解説をチェック</span>
@@ -2879,8 +2879,6 @@ export default function PiecefulGame({
                   type="button"
                   className="pf-scene-next-btn"
                   style={{
-                    fontSize: "20px",
-                    padding: "11px 16px",
                     marginTop: "8px",
                     marginBottom: "16px",
                     width: "100%",

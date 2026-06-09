@@ -667,10 +667,6 @@ type PiecefulProgressV1 = {
   selectedType: string;
   currentScreen: Screen;
   currentStage: number | null;
-  score: number;
-  combo: number;
-  maxCombo: number;
-  trust: number;
   clearedStages: number[];
   updatedAt: string;
 };
@@ -866,10 +862,7 @@ export default function PiecefulGame({
     isPreview ? "INTJ" : "ESTP"
   );
   const [stage, setStage] = useState(1);
-  const [trust, setTrust] = useState(35);
-  const [score, setScore] = useState(0);
-  const [combo, setCombo] = useState(0);
-  const [maxCombo, setMaxCombo] = useState(0);
+  const [isResultCorrect, setIsResultCorrect] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [pendingChar, setPendingChar] = useState<CharacterType | null>(null);
   const [clearedStages, setClearedStages] = useState<Set<number>>(new Set());
@@ -905,10 +898,6 @@ export default function PiecefulGame({
   const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   /* refs for HUD elements */
-  const trustLabelRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  const trustFillRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const comboLabelRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const starLabelRefs = useRef<(HTMLDivElement | null)[]>([]);
   const chosenImgRef = useRef<HTMLImageElement>(null);
   const chosenTypeRef = useRef<HTMLSpanElement>(null);
   const chosenNickRef = useRef<HTMLSpanElement>(null);
@@ -932,22 +921,11 @@ export default function PiecefulGame({
   const lastChoiceRef = useRef<string | null>(null);
   const lastActionRef = useRef<string | null>(null);
 
-  /* local copy of trust for syncHud (avoids stale closure) */
-  const trustRef = useRef(trust);
-  const scoreRef = useRef(score);
-  const comboRef = useRef(combo);
+  /* local copy for syncHud (avoids stale closure) */
   const characterRef = useRef(character);
   const clearedRef = useRef(clearedStages);
+  const kiridashiCorrectRef = useRef(false);
 
-  useEffect(() => {
-    trustRef.current = trust;
-  }, [trust]);
-  useEffect(() => {
-    scoreRef.current = score;
-  }, [score]);
-  useEffect(() => {
-    comboRef.current = combo;
-  }, [combo]);
   useEffect(() => {
     characterRef.current = character;
   }, [character]);
@@ -1044,19 +1022,6 @@ export default function PiecefulGame({
 
   /* ── syncHud ── */
   const syncHud = useCallback(() => {
-    const t = clamp(trustRef.current, 0, 100);
-    trustLabelRefs.current.forEach((el) => {
-      if (el) el.textContent = `${t}%`;
-    });
-    trustFillRefs.current.forEach((el) => {
-      if (el) el.style.width = `${t}%`;
-    });
-    comboLabelRefs.current.forEach((el) => {
-      if (el) el.textContent = `🔥 COMBO ${comboRef.current}`;
-    });
-    starLabelRefs.current.forEach((el) => {
-      if (el) el.textContent = `⭐ ${scoreRef.current}`;
-    });
     if (chosenImgRef.current)
       chosenImgRef.current.src = charImages[characterRef.current];
     if (chosenTypeRef.current)
@@ -1135,10 +1100,11 @@ export default function PiecefulGame({
       return;
     }
     if (resultConfettiFiredRef.current) return;
+    if (!isResultCorrect) return;
     resultConfettiFiredRef.current = true;
     const timer = setTimeout(burst, 120);
     return () => clearTimeout(timer);
-  }, [currentScreen, burst]);
+  }, [currentScreen, burst, isResultCorrect]);
 
   /* ── selectCharacter ── */
   const selectCharacter = useCallback(
@@ -1262,25 +1228,6 @@ export default function PiecefulGame({
     }
   }, [currentScreen, renderActions, selectedActionId]);
 
-  /* ── applyScore ── */
-  const applyScore = useCallback((delta: number) => {
-    const newScore = Math.max(
-      0,
-      scoreRef.current + Math.max(0, Math.round(delta / 2))
-    );
-    const newTrust = clamp(trustRef.current + delta, 0, 100);
-    const newCombo = delta > 10 ? comboRef.current + 1 : 0;
-    setScore(newScore);
-    scoreRef.current = newScore;
-    setTrust(newTrust);
-    trustRef.current = newTrust;
-    setCombo(newCombo);
-    comboRef.current = newCombo;
-    if (newCombo > 0) {
-      setMaxCombo((prev) => (newCombo > prev ? newCombo : prev));
-    }
-  }, []);
-
   /* ── renderFeedback ── */
   const renderFeedback = useCallback(
     (answer: (typeof stages[1]["choices"][0]) & { score: number; isCsv?: boolean; choiceId?: string; correctId?: string }) => {
@@ -1326,6 +1273,7 @@ export default function PiecefulGame({
       if (csv) {
         const pickId = normalizePickId(id);
         const isCorrect = pickId === csv.kiridashi.correct;
+        kiridashiCorrectRef.current = isCorrect;
         const scoreDelta = isCorrect ? 25 : -5;
         const answerObj = {
           score: scoreDelta,
@@ -1339,7 +1287,6 @@ export default function PiecefulGame({
         setSelectedChoiceText(
           csv.kiridashi[pickId as keyof typeof csv.kiridashi] as string
         );
-        applyScore(scoreDelta);
         setPriorChoiceOpen(false);
         renderFeedback(answerObj as Parameters<typeof renderFeedback>[0]);
         go("action");
@@ -1349,16 +1296,16 @@ export default function PiecefulGame({
       const pickId = normalizePickId(id);
       const answer = s.choices.find((c) => c.id === pickId);
       if (!answer) return;
+      kiridashiCorrectRef.current = answer.grade === "S";
       lastAnswerRef.current = answer;
       lastChoiceRef.current = pickId;
       setSelectedChoiceId(pickId);
       setSelectedChoiceText(answer.text);
-      applyScore(answer.score);
       setPriorChoiceOpen(false);
       renderFeedback(answer);
       go("action");
     },
-    [stage, applyScore, renderFeedback, go, setSelectedActionId, setSelectedActionText]
+    [stage, renderFeedback, go, setSelectedActionId, setSelectedActionText]
   );
 
   /* ── renderResult ── */
@@ -1409,13 +1356,11 @@ export default function PiecefulGame({
 
       if (csv) {
         const pickId = normalizePickId(id);
-        const isCorrect = pickId === csv.furumai.correct;
-        const scoreDelta = isCorrect ? 20 : -5;
+        const isCorrect = pickId === csv.furumai.correct && kiridashiCorrectRef.current;
+        setIsResultCorrect(isCorrect);
         setSelectedActionText(
           csv.furumai[pickId as keyof typeof csv.furumai] as string
         );
-        applyScore(scoreDelta);
-        toast(isCorrect ? csv.result : "相手の立場に立って行動を選び直してみましょう。");
         setTimeout(() => {
           renderResult({ feedback: isCorrect ? csv.result : "" });
           go("result");
@@ -1424,15 +1369,15 @@ export default function PiecefulGame({
       }
       const action = stages[stage].actions.find((a) => a.id === id);
       if (!action) return;
+      const isCorrect = action.score >= 20 && kiridashiCorrectRef.current;
+      setIsResultCorrect(isCorrect);
       setSelectedActionText(action.text);
-      applyScore(action.score);
-      toast(action.feedback);
       setTimeout(() => {
         renderResult(action);
         go("result");
       }, 460);
     },
-    [stage, applyScore, toast, go, renderResult, setSelectedActionId, setSelectedActionText]
+    [stage, go, renderResult, setSelectedActionId, setSelectedActionText]
   );
 
   const handlePrimaryStart = useCallback(() => {
@@ -1521,14 +1466,7 @@ export default function PiecefulGame({
       /* ignore */
     }
     setStage(1);
-    setTrust(35);
-    setScore(0);
-    setCombo(0);
-    setMaxCombo(0);
     setClearedStages(new Set());
-    trustRef.current = 35;
-    scoreRef.current = 0;
-    comboRef.current = 0;
     clearedRef.current = new Set();
     lastChoiceRef.current = null;
     lastAnswerRef.current = null;
@@ -1542,7 +1480,7 @@ export default function PiecefulGame({
 
   const resetGameWithConfirm = useCallback(() => {
     const ok = window.confirm(
-      "スコア・コンボ・信頼度・クリア状況を消して、最初からやり直しますか?"
+      "クリア状況を消して、最初からやり直しますか?"
     );
     if (!ok) return;
     resetGame();
@@ -1574,13 +1512,6 @@ export default function PiecefulGame({
 
     setCharacter(data.selectedType);
     characterRef.current = data.selectedType;
-    setTrust(data.trust ?? 35);
-    trustRef.current = data.trust ?? 35;
-    setScore(data.score ?? 0);
-    scoreRef.current = data.score ?? 0;
-    setCombo(data.combo ?? 0);
-    comboRef.current = data.combo ?? 0;
-    setMaxCombo(data.maxCombo ?? data.combo ?? 0);
     const cleared = new Set(data.clearedStages ?? []);
     setClearedStages(cleared);
     clearedRef.current = cleared;
@@ -1719,11 +1650,6 @@ export default function PiecefulGame({
       const all = new Set(ALL_STAGE_IDS);
       setClearedStages(all);
       clearedRef.current = all;
-      setScore(128);
-      scoreRef.current = 128;
-      setMaxCombo(4);
-      setTrust(72);
-      trustRef.current = 72;
     }
 
     if (previewScreen === "scene" || previewScreen === "choice" || previewScreen === "action") {
@@ -1787,10 +1713,6 @@ export default function PiecefulGame({
     if (isPreview) return;
     const trivial =
       currentScreen === "title" &&
-      score === 0 &&
-      combo === 0 &&
-      maxCombo === 0 &&
-      trust === 35 &&
       clearedStages.size === 0;
     if (trivial) return;
     try {
@@ -1799,10 +1721,6 @@ export default function PiecefulGame({
         selectedType: character,
         currentScreen,
         currentStage: stage,
-        score,
-        combo,
-        maxCombo,
-        trust,
         clearedStages: Array.from(clearedStages),
         updatedAt: new Date().toISOString(),
       };
@@ -1814,10 +1732,6 @@ export default function PiecefulGame({
     character,
     currentScreen,
     stage,
-    score,
-    combo,
-    maxCombo,
-    trust,
     clearedStages,
   ]);
 
@@ -1837,40 +1751,25 @@ export default function PiecefulGame({
     }
   }, [syncHud, isPreview]);
 
-  /* ── ref callback helpers ── */
-  const addTrustLabelRef = useCallback(
-    (el: HTMLSpanElement | null, idx: number) => {
-      trustLabelRefs.current[idx] = el;
-    },
-    []
-  );
-  const addTrustFillRef = useCallback(
-    (el: HTMLDivElement | null, idx: number) => {
-      trustFillRefs.current[idx] = el;
-    },
-    []
-  );
-  const addComboLabelRef = useCallback(
-    (el: HTMLDivElement | null, idx: number) => {
-      comboLabelRefs.current[idx] = el;
-    },
-    []
-  );
-  const addStarLabelRef = useCallback(
-    (el: HTMLDivElement | null, idx: number) => {
-      starLabelRefs.current[idx] = el;
-    },
-    []
-  );
-
   const nextUnclearedStage = getNextUnclearedStage(clearedStages);
   const lessonNextLabel =
     nextUnclearedStage !== null ? "次のステージへ ▶" : "クリア証を見る ▶";
 
+  /* ── naze text for CTA screen ── */
+  const nazeText = useMemo(() => {
+    const csv = mbtiScenarios[character]?.[stage];
+    if (csv) return csv.naze;
+    return stages[stage]?.lessons[0]?.[1] ?? "";
+  }, [character, stage]);
+
+  /* ── sad character image path ── */
+  const charIdx = characters.findIndex(c => c[0] === character);
+  const sadCharImg = charIdx >= 0 ? `/img/sad/${charIdx + 1}.png` : charImages[character];
+
   const shareText = useMemo(
     () =>
-      `Piecefulをクリア!\nMBTI: ${character}(${charNick[character]})\nScore: ${score}\nMaxCombo: ${maxCombo}\nTrust: ${trust}%`,
-    [character, score, maxCombo, trust]
+      `Piecefulをクリア!\nMBTI: ${character}(${charNick[character]})`,
+    [character]
   );
 
   const copyClearResult = useCallback(async () => {
@@ -2225,7 +2124,7 @@ export default function PiecefulGame({
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
               <div className="pf-safe pf-scene-intro">
-              
+
               {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
               <div className="pf-scene-topbar">
                 <button
@@ -2248,19 +2147,21 @@ export default function PiecefulGame({
                 {/* Character and Speech Bubble */}
                 <div className="pf-result-hero">
                   {/* Left Trophy */}
-                  <div>
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
-                      alt="Trophy"
-                      className="pf-result-trophy"
-                    />
-                  </div>
+                  {isResultCorrect && (
+                    <div>
+                      <img
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
+                        alt="Trophy"
+                        className="pf-result-trophy"
+                      />
+                    </div>
+                  )}
 
                   {/* Character Image */}
                   <div className="pf-result-char-wrap">
                     {charImages[character] && (
                       <img
-                        src={charImages[character]}
+                        src={isResultCorrect ? charImages[character] : sadCharImg}
                         alt={charNick[character] || character}
                       />
                     )}
@@ -2268,18 +2169,20 @@ export default function PiecefulGame({
 
                   {/* Speech Bubble */}
                   <div className="pf-result-bubble">
-                    <span>チャレンジ</span>
-                    <span>クリア！</span>
+                    <span>{isResultCorrect ? "チャレンジ" : "もう少し"}</span>
+                    <span>{isResultCorrect ? "クリア！" : "工夫できるかも"}</span>
                   </div>
 
                   {/* Right Trophy */}
-                  <div>
-                    <img
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
-                      alt="Trophy"
-                      className="pf-result-trophy"
-                    />
-                  </div>
+                  {isResultCorrect && (
+                    <div>
+                      <img
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0gMUfgPKGGK4keXRXWB0J1JzkElwZH5zyd1mdY5a7G7uK7JNOYqbTxTr6fRMftk770zt8WlCyw5EAeJxl8ZLFwlrhNF4HBMQadWFD8mSL1OCNdn0SW1mHFuRvMB8WaxmFFYo48Zpm73vkft-j2QahbBUvUUG9NboRE-sBH4svzOTCZjai0OgtjJsGMAbJzXqlButbGHVbIUV1ArUCIEOK4gJdYD1YMuIcuJMcSHCf8cUV-M8dvEqMAznGxLcH8n3JzwIOekPiSvc"
+                        alt="Trophy"
+                        className="pf-result-trophy"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Message Blocks Container */}
@@ -2321,15 +2224,41 @@ export default function PiecefulGame({
 
               </main>
 
-              {/* 次へボタン */}
-              <button
-                type="button"
-                className="pf-scene-next-btn"
-                onClick={() => go("cta")}
-              >
-                次へ
-              </button>
-              
+              {/* Buttons */}
+              {isResultCorrect ? (
+                <button
+                  type="button"
+                  className="pf-scene-next-btn"
+                  onClick={() => go("cta")}
+                >
+                  次へ
+                </button>
+              ) : (
+                <div className="pf-result-btn-row">
+                  <button
+                    type="button"
+                    className="pf-scene-next-btn"
+                    onClick={() => go("cta")}
+                  >
+                    解説を読んで次に進む▶
+                  </button>
+                  <button
+                    type="button"
+                    className="pf-scene-next-btn white"
+                    onClick={() => {
+                      setSelectedChoiceId(null);
+                      setSelectedActionId(null);
+                      setSelectedChoiceText("");
+                      setSelectedActionText("");
+                      setPendingPick(null);
+                      go("choice");
+                    }}
+                  >
+                    ◀再チャレンジ
+                  </button>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
@@ -2344,7 +2273,7 @@ export default function PiecefulGame({
           <div className="pf-screen pf-scene-bg" style={{ backgroundImage: "url(/img/stitch/image.png)" }}>
             <div className="pf-scene-overlay">
               <div className="pf-safe pf-scene-intro">
-                
+
                 {/* ヘッダーセクション（戻るボタン ＋ プログレスバー） */}
                 <div className="pf-scene-topbar">
                   <button
@@ -2380,63 +2309,38 @@ export default function PiecefulGame({
                 </div>
                 {/* END: Character and Speech Bubble */}
 
-                {/* BEGIN: Main CTA Card */}
-                <div className="pf-cta-card">
-                  <h2 className="pf-cta-title">
-                    あなたのタイプに合わせた
-                  </h2>
-
-                  {/* 点線付き下線＆ピンク文字＆▼アイコン */}
-                  <div className="pf-cta-pink-divider">
-                    <p className="pf-cta-pink-text">
-                      コミュニケーションスキルを<br />より深く学べる！
-                    </p>
-                    <div className="pf-cta-pink-arrow">▼</div>
+                {/* BEGIN: Naze Explanation Section */}
+                <div className="pf-cta-naze-section">
+                  <h3 className="pf-cta-naze-title">{isResultCorrect ? "なぜこの選択が効果的なの？" : "効果的な選択肢とは？"}</h3>
+                  <div className="pf-cta-naze-body">
+                    <FormattedScenarioText text={nazeText} />
                   </div>
-
-                  <ul className="pf-cta-list">
-                    <li><span>・</span>なぜこの組み合わせなの？</li>
-                    <li><span>・</span>コミュニケーションスキル解説</li>
-                    <li><span>・</span>あなたの落とし穴</li>
-                    <li><span>・</span>明日から使えるフレーズ集</li>
-                  </ul>
-
-                  {/* CTA黄色ボタン */}
-                  <button
-                    className="pf-cta-yellow-btn pf-cta-btn-shimmer"
-                    onClick={() => {
-                      window.open("https://example.com/explanation", "_blank");
-                    }}
-                  >
-                    <span>詳しい解説をチェック</span>
-                    <div style={{
-                      backgroundColor: "#ff6b00",
-                      border: "2px solid #000",
-                      padding: "4px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      <svg style={{ width: "16px", height: "16px", fill: "white" }} viewBox="0 0 20 20">
-                        <path d="M5 3l12 7-12 7V3z"></path>
-                      </svg>
-                    </div>
-                  </button>
                 </div>
-                {/* END: Main CTA Card */}
+                {/* END: Naze Explanation Section */}
 
                 </div>
                 {/* END: Scrollable Content Container */}
 
-                {/* BEGIN: Footer Navigation (ステージ選択画面に戻る) */}
-                <button
-                  type="button"
-                  className="pf-scene-next-btn white"
-                  onClick={() => go("stage")}
-                >
-                  ◀ステージ選択画面に戻る
-                </button>
-                {/* END: Footer Navigation */}
+                {/* BEGIN: Footer Buttons (fixed at bottom) */}
+                <div className="pf-result-btn-row">
+                  <button
+                    type="button"
+                    className="pf-scene-next-btn"
+                    onClick={() => {
+                      window.open("https://example.com/explanation", "_blank");
+                    }}
+                  >
+                    詳しい解説をチェック▶
+                  </button>
+                  <button
+                    type="button"
+                    className="pf-scene-next-btn white"
+                    onClick={() => go("stage")}
+                  >
+                    ◀ステージ選択画面に戻る
+                  </button>
+                </div>
+                {/* END: Footer Buttons */}
 
               </div>
             </div>
@@ -2533,18 +2437,6 @@ export default function PiecefulGame({
                     <dd>
                       {character}({charNick[character]})
                     </dd>
-                  </div>
-                  <div>
-                    <dt>スコア</dt>
-                    <dd>{score}</dd>
-                  </div>
-                  <div>
-                    <dt>最大コンボ</dt>
-                    <dd>{maxCombo}</dd>
-                  </div>
-                  <div>
-                    <dt>信頼度</dt>
-                    <dd>{clamp(trust, 0, 100)}%</dd>
                   </div>
                 </dl>
                 <div className="pf-home-actions">

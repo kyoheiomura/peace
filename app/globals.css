@@ -4341,78 +4341,43 @@ body:has(.game-body)::before {
   font-family: var(--font);
 }
 
-.game-body .pf-cta-pink-divider {
-  border-bottom: 3px dashed #ff0080;
-  padding-bottom: 12px;
-  margin-bottom: clamp(12px, 4vh, 24px);
-  position: relative;
+/* ── RESULT SCREEN BUTTON ROW ── */
+.game-body .pf-result-btn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  flex-shrink: 0;
+}
+.game-body .pf-result-btn-row .pf-scene-next-btn {
+  margin: 0;
+}
+.game-body .pf-result-btn-row .pf-scene-next-btn:last-child {
+  margin: 8px 0 16px;
 }
 
-.game-body .pf-cta-pink-text {
-  text-align: center;
-  color: #ff0080;
+/* ── CTA NAZE SECTION ── */
+.game-body .pf-cta-naze-section {
+  margin-bottom: clamp(12px, 4vh, 24px);
+}
+
+.game-body .pf-cta-naze-title {
   font-weight: 900;
   font-size: clamp(16px, 5vw, 23px);
-  line-height: 1.3;
-  margin: 0;
-  font-family: var(--font);
-}
-
-.game-body .pf-cta-pink-arrow {
-  position: absolute;
-  bottom: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ff0080;
-  font-size: 14px;
-  z-index: 2;
-}
-
-.game-body .pf-cta-list {
-  list-style: none;
-  padding-left: 8px;
-  margin: 0;
-  margin-bottom: clamp(12px, 4vh, 24px);
-}
-
-.game-body .pf-cta-list li {
-  display: flex;
-  align-items: flex-start;
-  font-weight: 900;
-  font-size: clamp(15px, 4.5vw, 20px);
-  color: black;
+  text-align: center;
   margin-bottom: 12px;
-  font-family: var(--font);
+  font-family: var(--font-pixel);
 }
 
-.game-body .pf-cta-list li:last-child {
-  margin-bottom: 0;
+.game-body .pf-cta-naze-body {
+  font-size: clamp(14px, 4vw, 18px);
+  line-height: 1.65;
+  font-weight: 700;
+  font-family: var(--font-pixel);
 }
 
-.game-body .pf-cta-list li span {
-  margin-right: 8px;
-}
-
-.game-body .pf-cta-yellow-btn {
-  width: 100%;
-  background: #ffcc00;
-  border: 4px solid #000;
-  box-shadow: 4px 4px 0 0 rgba(0,0,0,1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: clamp(14px, 3.5vh, 24px) 0;
-  box-sizing: border-box;
-  cursor: pointer;
-  margin-top: auto;
-}
-
-.game-body .pf-cta-yellow-btn span {
-  font-weight: 900;
-  font-size: clamp(18px, 5vw, 24px);
-  color: black;
-  font-family: var(--font);
+.game-body .pf-cta-naze-body p {
+  margin: 0 0 10px;
 }
 
 /* ── CHOICE SCENARIO SUMMARY ── */
@@ -6322,29 +6287,6 @@ body:has(.game-body)::before {
   }
 }
 
-/* 黄色いCTAボタン専用の光るスタイル */
-.game-body .pf-cta-btn-shimmer {
-  background: linear-gradient(
-    120deg,
-    #ffcc00 0%,
-    #ffcc00 40%,
-    rgba(255, 255, 255, 0.4) 50%,
-    #ffcc00 60%,
-    #ffcc00 100%
-  ) !important;
-  background-size: 200% auto !important;
-  animation: cta-shimmer 3s linear infinite, cta-pulse 2s ease-in-out infinite !important;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.game-body .pf-cta-btn-shimmer span {
-  position: relative;
-  z-index: 2;
-  color: #000 !important;
-  text-shadow: 0 0 1px rgba(255, 255, 255, 0.8);
-}
 
 @media (max-width: 767px) {
   .game-body #screen-title .pf-screen {

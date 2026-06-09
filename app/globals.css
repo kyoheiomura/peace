@@ -4010,6 +4010,7 @@ body:has(.game-body)::before {
   align-items: center;
   justify-content: flex-start;
   gap: clamp(12px, 4vw, 24px);
+  margin: clamp(8px, 2vh, 16px) 0 8px;
 }
 .game-body .pf-scene-topbar .pf-back-btn {
   flex-shrink: 0;
@@ -4089,6 +4090,12 @@ body:has(.game-body)::before {
   border-style: solid;
   border-color: transparent #000 transparent transparent;
 }
+.game-body .pf-scene-bubble span {
+  font-size: clamp(14px, 4.5vw, 20px);
+  font-weight: 900;
+  color: #000;
+  font-family: var(--font-pixel);
+}
 
 /* Scene intro chat text */
 .game-body .pf-scene-chat {
@@ -4119,7 +4126,7 @@ body:has(.game-body)::before {
   place-items: center;
   width: 100%;
   padding: clamp(10px, 2.5vw, 16px);
-  margin-top: 0;
+  margin: 8px 0 16px;
   background: #ffff5c;
   color: #000;
   border: 3px solid #000;
@@ -4129,6 +4136,7 @@ body:has(.game-body)::before {
   font-weight: 900;
   font-family: var(--font-pixel);
   line-height: 1.3;
+  white-space: nowrap;
   cursor: pointer;
 }
 .game-body .pf-scene-next-btn:active {
@@ -4148,6 +4156,264 @@ body:has(.game-body)::before {
 .game-body .pf-scene-overlay .pf-progress-fill { background: #ff0099; }
 .game-body .pf-scene-overlay .pf-progress-label { color: var(--pf-ink); }
 .game-body .pf-scene-overlay .pf-mini-btn { color: #fff9df; }
+
+/* Choice/action grid (scrollable button list) */
+.game-body .pf-choice-grid-stitch {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 2.5vw, 14px);
+  padding: 0 16px;
+  margin-top: clamp(4px, 1vw, 8px);
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Result screen: scrollable main area */
+.game-body .pf-result-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+  box-sizing: border-box;
+  overflow-y: auto;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Result screen: trophy + char + bubble row */
+.game-body .pf-result-hero {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.game-body .pf-result-trophy {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.game-body .pf-result-char-wrap {
+  width: clamp(64px, 22vw, 112px);
+  height: clamp(64px, 22vw, 112px);
+  position: relative;
+}
+
+.game-body .pf-result-char-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.game-body .pf-result-bubble {
+  position: relative;
+  background: white;
+  border: 4px solid #000;
+  box-shadow: 4px 4px 0 0 rgba(0,0,0,1);
+  padding: 12px;
+  margin-left: 8px;
+  min-width: clamp(80px, 24vw, 120px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.game-body .pf-result-bubble::after {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 14px solid #000;
+}
+
+.game-body .pf-result-bubble span {
+  font-weight: 900;
+  font-size: clamp(14px, 4vw, 18px);
+  display: block;
+  line-height: 1.25;
+  color: black;
+  font-family: var(--font);
+}
+
+/* Result screen: message blocks container */
+.game-body .pf-result-msgs {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  flex-grow: 1;
+  margin-bottom: clamp(12px, 4vh, 24px);
+}
+
+.game-body .pf-result-msg-block {
+  width: 100%;
+  background: white;
+  border: 4px solid #000;
+  box-shadow: 6px 6px 0 0 rgba(0,0,0,1);
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.game-body .pf-result-badge {
+  width: clamp(32px, 9vw, 40px);
+  height: clamp(32px, 9vw, 40px);
+  flex-shrink: 0;
+  border: 4px solid #000;
+  box-shadow: 2px 2px 0 0 rgba(0,0,0,1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.game-body .pf-result-badge span {
+  font-weight: 900;
+  font-size: clamp(15px, 4.5vw, 20px);
+  font-family: var(--font);
+}
+
+.game-body .pf-result-msg-text {
+  margin: 0;
+  font-weight: bold;
+  font-size: clamp(13px, 3.5vw, 15px);
+  line-height: 1.4;
+  color: black;
+  font-family: var(--font);
+}
+
+.game-body .pf-result-plus {
+  padding: 4px 0;
+}
+
+.game-body .pf-result-plus img {
+  width: clamp(32px, 9vw, 40px);
+  height: clamp(32px, 9vw, 40px);
+  object-fit: contain;
+}
+
+/* CTA screen: scrollable content */
+.game-body .pf-cta-scroll {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* CTA screen: main card */
+.game-body .pf-cta-card {
+  background: white;
+  border: 4px solid #000;
+  box-shadow: 6px 6px 0 0 rgba(0,0,0,1);
+  padding: clamp(14px, 4vw, 24px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  flex-grow: 1;
+  margin-bottom: clamp(16px, 4vh, 32px);
+}
+
+.game-body .pf-cta-title {
+  text-align: center;
+  font-weight: 900;
+  font-size: clamp(18px, 5vw, 24px);
+  color: black;
+  margin-bottom: 8px;
+  font-family: var(--font);
+}
+
+.game-body .pf-cta-pink-divider {
+  border-bottom: 3px dashed #ff0080;
+  padding-bottom: 12px;
+  margin-bottom: clamp(12px, 4vh, 24px);
+  position: relative;
+}
+
+.game-body .pf-cta-pink-text {
+  text-align: center;
+  color: #ff0080;
+  font-weight: 900;
+  font-size: clamp(16px, 5vw, 23px);
+  line-height: 1.3;
+  margin: 0;
+  font-family: var(--font);
+}
+
+.game-body .pf-cta-pink-arrow {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ff0080;
+  font-size: 14px;
+  z-index: 2;
+}
+
+.game-body .pf-cta-list {
+  list-style: none;
+  padding-left: 8px;
+  margin: 0;
+  margin-bottom: clamp(12px, 4vh, 24px);
+}
+
+.game-body .pf-cta-list li {
+  display: flex;
+  align-items: flex-start;
+  font-weight: 900;
+  font-size: clamp(15px, 4.5vw, 20px);
+  color: black;
+  margin-bottom: 12px;
+  font-family: var(--font);
+}
+
+.game-body .pf-cta-list li:last-child {
+  margin-bottom: 0;
+}
+
+.game-body .pf-cta-list li span {
+  margin-right: 8px;
+}
+
+.game-body .pf-cta-yellow-btn {
+  width: 100%;
+  background: #ffcc00;
+  border: 4px solid #000;
+  box-shadow: 4px 4px 0 0 rgba(0,0,0,1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: clamp(14px, 3.5vh, 24px) 0;
+  box-sizing: border-box;
+  cursor: pointer;
+  margin-top: auto;
+}
+
+.game-body .pf-cta-yellow-btn span {
+  font-weight: 900;
+  font-size: clamp(18px, 5vw, 24px);
+  color: black;
+  font-family: var(--font);
+}
 
 /* ── CHOICE SCENARIO SUMMARY ── */
 .game-body .pf-choice-scenario-summary {

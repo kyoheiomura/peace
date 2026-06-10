@@ -23,6 +23,10 @@ export const charImages = Object.fromEntries(
   characters.map((c, i) => [c[0], `/img/${i + 1}.png`])
 ) as Record<CharacterType, string>;
 
+export const sadCharImages = Object.fromEntries(
+  characters.map((c) => [c[0], `/img/bad/${c[0]}泣き顔.png`])
+) as Record<CharacterType, string>;
+
 export const charNick = Object.fromEntries(
   characters.map((c) => [c[0], c[1]])
 ) as Record<CharacterType, string>;

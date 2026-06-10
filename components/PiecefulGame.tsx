@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { charPickerScrollSubcopy } from "../lib/charPickerConfig";
-import { characters, charImages, charNick, charGroup, type CharacterType } from "../lib/characters";
+import { characters, charImages, sadCharImages, charNick, charGroup, type CharacterType } from "../lib/characters";
 import { mbtiScenarios } from "../lib/mbtiScenarios";
 import { OnboardingScreens } from "./pieceful/OnboardingScreens";
 import { CharPicker2x8Scroll } from "./pieceful/CharPicker2x8Scroll";
@@ -1763,8 +1763,7 @@ export default function PiecefulGame({
   }, [character, stage]);
 
   /* ── sad character image path ── */
-  const charIdx = characters.findIndex(c => c[0] === character);
-  const sadCharImg = charIdx >= 0 ? `/img/sad/${charIdx + 1}.png` : charImages[character];
+  const sadCharImg = sadCharImages[character];
 
   const shareText = useMemo(
     () =>

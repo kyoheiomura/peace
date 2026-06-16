@@ -1795,64 +1795,28 @@ export default function PiecefulGame({
         <section
           id="screen-title"
           className={isActive("title")}
-          aria-labelledby="title-heading"
+          aria-label="トークマスター スタート画面"
         >
-          <div className="pf-screen pf-paper is-title">
-            <div className="pf-window-header">
-              <div className="pf-window-buttons">
-                <span className="pf-win-btn pf-win-close">×</span>
-                <span className="pf-win-btn pf-win-minimize">-</span>
-                <span className="pf-win-btn pf-win-maximize">▢</span>
-              </div>
-            </div>
-            <div className="pf-safe">
-              <div className="pf-home-layout">
-                <div className="pf-red-banner">
-                  <p className="pf-red-banner-text">
-                    🧩 個性を活かしたコミュニケーションで
-                    <br />
-                    職場をもっと快適に!
-                  </p>
-                </div>
-                <div>
-                  <h1 id="title-heading" className="pf-home-logo">
-                    Pieceful
-                  </h1>
-                  <p className="pf-home-subtitle">- ピースフル -</p>
-                </div>
-                <div className="pf-home-actions">
-                  <button
-                    type="button"
-                    className="pf-big-btn yellow"
-                    onClick={handleQuickStart}
-                  >
-                    ゲーム開始 ▶
-                  </button>
-                  <button
-                    type="button"
-                    className="pf-big-btn pink"
-                    onClick={openGuide}
-                  >
-                    遊び方を見る 📖
-                  </button>
-                </div>
-                <div className="pf-character-callout">
-                  <img
-                    className="pf-callout-char"
-                    src={charImages[character]}
-                    alt=""
-                  />
-                  <img
-                    className="pf-callout-flag"
-                    src="/img/flag.png"
-                    alt=""
-                  />
-                  <img
-                    className="pf-callout-cloud"
-                    src="/img/cloud.png"
-                    alt=""
-                  />
-                </div>
+          <div className="pf-screen pf-lp-title">
+            <div className="pf-lp-scroll">
+              <div className="pf-lp-stage">
+                <img
+                  className="pf-lp-img"
+                  src="/img/lp/talkmaster-title.png"
+                  alt="トークマスター — 16タイプの性格別に学べる職場コミュニケーションゲーム。すべての機能が完全無料。"
+                  draggable={false}
+                />
+                <span className="pf-lp-free-badge" aria-hidden="true">
+                  完全無料
+                </span>
+                <button
+                  type="button"
+                  className="pf-lp-start"
+                  onClick={handleQuickStart}
+                  aria-label="ゲームをはじめる"
+                >
+                  <span className="pf-lp-start-label">START</span>
+                </button>
               </div>
             </div>
           </div>

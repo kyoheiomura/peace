@@ -1964,7 +1964,7 @@ img {
     justify-content: center;
     gap: 48px;
     padding: 20px;
-    background: linear-gradient(180deg, #A78BFA 0%, #60A5FA 25%, #4ADE80 50%, #A3E635 75%, #FACC15 100%) !important;
+    background: #fff !important;
   }
 
   /* Desktop side info visible */
@@ -2602,8 +2602,9 @@ body:has(.lp-shell) {
   --pf-safe-bottom: max(14px, env(safe-area-inset-bottom, 0px));
 }
 
+/* ゲームページの外側(スマホ枠の外)は全画面とも白背景にする */
 body:has(.game-body) {
-  background: linear-gradient(180deg, #A78BFA 0%, #60A5FA 25%, #4ADE80 50%, #A3E635 75%, #FACC15 100%);
+  background: #fff;
 }
 
 body:has(.game-body)::before {
@@ -4624,7 +4625,7 @@ body:has(.game-body)::before {
 
 .game-body .pf-choice {
   display: grid;
-  grid-template-columns: 38px 1fr;
+  grid-template-columns: auto 1fr;
   gap: 10px;
   align-items: center;
   background: #fff;
@@ -5316,7 +5317,7 @@ body:has(.game-body)::before {
 
 @media (max-width: 767px) {
   body:has(.game-body) {
-    background: linear-gradient(180deg, #A78BFA 0%, #60A5FA 25%, #4ADE80 50%, #A3E635 75%, #FACC15 100%);
+    background: #fff;
     background-size: auto;
   }
 
